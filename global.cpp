@@ -126,7 +126,7 @@ WeaponBox creatWeaponBox(VectorXY position, VectorXY velocity, VectorXY accelera
     weaponBox.position     = position;
     weaponBox.velocity     = velocity;
     weaponBox.acceleration = acceleration;
-    weaponBox.content      = 0;    // TODO
+    weaponBox.content      = rand() % kMaxWeaponNum + 1;
     weaponBox.picked       = false;
     weaponBox.hPicture     = hPicture;
     return weaponBox;

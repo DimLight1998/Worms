@@ -573,10 +573,10 @@ void renderGame(HWND hWnd)
 
 
     // 绘制比分
-    TCHAR szDist[1000] = L"";                                  // 目测是比分字符串
-    SetTextColor(hdcBuffer, RGB(255, 255, 255));               // 设置颜色
-    SetBkMode(hdcBuffer, TRANSPARENT);                         // 目测是字符串背景属性，设成透明
-    wsprintf(szDist, L"Debug : Wind now : %d", gWindPower);    // 猜测是把一个字符串赋给前面
+    TCHAR szDist[1000] = L"";                                                                                                                                                                               // 目测是比分字符串
+    SetTextColor(hdcBuffer, RGB(255, 255, 255));                                                                                                                                                            // 设置颜色
+    SetBkMode(hdcBuffer, TRANSPARENT);                                                                                                                                                                      // 目测是字符串背景属性，设成透明
+    wsprintf(szDist, L"%d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);    // 猜测是把一个字符串赋给前面
     TextOut(hdcBuffer, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
 
 
@@ -2057,7 +2057,41 @@ void weaponBoxUpdate(void)
                 gWeaponBox[i].position.y++;
             }
         }
+
+        for (int j = 0; j < gFactionNumber; j++)
+            for (int k = 0; k < gRobotNumberPerFaction; k++)
+            {
+                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                int boxCenterX           = gWeaponBox[i].position.x + kWeaponBoxSizeX / 2;
+                int boxCenterY           = gWeaponBox[i].position.y + kWeaponBoxSizeY / 2;
+                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+                {
+                    gWeaponBox[i].picked = true;
+
+                    switch (gWeaponBox[i].content)
+                    {
+                    case iMissile:
+                        if (faction[j].ammoMissile >= 0)
+                            faction[j].ammoMissile++;
+                        break;
+                    case iGrenade:
+                        if (faction[j].ammoGrenade >= 0)
+                            faction[j].ammoGrenade++;
+                        break;
+                    case iStickyBomb:
+                        if (faction[j].ammoStickyBomb >= 0)
+                            faction[j].ammoStickyBomb++;
+                        break;
+                    case iTNT:
+                        if (faction[j].ammoTNT >= 0)
+                            faction[j].ammoTNT++;
+                        break;
+                    }
+                }
+            }
     }
+
 
     // 武器箱自由落体处理
     for (int i = 0; i < kMaxWeaponBoxNum; i++)
