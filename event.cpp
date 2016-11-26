@@ -99,10 +99,11 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
 
-
+    // 
     gFactionNumber         = kMaxFactionNumber;
     gRobotNumberPerFaction = kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
+    // 
 
     // 初始化箱子，会自动更新
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
