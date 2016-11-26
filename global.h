@@ -71,7 +71,13 @@ const int kFacingRight              = 2;
 const int kPickingBoxRange          = 20;
 const int kFrameSwitchFrequency     = 3;
 
-
+// 武器规则 / 索引
+const int kAmmoInfinity = -1;
+const int iNoWeapon     = 0;
+const int iMissile      = 1;
+const int iGrenade      = 2;
+const int iStickyBomb   = 3;
+const int iTNT          = 4;
 // 武器规则 / 导弹
 const int kMissileSizeX          = 34;     // 导弹实体宽度
 const int kMissileSizeY          = 15;     // 导弹实体高度
@@ -81,6 +87,7 @@ const int kMissileHarm           = 300;    // 导弹伤害值
 const int kMissileHarmRange      = 40;     // 导弹伤害范围
 const int kMissileSenseDistance  = 20;     // 导弹被机器人触发范围
 const int kMissileExplosionPower = 6;      // 导弹震波
+const int kMissileDefaultAmmo    = -1;     // 无限，用-1表示
 // 武器规则 / 手雷
 const int kGrenadeExplodeTime    = 150;    // 手雷爆炸前的时间
 const int kGrenadeSizeX          = 14;     // 手雷实体宽度
@@ -90,6 +97,7 @@ const int kGrenadeEdgeIngnorance = 2;      // 手雷碰撞边缘检测
 const int kGrenadeHarm           = 400;    // 手雷伤害
 const int kGrenadeHarmRange      = 50;     // 手雷伤害范围
 const int kGrenadeExplosionPower = 12;     // 手雷震波
+const int kGrenadeDefaultAmmo    = -1;     // 无限，用-1表示
 // 武器规则 / 粘性炸弹
 const int kStickyBombExplodeTime    = 150;
 const int kStickyBombSizeX          = 22;     // 粘性炸弹实体宽度
@@ -99,6 +107,7 @@ const int kStickyBombEdgeIngnorance = 3;      // 粘性炸弹碰撞边缘检测
 const int kStickyBombHarm           = 600;    // 粘性炸弹伤害
 const int kStickyBombHarmRange      = 100;    // 粘性炸弹伤害范围
 const int kStickyBombExplosionPower = 15;     // 粘性炸弹震波
+const int kStickyBombDefaultAmmo    = 3;
 // 武器规则 / 炸药
 const int kTNTExplodeTime    = 200;
 const int kTNTSizeX          = 10;     // 炸药实体宽度
@@ -108,23 +117,24 @@ const int kTNTEdgeIngnorance = 3;      // 炸药碰撞边缘检测
 const int kTNTHarm           = 800;    // 炸药伤害
 const int kTNTHarmRange      = 200;    // 炸药伤害范围
 const int kTNTExplosionPower = 20;     // 炸药震波
+const int kTNTDefaultAmmo    = 1;
 
-
+// 补给箱规则 / 索引
+const int kMedicalBoxNumber = 1;
+const int kWeaponBoxNumber  = 2;
+const int kSkillBoxNumber   = 3;
 // 补给箱规则 / 医疗箱
-const int kMedicalBoxNumber         = 1;
 const int kMedicalBoxSizeX          = 32;
 const int kMedicalBoxSizeY          = 28;
 const int kMaxMedicalBoxNum         = 2;
 const int kMedicalBoxEdgeIngnorance = 3;
 const int kMedicalBoxEffect         = 200;
 // 补给箱规则 / 武器箱
-const int kWeaponBoxNumber         = 2;
 const int kWeaponBoxSizeX          = 32;
 const int kWeaponBoxSizeY          = 28;
 const int kMaxWeaponBoxNum         = 2;
 const int kWeaponBoxEdgeIngnorance = 3;
 // 补给箱规则 / 技能箱
-const int kSkillBoxNumber         = 3;
 const int kSkillBoxSizeX          = 32;
 const int kSkillBoxSizeY          = 28;
 const int kMaxSkillBoxNum         = 2;
@@ -252,6 +262,10 @@ struct Faction
     bool  alive;
     Robot robot[kMaxRobotNumberPerFaction];
     int   aliveRobot;
+    int   ammoMissile;
+    int   ammoGrenade;
+    int   ammoStickyBomb;
+    int   ammoTNT;
 };
 
 struct Terrain

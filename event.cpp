@@ -99,11 +99,11 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
 
-    // 
+    //
     gFactionNumber         = kMaxFactionNumber;
     gRobotNumberPerFaction = kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
-    // 
+    //
 
     // 初始化箱子，会自动更新
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
@@ -1025,9 +1025,9 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
     // 更新全局武器状态
     switch (gWeaponSelected)
     {
-    case 0:
+    case iNoWeapon:
         break;
-    case 1:
+    case iMissile:
         if (gMissileActivated)
         {
             gMissile.acceleration.x = gWindPower * kWindPowerFactor;
@@ -1062,7 +1062,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             }
         }
         break;
-    case 2:    // 因为手雷需要有和机器人类似的碰撞特性，所以把代码搬过来
+    case iGrenade:    // 因为手雷需要有和机器人类似的碰撞特性，所以把代码搬过来
         if (gGrenadeActivated)
         {
             if (!gGrenade.locked)
@@ -1121,7 +1121,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             gGrenade.timeToExplode--;
         }
         break;
-    case 3:
+    case iStickyBomb:
         if (gStickyBombActivated)
         {
             if (!gStickyBomb.locked)
@@ -1176,7 +1176,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             gStickyBomb.timeToExplode--;
         }
         break;
-    case 4:
+    case iTNT:
         if (gTNTActivated)
         {
             if (!gTNT.locked)
@@ -1256,53 +1256,79 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
 
     switch (gWeaponSelected)
     {
-    case 0:
+    case iNoWeapon:
         break;
-    case 1:
-        gMissileActivated = true;
-
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gMissile       = creatMissile(position, velocity, acceleration, hMissilePictureRight);
-        gPower         = 0;
+    case iMissile:
+        if (faction[gFactionControlled].ammoMissile == kAmmoInfinity || faction[gFactionControlled].ammoMissile > 0)
+        {
+            gMissileActivated = true;
+            if (faction[gFactionControlled].ammoMissile > 0)
+            {
+                faction[gFactionControlled].ammoMissile--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gMissile       = creatMissile(position, velocity, acceleration, hMissilePictureRight);
+        }
+        gPower = 0;
         break;
-    case 2:
-        gGrenadeActivated = true;
-
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gGrenade       = creatGrenade(position, velocity, acceleration, hGrenadePicture);
-        gPower         = 0;
+    case iGrenade:
+        if (faction[gFactionControlled].ammoGrenade == kAmmoInfinity || faction[gFactionControlled].ammoGrenade > 0)
+        {
+            gGrenadeActivated = true;
+            if (faction[gFactionControlled].ammoGrenade > 0)
+            {
+                faction[gFactionControlled].ammoGrenade--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gGrenade       = creatGrenade(position, velocity, acceleration, hGrenadePicture);
+        }
+        gPower = 0;
         break;
-    case 3:
-        gStickyBombActivated = true;
-        position.x           = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y           = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x           = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y           = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x       = 0;
-        acceleration.y       = kGravityAcceleration;
-        gStickyBomb          = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
-        gPower               = 0;
+    case iStickyBomb:
+        if (faction[gFactionControlled].ammoStickyBomb == kAmmoInfinity || faction[gFactionControlled].ammoStickyBomb > 0)
+        {
+            gStickyBombActivated = true;
+            if (faction[gFactionControlled].ammoStickyBomb > 0)
+            {
+                faction[gFactionControlled].ammoStickyBomb--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gStickyBomb    = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
+        }
+        gPower = 0;
         break;
-    case 4:
-        gTNTActivated  = true;
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gTNT           = creatTNT(position, velocity, acceleration, hTNTPicture);
-        gPower         = 0;
+    case iTNT:
+        if (faction[gFactionControlled].ammoTNT == kAmmoInfinity || faction[gFactionControlled].ammoTNT > 0)
+        {
+            gTNTActivated = true;
+            if (faction[gFactionControlled].ammoTNT > 0)
+            {
+                faction[gFactionControlled].ammoTNT--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gTNT           = creatTNT(position, velocity, acceleration, hTNTPicture);
+        }
+        gPower = 0;
         break;
     }
 }
