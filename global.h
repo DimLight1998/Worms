@@ -66,6 +66,7 @@ const int kRobotVelocityJumping     = 2;
 const int kRobotVelocityY_startJump = 15;    // 机器人跳起速度
 const int kRobotEdgeIngnorance      = 3;     // 处理碰撞时的机器人边缘忽略
 const int kMaxWeaponNum             = 4;     // 机器人携带武器种类数，每次追加武器时更改该值
+const int kMaxSkillNum              = 3;
 const int kFacingLeft               = 1;
 const int kFacingRight              = 2;
 const int kPickingBoxRange          = 20;
@@ -118,6 +119,21 @@ const int kTNTHarm           = 800;    // 炸药伤害
 const int kTNTHarmRange      = 200;    // 炸药伤害范围
 const int kTNTExplosionPower = 20;     // 炸药震波
 const int kTNTDefaultAmmo    = 1;
+
+
+// 技能规则 / 索引
+const int iNoSkill       = 0;    // 无技能
+const int iCure          = 1;    // 治疗技能
+const int iTransport     = 2;    // 随机传送技能
+const int iSafeTransport = 3;    // 安全传送技能
+const int iFly           = 4;    // 飞行技能
+// 技能规则 / 参数
+const int kCureEffect              = 500;
+const int kCureDefaultAmmo         = 2;
+const int kTransportDefaultAmmo    = 2;
+const int kSafeTransportDefaulAmmo = 2;
+const int kFlyDefaultAmmo          = 2;
+
 
 // 补给箱规则 / 索引
 const int kMedicalBoxNumber = 1;
