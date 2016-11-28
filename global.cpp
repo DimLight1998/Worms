@@ -7,7 +7,8 @@ Robot creatRobot(int faction, VectorXY position)
     robot.hitPoint        = kRobotFullHitPoint;
     robot.direction       = (rand() % 2) ? kFacingLeft : kFacingRight;
     robot.alive           = true;
-    robot.weapon          = 0;
+    robot.weapon          = iNoWeapon;
+    robot.skill           = iNoSkill;
     robot.isJumping       = false;
     robot.position        = position;
     robot.velocity.x      = 0;
@@ -33,11 +34,15 @@ Faction creatFaction(int factionNumber)
         temp.y           = kWorldHeight / 2;
         faction.robot[i] = creatRobot(factionNumber, temp);
     }
-    faction.aliveRobot     = kMaxRobotNumberPerFaction;
-    faction.ammoMissile    = kMissileDefaultAmmo;
-    faction.ammoGrenade    = kGrenadeDefaultAmmo;
-    faction.ammoStickyBomb = kStickyBombDefaultAmmo;
-    faction.ammoTNT        = kTNTDefaultAmmo;
+    faction.aliveRobot        = kMaxRobotNumberPerFaction;
+    faction.ammoMissile       = kMissileDefaultAmmo;
+    faction.ammoGrenade       = kGrenadeDefaultAmmo;
+    faction.ammoStickyBomb    = kStickyBombDefaultAmmo;
+    faction.ammoTNT           = kTNTDefaultAmmo;
+    faction.ammoCure          = kCureDefaultAmmo;
+    faction.ammoTransport     = kTransportDefaultAmmo;
+    faction.ammoSafeTransport = kSafeTransportDefaulAmmo;
+    faction.ammoFly           = kFlyDefaultAmmo;
     return faction;
 }
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture)

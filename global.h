@@ -262,6 +262,7 @@ struct Robot
     int      direction;
     bool     alive;
     int      weapon;
+    int      skill;
     BOOL     isJumping;
     VectorXY position;
     VectorXY velocity;
@@ -282,6 +283,10 @@ struct Faction
     int   ammoGrenade;
     int   ammoStickyBomb;
     int   ammoTNT;
+    int   ammoCure;
+    int   ammoTransport;
+    int   ammoSafeTransport;
+    int   ammoFly;
 };
 
 struct Terrain
