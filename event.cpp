@@ -51,9 +51,12 @@ bool gGrenadeActivated    = false;    // 2
 bool gStickyBombActivated = false;    // 3
 bool gTNTActivated        = false;    // 4
 
-bool gRobotSkillOn  = false;
-bool gSkillSelected = 0;
-bool gFlyActivated  = false;
+bool gRobotSkillOn         = false;
+int  gSkillSelected        = 0;
+bool gSkillRangeSelecting  = false;
+bool gSkillTargetSelecting = false;
+int  gSkillTargetFaction   = -1;
+int  gSkillTargetRobot     = -1;
 
 
 int  gChangingWeaponAngle   = 0;        // 用以指定武器旋转状态，值为1为逆时针旋转，-1为顺时针，0为不旋转
@@ -582,6 +585,8 @@ void renderGame(HWND hWnd)
     SetBkMode(hdcBuffer, TRANSPARENT);                                                                                                                                                                      // 目测是字符串背景属性，设成透明
     wsprintf(szDist, L"%d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);    // 猜测是把一个字符串赋给前面
     TextOut(hdcBuffer, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"weapon %d   skill %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
+    TextOut(hdcBuffer, kWindowWidth - 500, 25, szDist, _tcslen(szDist));
 
 
     // 绘制到屏幕
@@ -751,8 +756,16 @@ void robotUpdate(void)
             }
 
 
+
             if (faction[i].robot[j].alive)
             {
+                if(faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime>0)
+                {
+                    // TODO
+                    // 机器人护甲时间递减    
+                }
+
+
                 if ((faction[i].robot[j].direction == kFacingLeft) && (faction[i].robot[j].velocity.x > 0))
                 {
                     faction[i].robot[j].hPicture  = hRobotPicture[i + gFactionNumber];
@@ -1909,6 +1922,83 @@ bool TNTLanded(void)
             return true;
     return false;
 }
+
+
+void skillActivate(void)    // TODO 记得把数量给减掉
+{
+    switch (gSkillSelected)
+    {
+    case iNoSkill:
+        break;
+    case iCure:
+        if (faction[gFactionControlled].ammoCure == kAmmoInfinity || faction[gFactionControlled].ammoCure > 0)
+        {
+            if (faction[gFactionControlled].ammoCure > 0)
+            {
+                faction[gFactionControlled].ammoCure--;
+            }
+            faction[gSkillTargetFaction].robot[gSkillTargetRobot].hitPoint += kCureEffect;
+        }
+        break;
+    case iTransfer:
+        if (faction[gFactionControlled].ammoTransfer == kAmmoInfinity || faction[gFactionControlled].ammoTransfer > 0)
+        {
+            if (faction[gFactionControlled].ammoTransfer > 0)
+            {
+                faction[gFactionControlled].ammoTransfer--;
+            }
+            faction[gFactionControlled].robot[gRobotControlled].direction  = (rand() % 2) ? kFacingLeft : kFacingRight;
+            faction[gFactionControlled].robot[gRobotControlled].position.x = rand() % (kWorldWidth + 1);
+            faction[gFactionControlled].robot[gRobotControlled].position.y = kWorldHeight / 2;
+            while (robotInTerrain(gFactionControlled, gRobotControlled))
+            {
+                faction[gFactionControlled].robot[gRobotControlled].position.y--;
+            }
+            while (robotLanded(gFactionControlled, gRobotControlled))
+            {
+                faction[gFactionControlled].robot[gRobotControlled].position.y++;
+            }
+        }
+        break;
+    case iSafeTransfer:
+        if (faction[gFactionControlled].ammoSafeTransfer == kAmmoInfinity || faction[gFactionControlled].ammoSafeTransfer > 0)
+        {
+            if (faction[gFactionControlled].ammoSafeTransfer > 0)
+            {
+                faction[gFactionControlled].ammoSafeTransfer--;
+            }
+            if (faction[gFactionControlled].aliveRobot > 1)
+            {
+                int transferTo = gRobotControlled;
+                while ((transferTo == gRobotControlled) || (!faction[gFactionControlled].robot[transferTo].alive))
+                {
+                    transferTo = rand() % gRobotNumberPerFaction;
+                }
+
+                faction[gFactionControlled].robot[gRobotControlled].direction  = (rand() % 2) ? kFacingLeft : kFacingRight;
+                faction[gFactionControlled].robot[gRobotControlled].position.x = faction[gFactionControlled].robot[transferTo].position.x;
+                faction[gFactionControlled].robot[gRobotControlled].position.y = faction[gFactionControlled].robot[transferTo].position.y;
+            }
+        }
+        break;
+    case iProtect:
+        if (faction[gFactionControlled].ammoProtect == kAmmoInfinity || faction[gFactionControlled].ammoProtect > 0)
+        {
+            if (faction[gFactionControlled].ammoProtect > 0)
+            {
+                faction[gFactionControlled].ammoProtect--;
+            }
+            if (faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime <= 0)
+            {
+                faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime = kProtectiveShellTime;
+            }
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 /*
 ████████ ███████ ██████  ██████   █████  ██ ███    ██ ██    ██ ██████  ██████   █████  ████████ ███████
    ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -2096,7 +2186,6 @@ void weaponBoxUpdate(void)
             }
     }
 
-
     // 武器箱自由落体处理
     for (int i = 0; i < kMaxWeaponBoxNum; i++)
     {
@@ -2176,6 +2265,39 @@ void skillBoxUpdate(void)
                 gSkillBox[i].position.y++;
             }
         }
+
+        for (int j = 0; j < gFactionNumber; j++)
+            for (int k = 0; k < gRobotNumberPerFaction; k++)
+            {
+                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                int boxCenterX           = gSkillBox[i].position.x + kSkillBoxSizeX / 2;
+                int boxCenterY           = gSkillBox[i].position.y + kSkillBoxSizeY / 2;
+                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+                {
+                    gSkillBox[i].picked = true;
+
+                    switch (gSkillBox[i].content)
+                    {
+                    case iCure:
+                        if (faction[j].ammoCure >= 0)
+                            faction[j].ammoCure++;
+                        break;
+                    case iGrenade:
+                        if (faction[j].ammoTransfer >= 0)
+                            faction[j].ammoTransfer++;
+                        break;
+                    case iStickyBomb:
+                        if (faction[j].ammoSafeTransfer >= 0)
+                            faction[j].ammoSafeTransfer++;
+                        break;
+                    case iTNT:
+                        if (faction[j].ammoProtect >= 0)
+                            faction[j].ammoProtect++;
+                        break;
+                    }
+                }
+            }
     }
 
     // 技能箱自由落体处理

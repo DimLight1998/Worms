@@ -3,22 +3,23 @@
 Robot creatRobot(int faction, VectorXY position)
 {
     Robot robot;
-    robot.faction         = faction;
-    robot.hitPoint        = kRobotFullHitPoint;
-    robot.direction       = (rand() % 2) ? kFacingLeft : kFacingRight;
-    robot.alive           = true;
-    robot.weapon          = iNoWeapon;
-    robot.skill           = iNoSkill;
-    robot.isJumping       = false;
-    robot.position        = position;
-    robot.velocity.x      = 0;
-    robot.velocity.y      = 0;
-    robot.acceleration.x  = 0;
-    robot.acceleration.y  = 0;
-    robot.hPicture        = 0;
-    robot.maxFrameNum     = kMaxRobotFrameNum;
-    robot.currentFrameNum = 0;
-    robot.frameCounter    = 0;
+    robot.faction           = faction;
+    robot.hitPoint          = kRobotFullHitPoint;
+    robot.direction         = (rand() % 2) ? kFacingLeft : kFacingRight;
+    robot.alive             = true;
+    robot.weapon            = iNoWeapon;
+    robot.skill             = iNoSkill;
+    robot.protectiveShellTime = 0;
+    robot.isJumping         = false;
+    robot.position          = position;
+    robot.velocity.x        = 0;
+    robot.velocity.y        = 0;
+    robot.acceleration.x    = 0;
+    robot.acceleration.y    = 0;
+    robot.hPicture          = 0;
+    robot.maxFrameNum       = kMaxRobotFrameNum;
+    robot.currentFrameNum   = 0;
+    robot.frameCounter      = 0;
     return robot;
 }
 
@@ -34,15 +35,15 @@ Faction creatFaction(int factionNumber)
         temp.y           = kWorldHeight / 2;
         faction.robot[i] = creatRobot(factionNumber, temp);
     }
-    faction.aliveRobot        = kMaxRobotNumberPerFaction;
-    faction.ammoMissile       = kMissileDefaultAmmo;
-    faction.ammoGrenade       = kGrenadeDefaultAmmo;
-    faction.ammoStickyBomb    = kStickyBombDefaultAmmo;
-    faction.ammoTNT           = kTNTDefaultAmmo;
-    faction.ammoCure          = kCureDefaultAmmo;
-    faction.ammoTransport     = kTransportDefaultAmmo;
-    faction.ammoSafeTransport = kSafeTransportDefaulAmmo;
-    faction.ammoFly           = kFlyDefaultAmmo;
+    faction.aliveRobot       = kMaxRobotNumberPerFaction;
+    faction.ammoMissile      = kMissileDefaultAmmo;
+    faction.ammoGrenade      = kGrenadeDefaultAmmo;
+    faction.ammoStickyBomb   = kStickyBombDefaultAmmo;
+    faction.ammoTNT          = kTNTDefaultAmmo;
+    faction.ammoCure         = kCureDefaultAmmo;
+    faction.ammoTransfer     = kTransferDefaultAmmo;
+    faction.ammoSafeTransfer = kSafeTransferDefaulAmmo;
+    faction.ammoProtect      = kProtectDefaultAmmo;
     return faction;
 }
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture)
@@ -131,7 +132,7 @@ WeaponBox creatWeaponBox(VectorXY position, VectorXY velocity, VectorXY accelera
     weaponBox.position     = position;
     weaponBox.velocity     = velocity;
     weaponBox.acceleration = acceleration;
-    weaponBox.content      = rand() % kMaxWeaponNum + 1;
+    weaponBox.content      = rand() % kMaxWeaponNum + 1;    // TODO issue
     weaponBox.picked       = false;
     weaponBox.hPicture     = hPicture;
     return weaponBox;
@@ -142,7 +143,7 @@ SkillBox creatSkillBox(VectorXY position, VectorXY velocity, VectorXY accelerati
     skillBox.position     = position;
     skillBox.velocity     = velocity;
     skillBox.acceleration = acceleration;
-    skillBox.content      = 0;    // TODO
+    skillBox.content      = rand() % kMaxSkillNum + 1;    // TODO issue
     skillBox.picked       = false;
     skillBox.hPicture     = hPicture;
     return skillBox;
