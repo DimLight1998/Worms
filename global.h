@@ -66,7 +66,7 @@ const int kRobotVelocityJumping     = 2;
 const int kRobotVelocityY_startJump = 15;    // 机器人跳起速度
 const int kRobotEdgeIngnorance      = 3;     // 处理碰撞时的机器人边缘忽略
 const int kMaxWeaponNum             = 4;     // 机器人携带武器种类数，每次追加武器时更改该值
-const int kMaxSkillNum              = 3;
+const int kMaxSkillNum              = 4;     // 最大技能数
 const int kFacingLeft               = 1;
 const int kFacingRight              = 2;
 const int kPickingBoxRange          = 20;
@@ -122,17 +122,18 @@ const int kTNTDefaultAmmo    = 1;
 
 
 // 技能规则 / 索引
-const int iNoSkill       = 0;    // 无技能
-const int iCure          = 1;    // 治疗技能
-const int iTransport     = 2;    // 随机传送技能
-const int iSafeTransport = 3;    // 安全传送技能
-const int iFly           = 4;    // 飞行技能
+const int iNoSkill      = 0;    // 无技能
+const int iCure         = 1;    // 治疗技能
+const int iTransfer     = 2;    // 随机传送技能
+const int iSafeTransfer = 3;    // 安全传送技能
+const int iProtect      = 4;    // 护盾技能
 // 技能规则 / 参数
-const int kCureEffect              = 500;
-const int kCureDefaultAmmo         = 2;
-const int kTransportDefaultAmmo    = 2;
-const int kSafeTransportDefaulAmmo = 2;
-const int kFlyDefaultAmmo          = 2;
+const int kCureEffect             = 500;
+const int kCureDefaultAmmo        = 2;
+const int kTransferDefaultAmmo    = 2;
+const int kSafeTransferDefaulAmmo = 2;
+const int kProtectDefaultAmmo     = 2;
+const int kProtectiveShellTime    = 10;
 
 
 // 补给箱规则 / 索引
@@ -264,6 +265,7 @@ struct Robot
     int      weapon;
     int      skill;
     BOOL     isJumping;
+    int      protectiveShellTime;
     VectorXY position;
     VectorXY velocity;
     VectorXY acceleration;
@@ -284,9 +286,9 @@ struct Faction
     int   ammoStickyBomb;
     int   ammoTNT;
     int   ammoCure;
-    int   ammoTransport;
-    int   ammoSafeTransport;
-    int   ammoFly;
+    int   ammoTransfer;
+    int   ammoSafeTransfer;
+    int   ammoProtect;
 };
 
 struct Terrain

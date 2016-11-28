@@ -38,6 +38,8 @@ bool stickyBombInTerrain(void);
 bool TNTInTerrain(void);
 bool TNTLanded(void);
 
+void skillActivate(void);
+
 void medicalBoxUpdate(void);
 void weaponBoxUpdate(void);
 void skillBoxUpdate(void);
