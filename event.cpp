@@ -51,6 +51,10 @@ bool gGrenadeActivated    = false;    // 2
 bool gStickyBombActivated = false;    // 3
 bool gTNTActivated        = false;    // 4
 
+bool gRobotSkillOn  = false;
+bool gSkillSelected = 0;
+bool gFlyActivated  = false;
+
 
 int  gChangingWeaponAngle   = 0;        // 用以指定武器旋转状态，值为1为逆时针旋转，-1为顺时针，0为不旋转
 bool gIncreasingWeaponPower = false;    // 用以指定是否在加大武器力量，0为在加大，1为未加大
@@ -99,11 +103,11 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
 
-    // 
+    //
     gFactionNumber         = kMaxFactionNumber;
     gRobotNumberPerFaction = kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
-    // 
+    //
 
     // 初始化箱子，会自动更新
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
@@ -573,10 +577,10 @@ void renderGame(HWND hWnd)
 
 
     // 绘制比分
-    TCHAR szDist[1000] = L"";                                  // 目测是比分字符串
-    SetTextColor(hdcBuffer, RGB(255, 255, 255));               // 设置颜色
-    SetBkMode(hdcBuffer, TRANSPARENT);                         // 目测是字符串背景属性，设成透明
-    wsprintf(szDist, L"Debug : Wind now : %d", gWindPower);    // 猜测是把一个字符串赋给前面
+    TCHAR szDist[1000] = L"";                                                                                                                                                                               // 目测是比分字符串
+    SetTextColor(hdcBuffer, RGB(255, 255, 255));                                                                                                                                                            // 设置颜色
+    SetBkMode(hdcBuffer, TRANSPARENT);                                                                                                                                                                      // 目测是字符串背景属性，设成透明
+    wsprintf(szDist, L"%d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);    // 猜测是把一个字符串赋给前面
     TextOut(hdcBuffer, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
 
 
@@ -1025,9 +1029,9 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
     // 更新全局武器状态
     switch (gWeaponSelected)
     {
-    case 0:
+    case iNoWeapon:
         break;
-    case 1:
+    case iMissile:
         if (gMissileActivated)
         {
             gMissile.acceleration.x = gWindPower * kWindPowerFactor;
@@ -1062,7 +1066,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             }
         }
         break;
-    case 2:    // 因为手雷需要有和机器人类似的碰撞特性，所以把代码搬过来
+    case iGrenade:    // 因为手雷需要有和机器人类似的碰撞特性，所以把代码搬过来
         if (gGrenadeActivated)
         {
             if (!gGrenade.locked)
@@ -1121,7 +1125,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             gGrenade.timeToExplode--;
         }
         break;
-    case 3:
+    case iStickyBomb:
         if (gStickyBombActivated)
         {
             if (!gStickyBomb.locked)
@@ -1176,7 +1180,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             gStickyBomb.timeToExplode--;
         }
         break;
-    case 4:
+    case iTNT:
         if (gTNTActivated)
         {
             if (!gTNT.locked)
@@ -1256,53 +1260,79 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
 
     switch (gWeaponSelected)
     {
-    case 0:
+    case iNoWeapon:
         break;
-    case 1:
-        gMissileActivated = true;
-
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gMissile       = creatMissile(position, velocity, acceleration, hMissilePictureRight);
-        gPower         = 0;
+    case iMissile:
+        if (faction[gFactionControlled].ammoMissile == kAmmoInfinity || faction[gFactionControlled].ammoMissile > 0)
+        {
+            gMissileActivated = true;
+            if (faction[gFactionControlled].ammoMissile > 0)
+            {
+                faction[gFactionControlled].ammoMissile--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gMissile       = creatMissile(position, velocity, acceleration, hMissilePictureRight);
+        }
+        gPower = 0;
         break;
-    case 2:
-        gGrenadeActivated = true;
-
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gGrenade       = creatGrenade(position, velocity, acceleration, hGrenadePicture);
-        gPower         = 0;
+    case iGrenade:
+        if (faction[gFactionControlled].ammoGrenade == kAmmoInfinity || faction[gFactionControlled].ammoGrenade > 0)
+        {
+            gGrenadeActivated = true;
+            if (faction[gFactionControlled].ammoGrenade > 0)
+            {
+                faction[gFactionControlled].ammoGrenade--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gGrenade       = creatGrenade(position, velocity, acceleration, hGrenadePicture);
+        }
+        gPower = 0;
         break;
-    case 3:
-        gStickyBombActivated = true;
-        position.x           = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y           = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x           = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y           = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x       = 0;
-        acceleration.y       = kGravityAcceleration;
-        gStickyBomb          = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
-        gPower               = 0;
+    case iStickyBomb:
+        if (faction[gFactionControlled].ammoStickyBomb == kAmmoInfinity || faction[gFactionControlled].ammoStickyBomb > 0)
+        {
+            gStickyBombActivated = true;
+            if (faction[gFactionControlled].ammoStickyBomb > 0)
+            {
+                faction[gFactionControlled].ammoStickyBomb--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gStickyBomb    = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
+        }
+        gPower = 0;
         break;
-    case 4:
-        gTNTActivated  = true;
-        position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-        position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-        velocity.x     = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
-        velocity.y     = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
-        acceleration.x = 0;
-        acceleration.y = kGravityAcceleration;
-        gTNT           = creatTNT(position, velocity, acceleration, hTNTPicture);
-        gPower         = 0;
+    case iTNT:
+        if (faction[gFactionControlled].ammoTNT == kAmmoInfinity || faction[gFactionControlled].ammoTNT > 0)
+        {
+            gTNTActivated = true;
+            if (faction[gFactionControlled].ammoTNT > 0)
+            {
+                faction[gFactionControlled].ammoTNT--;
+            }
+            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x     = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y     = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x = 0;
+            acceleration.y = kGravityAcceleration;
+            gTNT           = creatTNT(position, velocity, acceleration, hTNTPicture);
+        }
+        gPower = 0;
         break;
     }
 }
@@ -2031,7 +2061,41 @@ void weaponBoxUpdate(void)
                 gWeaponBox[i].position.y++;
             }
         }
+
+        for (int j = 0; j < gFactionNumber; j++)
+            for (int k = 0; k < gRobotNumberPerFaction; k++)
+            {
+                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                int boxCenterX           = gWeaponBox[i].position.x + kWeaponBoxSizeX / 2;
+                int boxCenterY           = gWeaponBox[i].position.y + kWeaponBoxSizeY / 2;
+                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+                {
+                    gWeaponBox[i].picked = true;
+
+                    switch (gWeaponBox[i].content)
+                    {
+                    case iMissile:
+                        if (faction[j].ammoMissile >= 0)
+                            faction[j].ammoMissile++;
+                        break;
+                    case iGrenade:
+                        if (faction[j].ammoGrenade >= 0)
+                            faction[j].ammoGrenade++;
+                        break;
+                    case iStickyBomb:
+                        if (faction[j].ammoStickyBomb >= 0)
+                            faction[j].ammoStickyBomb++;
+                        break;
+                    case iTNT:
+                        if (faction[j].ammoTNT >= 0)
+                            faction[j].ammoTNT++;
+                        break;
+                    }
+                }
+            }
     }
+
 
     // 武器箱自由落体处理
     for (int i = 0; i < kMaxWeaponBoxNum; i++)
@@ -2366,7 +2430,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     switch (wParam)
     {
     case 'W':    // W键上跳，设定速度与加速度。跳起后，无法控制。
-        if ((!gRobotWeaponOn) && (!faction[gFactionControlled].robot[gRobotControlled].isJumping))
+        if ((!gRobotSkillOn) && (!gRobotWeaponOn) && (!faction[gFactionControlled].robot[gRobotControlled].isJumping))
         {
             faction[gFactionControlled].robot[gRobotControlled].velocity.y     = -kRobotVelocityY_startJump;
             faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
@@ -2382,7 +2446,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 'A':
-        if ((!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+        if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
         {
             if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
                 faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityX;
@@ -2391,7 +2455,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 'D':
-        if ((!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+        if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
         {
             if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
                 faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityX;
@@ -2399,12 +2463,18 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
         }
         break;
-    case 'R':
+    case 'R':    // 根据目前打开的界面来决定自己的功能
         if (gRobotWeaponOn)
         {
             faction[gFactionControlled].robot[gRobotControlled].weapon++;
             if (faction[gFactionControlled].robot[gRobotControlled].weapon == kMaxWeaponNum + 1)
                 faction[gFactionControlled].robot[gRobotControlled].weapon = 0;
+        }
+        if (gRobotSkillOn)
+        {
+            faction[gFactionControlled].robot[gRobotControlled].skill++;
+            if (faction[gFactionControlled].robot[gRobotControlled].skill == kMaxSkillNum + 1)
+                faction[gFactionControlled].robot[gRobotControlled].skill = 0;
         }
         break;
     case '\t':    // Tab键切换机器人，只在调试时使用
@@ -2427,6 +2497,10 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         gRobotWeaponOn   = false;
         break;
     case 'F':
+        if (gRobotSkillOn)
+        {
+            gRobotSkillOn = false;
+        }
         if (!gRobotWeaponOn)
         {
             gRobotWeaponOn  = true;
@@ -2435,7 +2509,23 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         else
         {
             gRobotWeaponOn  = false;
-            gWeaponSelected = 0;
+            gWeaponSelected = iNoWeapon;
+        }
+        break;
+    case 'S':
+        if (gRobotWeaponOn)    // 关闭武器选择系统
+        {
+            gRobotWeaponOn = false;
+        }
+        if (!gRobotSkillOn)    // 打开技能界面
+        {
+            gRobotSkillOn  = true;
+            gSkillSelected = faction[gFactionControlled].robot[gRobotControlled].skill;
+        }
+        else    // 关闭技能界面
+        {
+            gRobotSkillOn  = false;
+            gSkillSelected = iNoSkill;
         }
         break;
     case 'Q':
@@ -2464,17 +2554,18 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
+    // do not use:
     case 28:
-        gCameraY--;
+        //gCameraY--;
         break;
     case 40:
-        gCameraY++;
+        //gCameraY++;
         break;
     case 37:
-        gCameraX--;
+        //gCameraX--;
         break;
     case 39:
-        gCameraX++;
+        //gCameraX++;
         break;
     default:
         break;

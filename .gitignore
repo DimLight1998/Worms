@@ -5,3 +5,4 @@ stock/
 *.rc
 *.vcxproj
 *.filters
+*.user
