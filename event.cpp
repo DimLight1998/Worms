@@ -409,7 +409,7 @@ void renderGame(HWND hWnd)
     BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
 
 
-    // [old // 绘制所有的地块，实心矩形
+    // 绘制所有的地块，实心矩形
 
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
     HBRUSH terrainBrush;
@@ -478,7 +478,6 @@ void renderGame(HWND hWnd)
     }
 
 
-    // 血量显示
     for (int i = 0; i < gFactionNumber; i++)
         for (int j = 0; j < gRobotNumberPerFaction; j++)
         {
@@ -514,19 +513,44 @@ void renderGame(HWND hWnd)
                 Rectangle(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth + 1, faction[i].robot[j].position.x + width + 2, faction[i].robot[j].position.y - kHitPointBarDistance + 1);
                 DeleteObject(HPBarBrush);
             }
+
+
+            // render other UI
         }
+    COLORREF activeColor;
+    switch (gFactionControlled)
+    {
+    case 0:
+        activeColor = Color_Faction_1;
+        break;
+    case 1:
+        activeColor = Color_Faction_2;
+        break;
+    case 2:
+        activeColor = Color_Faction_3;
+        break;
+    case 3:
+        activeColor = Color_Faction_4;
+        break;
+    default:
+        break;
+    }
+	HPEN activePen = CreatePen(PS_DOT, 5, activeColor);
+    SelectObject(hdcBuffer,activePen);
+	MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - 2*kRobotControlSignHeight,NULL);
+	LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
+	DeleteObject(activePen);
 
 
-    // 绘制所有机器人
-    for (int i = 0; i < gFactionNumber; i++)
-        for (int j = 0; j < gRobotNumberPerFaction; j++)
+        // 绘制所有机器人
+        for (int i = 0; i < gFactionNumber; i++) for (int j = 0; j < gRobotNumberPerFaction; j++)
+    {
+        if (faction[i].robot[j].alive)
         {
-            if (faction[i].robot[j].alive)
-            {
-                SelectObject(hdcBmp, faction[i].robot[j].hPicture);
-                TransparentBlt(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y, kRobotSizeX, kRobotSizeY, hdcBmp, 0, faction[i].robot[j].currentFrameNum * kRobotPictureY, kRobotPictureX, kRobotPictureY, RGB(255, 255, 255));
-            }
+            SelectObject(hdcBmp, faction[i].robot[j].hPicture);
+            TransparentBlt(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y, kRobotSizeX, kRobotSizeY, hdcBmp, 0, faction[i].robot[j].currentFrameNum * kRobotPictureY, kRobotPictureX, kRobotPictureY, RGB(255, 255, 255));
         }
+    }
 
     // 绘制武器角度和力度的改变
     if (gRobotWeaponOn && gWeaponSelected)
@@ -756,13 +780,12 @@ void robotUpdate(void)
             }
 
 
-
             if (faction[i].robot[j].alive)
             {
-                if(faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime>0)
+                if (faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime > 0)
                 {
                     // TODO
-                    // 机器人护甲时间递减    
+                    // 机器人护甲时间递减
                 }
 
 
@@ -1938,6 +1961,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
                 faction[gFactionControlled].ammoCure--;
             }
             faction[gSkillTargetFaction].robot[gSkillTargetRobot].hitPoint += kCureEffect;
+            faction[gFactionControlled].ammoCure--;
         }
         break;
     case iTransfer:
@@ -1958,6 +1982,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
             {
                 faction[gFactionControlled].robot[gRobotControlled].position.y++;
             }
+            faction[gFactionControlled].ammoTransfer--;
         }
         break;
     case iSafeTransfer:
@@ -1979,6 +2004,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
                 faction[gFactionControlled].robot[gRobotControlled].position.x = faction[gFactionControlled].robot[transferTo].position.x;
                 faction[gFactionControlled].robot[gRobotControlled].position.y = faction[gFactionControlled].robot[transferTo].position.y;
             }
+            faction[gFactionControlled].ammoSafeTransfer--;
         }
         break;
     case iProtect:
@@ -1992,6 +2018,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
             {
                 faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime = kProtectiveShellTime;
             }
+            faction[gFactionControlled].ammoProtect--;
         }
         break;
     default:
@@ -2477,6 +2504,36 @@ bool boxLanded(int boxType, int boxNum)
         if (!terrain[i][bottomTerrainCoordinate + 1].isDestoried)
             return true;
     return false;
+}
+
+void skillUpdate(void)
+{
+    if (gRobotSkillOn)
+    {
+        switch (gSkillSelected)
+        {
+        case iNoSkill:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iCure:
+            gSkillRangeSelecting  = true;
+            gSkillTargetSelecting = false;
+            break;
+        case iTransfer:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iSafeTransfer:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iProtect:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = true;
+            break;
+        }
+    }
 }
 
 /*

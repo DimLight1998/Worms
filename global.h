@@ -213,6 +213,7 @@ const int kAimDistance          = 75;    // 准星距离机器人距离
 const int kFactionHPBarWidth    = 360;
 const int kFactionHPBarHeight   = 25;
 const int kFactionHPBarDistance = 5;
+const int kRobotControlSignHeight = 50;
 
 // 用户操作规则
 const double kAngelChangingVelocity = 0.2;    // 改变武器发射角度的速率

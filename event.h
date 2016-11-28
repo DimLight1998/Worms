@@ -39,6 +39,7 @@ bool TNTInTerrain(void);
 bool TNTLanded(void);
 
 void skillActivate(void);
+void skillUpdate(void);
 
 void medicalBoxUpdate(void);
 void weaponBoxUpdate(void);
