@@ -412,12 +412,10 @@ void renderGame(HWND hWnd)
 
 
     // 绘制所有的地块，实心矩形
-
+	/*
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
     HBRUSH terrainBrush;
     terrainBrush = CreatePatternBrush(hRockPicture);
-
-    
     SelectObject(hdcBuffer, terrainBrush);
     for (int i = 0; i < kTerrainNumberX; i++)
         for (int j = 0; j < kTerrainNumberY; j++)
@@ -426,7 +424,7 @@ void renderGame(HWND hWnd)
                 drawClosedRectangle(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, terrain[i][j].position.right, terrain[i][j].position.bottom);
             }
     DeleteObject(terrainBrush);
-	
+	*/
 
 
     SelectObject(hdcBmp, hTerrainPicture);

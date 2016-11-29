@@ -169,10 +169,10 @@ const double Pi                   = 3.1415926535897932;    // 圆周率
 // 地块规则
 const int kWorldWidth           = 1600;
 const int kWorldHeight          = 900;
-const int kTerrainWidth         = 10;                               // 地块宽度
-const int kTerrainHeight        = 10;                               // 地块高度
-const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地块数目
-const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
+const int kTerrainWidth         = 16;                               // 地块宽度
+const int kTerrainHeight        = 16;                               // 地块高度
+const int kTerrainNumberX       = 2*kWorldWidth / kTerrainWidth;      // 横向地块数目
+const int kTerrainNumberY       = 2*kWorldHeight / kTerrainHeight;    // 纵向地块数目
 const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
 const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
 const int kMaxHoleNumber        = 10;                               // 最大山洞数
