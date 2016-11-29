@@ -19,11 +19,14 @@ void renderPause(HWND hWnd);
 
 void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void robotUpdate(void);
-void terrainUpdate(void);
 void seaLevelUpdate(void);
 void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);
+
+void terrainUpdate(void);
+void terrainShapeUpdate(int,int,int,int);
+void terrainShapeUpdate(int, int);
 
 BOOL robotInTerrain(int factionNum, int robotNum);
 BOOL robotLanded(int factionNum, int robotNum);
@@ -37,6 +40,9 @@ bool grenadeLanded(void);
 bool stickyBombInTerrain(void);
 bool TNTInTerrain(void);
 bool TNTLanded(void);
+
+void skillActivate(void);
+void skillUpdate(void);
 
 void medicalBoxUpdate(void);
 void weaponBoxUpdate(void);

@@ -9,6 +9,7 @@
 */
 #include "resource.h"
 #include <math.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
@@ -51,22 +52,26 @@ const int kSkillBoxPictureX      = 32;
 const int kSkillBoxPictureY      = 28;
 const int kGameStartButtonSizeX  = 100;    // 开始游戏按钮宽度
 const int kGameStartButtonSizeY  = 100;    // 开始游戏按钮高度
-const int kMaxRobotFrameNum      = 16;
-const int kRobotStopPictureIndex = 0;
+const int kMaxRobotFrameNum      = 16;     // 机器人贴图最大帧数
+const int kRobotStopPictureIndex = 0;      // 机器人静止所在贴图
+const int kTerrainPictureSizeX   = 288;    // 地块贴图大小
+const int kTerrainPictureSizeY   = 270;
+const int kTerrainBlockSizeX     = 16;    // 每个地块的贴图大小
+const int kTerrainBlockSizeY     = 16;
 
 // 机器人规则
-const int kRobotSizeX               = 32;    // 机器人宽度
-const int kRobotSizeY               = 56;    // 机器人高度
-const int kMaxFactionNumber         = 4;
-const int kMaxRobotNumberPerFaction = 4;
+const int kRobotSizeX               = 32;                                               // 机器人宽度
+const int kRobotSizeY               = 56;                                               // 机器人高度
+const int kMaxFactionNumber         = 4;                                                // 最大阵营数
+const int kMaxRobotNumberPerFaction = 4;                                                // 每个阵营最大机器人数
 const int kRobotNumber              = kMaxFactionNumber * kMaxRobotNumberPerFaction;    // 地图上最大的机器人数，最大支持四个阵营，每个阵营四个机器人
 const int kRobotFullHitPoint        = 1000;                                             // 机器人的最大血量
 const int kRobotVelocityX           = 3;                                                // 机器人横向位移速度
-const int kRobotVelocityJumping     = 2;
-const int kRobotVelocityY_startJump = 15;    // 机器人跳起速度
-const int kRobotEdgeIngnorance      = 3;     // 处理碰撞时的机器人边缘忽略
-const int kMaxWeaponNum             = 4;     // 机器人携带武器种类数，每次追加武器时更改该值
-const int kMaxSkillNum              = 3;
+const int kRobotVelocityJumping     = 2;                                                // 机器人跳起后水平速度
+const int kRobotVelocityY_startJump = 15;                                               // 机器人跳起速度
+const int kRobotEdgeIngnorance      = 3;                                                // 处理碰撞时的机器人边缘忽略
+const int kMaxWeaponNum             = 4;                                                // 机器人携带武器种类数，每次追加武器时更改该值
+const int kMaxSkillNum              = 4;                                                // 最大技能数
 const int kFacingLeft               = 1;
 const int kFacingRight              = 2;
 const int kPickingBoxRange          = 20;
@@ -122,17 +127,18 @@ const int kTNTDefaultAmmo    = 1;
 
 
 // 技能规则 / 索引
-const int iNoSkill       = 0;    // 无技能
-const int iCure          = 1;    // 治疗技能
-const int iTransport     = 2;    // 随机传送技能
-const int iSafeTransport = 3;    // 安全传送技能
-const int iFly           = 4;    // 飞行技能
+const int iNoSkill      = 0;    // 无技能
+const int iCure         = 1;    // 治疗技能，治疗指定阵营的指定对象
+const int iTransfer     = 2;    // 随机传送技能，无输入，传送到随机地区
+const int iSafeTransfer = 3;    // 安全传送技能，传送到自己阵营的指定对象旁边
+const int iProtect      = 4;    // 护盾技能，打开自己的护盾
 // 技能规则 / 参数
-const int kCureEffect              = 500;
-const int kCureDefaultAmmo         = 2;
-const int kTransportDefaultAmmo    = 2;
-const int kSafeTransportDefaulAmmo = 2;
-const int kFlyDefaultAmmo          = 2;
+const int kCureEffect             = 500;
+const int kCureDefaultAmmo        = 2;
+const int kTransferDefaultAmmo    = 2;
+const int kSafeTransferDefaulAmmo = 2;
+const int kProtectDefaultAmmo     = 2;
+const int kProtectiveShellTime    = 10;
 
 
 // 补给箱规则 / 索引
@@ -161,18 +167,19 @@ const int    kGravityAcceleration = 1;                     // 重力加速度
 const double Pi                   = 3.1415926535897932;    // 圆周率
 
 // 地块规则
-const int kWorldWidth           = 1600;
-const int kWorldHeight          = 900;
-const int kTerrainWidth         = 10;                               // 地块宽度
-const int kTerrainHeight        = 10;                               // 地块高度
+const int kWorldWidth           = 4000;                                   // 世界的宽度
+const int kWorldHeight          = 1600;                                    // 世界的高度
+const int kTerrainWidth         = 16;                                     // 每个地块宽度
+const int kTerrainHeight        = 16;                                     // 每个地块高度
 const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地块数目
 const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
-const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
-const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
-const int kMaxHoleNumber        = 10;                               // 最大山洞数
-const int kMaxHoleRadius        = 8;                                // 最大山洞半径
+const int kTerrainHeightBase    = 30;                                     // 用于随机化地形的高度大基准
+const int kLeftMostTerrainDelta = 10;                                     // 用于随机化地形的高度小基准
+const int kMaxHoleNumber        = 10;                                     // 最大山洞数
+const int kMaxHoleRadius        = 8;                                      // 最大山洞半径
 // 地块显示规则
-/*
+
+const int iTerrainEmpty             = -2;
 const int iTerrainDefault           = -1;    // 初始化值
 const int iTerrainFull              = 0;     // 满地块
 const int iTerrainHalfRight         = 1;     // 右边缺了一半
@@ -190,7 +197,6 @@ const int iTerrainIndependantLeft   = 12;    // 向左凸出一小块
 const int iTerrainIndependantRight  = 13;    // 向右凸出一小块
 const int iTerrainIndependantUp     = 14;    // 向上凸出一小块
 const int iTerrainIndependantDown   = 15;    // 向下凸出一小块
-*/
 
 
 // 海洋规则
@@ -203,33 +209,36 @@ const double kWindPowerFactor = 1;
 
 
 // 用户界面规则
-const int kHitPointBarWidth     = 30;    // 血条的宽度
-const int kHitPointBarHeigth    = 5;     // 血条的高度
-const int kHitPointBarDistance  = 10;    // 血条距离人物的高度
-const int kAimUIWidth           = 50;    // 准星显示宽度
-const int kAimUIHeight          = 50;    // 准星显示高度
-const int kAimDistance          = 75;    // 准星距离机器人距离
-const int kFactionHPBarWidth    = 360;
-const int kFactionHPBarHeight   = 25;
-const int kFactionHPBarDistance = 5;
+const int kHitPointBarWidth       = 30;    // 血条的宽度
+const int kHitPointBarHeigth      = 5;     // 血条的高度
+const int kHitPointBarDistance    = 10;    // 血条距离人物的高度
+const int kAimUIWidth             = 50;    // 准星显示宽度
+const int kAimUIHeight            = 50;    // 准星显示高度
+const int kAimDistance            = 75;    // 准星距离机器人距离
+const int kFactionHPBarWidth      = 360;
+const int kFactionHPBarHeight     = 25;
+const int kFactionHPBarDistance   = 5;
+const int kRobotControlSignHeight = 50;
 
 // 用户操作规则
+const int    kCameraVelocity        = 8;      // 摄像机切换速度
 const double kAngelChangingVelocity = 0.2;    // 改变武器发射角度的速率
 const int    kActionTime            = 0;      // 每回合操作时间
 const int    kWithdrawTime          = 0;      // 撤退时间
 
 // 颜色规则
-const COLORREF HPBar_1000      = RGB(0, 250, 0);
-const COLORREF HPBar_0750      = RGB(100, 150, 0);
-const COLORREF HPBar_0500      = RGB(150, 100, 0);
-const COLORREF HPBar_0250      = RGB(250, 0, 0);
-const COLORREF HPBar_0000      = RGB(0, 0, 0);
-const COLORREF Color_Aim       = RGB(26, 188, 156);
-const COLORREF Color_Sea       = RGB(0, 0, 250);
-const COLORREF Color_Faction_1 = RGB(39, 174, 96);
-const COLORREF Color_Faction_2 = RGB(231, 76, 60);
-const COLORREF Color_Faction_3 = RGB(41, 128, 185);
-const COLORREF Color_Faction_4 = RGB(241, 196, 15);
+const COLORREF HPBar_1000        = RGB(0, 250, 0);
+const COLORREF HPBar_0750        = RGB(100, 150, 0);
+const COLORREF HPBar_0500        = RGB(150, 100, 0);
+const COLORREF HPBar_0250        = RGB(250, 0, 0);
+const COLORREF HPBar_0000        = RGB(0, 0, 0);
+const COLORREF Color_Aim         = RGB(26, 188, 156);
+const COLORREF Color_Sea         = RGB(0, 0, 250);
+const COLORREF Color_Faction_1   = RGB(39, 174, 96);
+const COLORREF Color_Faction_2   = RGB(231, 76, 60);
+const COLORREF Color_Faction_3   = RGB(41, 128, 185);
+const COLORREF Color_Faction_4   = RGB(241, 196, 15);
+const COLORREF Color_SkillTarget = RGB(0, 0, 0);
 
 // 游戏状态定义
 const int Game_start   = 0;
@@ -264,6 +273,7 @@ struct Robot
     int      weapon;
     int      skill;
     BOOL     isJumping;
+    int      protectiveShellTime;
     VectorXY position;
     VectorXY velocity;
     VectorXY acceleration;
@@ -284,17 +294,18 @@ struct Faction
     int   ammoStickyBomb;
     int   ammoTNT;
     int   ammoCure;
-    int   ammoTransport;
-    int   ammoSafeTransport;
-    int   ammoFly;
+    int   ammoTransfer;
+    int   ammoSafeTransfer;
+    int   ammoProtect;
 };
 
 struct Terrain
 {
-    int     connectionStatus;
-    BOOL    isDestoried;
-    RECT    position;
-    HBITMAP hPicture;
+    int      connectionStatus;
+    BOOL     isDestoried;
+    RECT     position;
+    HBITMAP  hPicture;
+    VectorXY picturePosition;
 };
 
 struct GameButton
@@ -404,5 +415,8 @@ SkillBox creatSkillBox(VectorXY position, VectorXY velocity, VectorXY accelerati
 void drawClosedRectangle(HDC hdc, int left, int top, int right, int bottom);
 void drawClosedCircle(HDC hdc, int Ox, int Oy, int r);
 int pointPointDistanceSquare(int point_1_x, int point_1_y, int point_2_x, int point_2_y);
+
+VectorXY randomSelectTerrainBlockPicture(int num, ...);
+VectorXY getTerrainBlockPicture(int type);
 
 #endif
