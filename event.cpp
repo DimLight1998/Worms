@@ -31,18 +31,26 @@ todolist
 #include "global.h"
 #include "item.h"
 
-bool gGamePaused = false;
 
-int gRobotControlled   = 0;    // 当前活跃的机器人
-int gFactionControlled = 0;
-int gFactionAlive      = -1;
+/*
+ ██████  ██       ██████  ██████   █████  ██
+██       ██      ██    ██ ██   ██ ██   ██ ██
+██   ███ ██      ██    ██ ██████  ███████ ██
+██    ██ ██      ██    ██ ██   ██ ██   ██ ██
+ ██████  ███████  ██████  ██████  ██   ██ ███████
+*/
+bool gGamePaused = false;    // 状态变量，记录当前游戏是否暂停
 
-int gFactionNumber;
-int gRobotNumberPerFaction;
-int gRobotNumber;
+int gRobotControlled   = 0;     // 当前活跃的机器人
+int gFactionControlled = 0;     // 当前活跃的阵营
+int gFactionAlive      = -1;    // 最后一个活下的阵营
 
-int gCameraX;
-int gCameraY;
+int gFactionNumber;            // 游戏开始时阵营数目
+int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
+int gRobotNumber;              // 这个游戏中的机器人数目
+
+int gCameraX;    // 摄像机水平位置
+int gCameraY;    // 摄像机数值位置
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -398,42 +406,32 @@ void renderGame(HWND hWnd)
     // 开始绘制
     hdc = BeginPaint(hWnd, &ps);
 
-    HDC     hdcBmp, hdcBuffer;
+    HDC     hdcBmp, hdcBuffer, hdcBackground;
     HBITMAP cptBmp;
 
-    cptBmp    = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
-    hdcBmp    = CreateCompatibleDC(hdc);
-    hdcBuffer = CreateCompatibleDC(hdc);
+    cptBmp        = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
+    hdcBmp        = CreateCompatibleDC(hdc);
+    hdcBuffer     = CreateCompatibleDC(hdc);
+    hdcBackground = CreateCompatibleDC(hdc);
 
     // 绘制背景图片至缓冲区
+
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
     BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
-
-
-    // 绘制所有的地块，实心矩形
-	/*
-    SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
-    HBRUSH terrainBrush;
-    terrainBrush = CreatePatternBrush(hRockPicture);
-    SelectObject(hdcBuffer, terrainBrush);
-    for (int i = 0; i < kTerrainNumberX; i++)
-        for (int j = 0; j < kTerrainNumberY; j++)
-            if (!terrain[i][j].isDestoried)
-            {
-                drawClosedRectangle(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, terrain[i][j].position.right, terrain[i][j].position.bottom);
-            }
-    DeleteObject(terrainBrush);
+    /*
+    SelectObject(hdcBackground, cptBmp);
+    SelectObject(hdcBmp, gameStatus.hPicture);
+    BitBlt(hdcBackground, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
 	*/
 
-
+    // 绘制所有的地块，实心矩形
     SelectObject(hdcBmp, hTerrainPicture);
     for (int i = 0; i < kTerrainNumberX; i++)
         for (int j = 0; j < kTerrainNumberY; j++)
         {
             TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
         }
-
 
     // 阵营血量显示
     HBRUSH factionHPBarBrush;
@@ -489,7 +487,7 @@ void renderGame(HWND hWnd)
         }
     }
 
-
+    // 绘制血条
     for (int i = 0; i < gFactionNumber; i++)
         for (int j = 0; j < gRobotNumberPerFaction; j++)
         {
@@ -508,7 +506,6 @@ void renderGame(HWND hWnd)
                 else
                     HPBarColor = HPBar_0000;
 
-                // 绘制血条
                 for (int k = faction[i].robot[j].position.x; k < faction[i].robot[j].position.x + kHitPointBarWidth; k++)
                 {
                     SetPixel(hdcBuffer, k, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth, HPBarColor);
@@ -526,7 +523,8 @@ void renderGame(HWND hWnd)
                 DeleteObject(HPBarBrush);
             }
         }
-    // render other UI
+
+    // 绘制指示器
     COLORREF activeColor;
     switch (gFactionControlled)
     {
@@ -551,7 +549,6 @@ void renderGame(HWND hWnd)
     LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
     DeleteObject(activePen);
 
-
     // 绘制所有机器人
     for (int i = 0; i < gFactionNumber; i++)
         for (int j = 0; j < gRobotNumberPerFaction; j++)
@@ -569,7 +566,6 @@ void renderGame(HWND hWnd)
         SelectObject(hdcBmp, hAimPicture);
         TransparentBlt(hdcBuffer, int((faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2) + kAimDistance * cos(gLaunchingAngle) - kAimUIWidth / 2), int((faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2) - kAimDistance * sin(gLaunchingAngle) - kAimUIHeight / 2), kAimUIWidth, kAimUIHeight, hdcBmp, 0, 0, kAimPictureX, kAimPictureY, RGB(255, 255, 255));
     }
-
     if (gIncreasingWeaponPower && gWeaponSelected)
     {
         HPEN weaponPowerPen;
@@ -579,6 +575,7 @@ void renderGame(HWND hWnd)
         LineTo(hdcBuffer, int(faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2 + (kAimDistance * cos(gLaunchingAngle) * gPower / 100)), int(faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - (kAimDistance * sin(gLaunchingAngle) * gPower / 100)));
         DeleteObject(weaponPowerPen);
     }
+
     // 绘制武器
     if (gMissileActivated)
     {
@@ -605,13 +602,13 @@ void renderGame(HWND hWnd)
     }
 
     // 绘制技能的选择对象界面
-    if (gRobotSkillOn && (gSkillTargetRobot))
+    //if (gRobotSkillOn && (gSkillTargetRobot))
 
-        // 绘制海洋
-        SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
-    HBRUSH seaBrush;                                          // 建立了一个笔刷的句柄
-    seaBrush = CreateSolidBrush(Color_Sea);                   // 指定笔刷的属性和颜色
-    SelectObject(hdcBuffer, seaBrush);                        // 选择笔刷
+    // 绘制海洋
+    SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
+    HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
+    seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
+    SelectObject(hdcBuffer, seaBrush);                    // 选择笔刷
     drawClosedRectangle(hdcBuffer, 0, gSeaLevel, kWorldWidth, kWorldHeight);
     DeleteObject(seaBrush);    // 释放资源
 
@@ -628,12 +625,15 @@ void renderGame(HWND hWnd)
 
     // 绘制到屏幕
     //BitBlt(hdc, gCameraX, gCameraY, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+    //BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBackground, 0, 0, SRCCOPY);
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+
 
     // 释放资源
     DeleteObject(cptBmp);
     DeleteDC(hdcBuffer);
     DeleteDC(hdcBmp);
+    DeleteDC(hdcBackground);
 
     // 结束绘制
     EndPaint(hWnd, &ps);
@@ -1972,6 +1972,13 @@ bool TNTLanded(void)
     return false;
 }
 
+/*
+███████ ██   ██ ██ ██      ██       █████   ██████ ████████ ██ ██    ██  █████  ████████ ███████
+██      ██  ██  ██ ██      ██      ██   ██ ██         ██    ██ ██    ██ ██   ██    ██    ██
+███████ █████   ██ ██      ██      ███████ ██         ██    ██ ██    ██ ███████    ██    █████
+     ██ ██  ██  ██ ██      ██      ██   ██ ██         ██    ██  ██  ██  ██   ██    ██    ██
+███████ ██   ██ ██ ███████ ███████ ██   ██  ██████    ██    ██   ████   ██   ██    ██    ███████
+*/
 
 void skillActivate(void)    // TODO 记得把数量给减掉
 {
@@ -2063,6 +2070,13 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 void terrainUpdate(void)
 {
 }
+/*
+████████ ███████ ██████  ██████   █████  ██ ███    ██ ███████ ██   ██  █████  ██████  ███████ ██    ██ ██████  ██████   █████  ████████ ███████
+   ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██ ██      ██   ██ ██   ██ ██   ██ ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+   ██    █████   ██████  ██████  ███████ ██ ██ ██  ██ ███████ ███████ ███████ ██████  █████   ██    ██ ██████  ██   ██ ███████    ██    █████
+   ██    ██      ██   ██ ██   ██ ██   ██ ██ ██  ██ ██      ██ ██   ██ ██   ██ ██      ██      ██    ██ ██      ██   ██ ██   ██    ██    ██
+   ██    ███████ ██   ██ ██   ██ ██   ██ ██ ██   ████ ███████ ██   ██ ██   ██ ██      ███████  ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void terrainShapeUpdate(int left, int top, int right, int bottom)
 {
@@ -2193,6 +2207,13 @@ void seaLevelUpdate(void)
         DEBUG_ONLY_seaLevelIncHelper = 0;
     }
 }
+/*
+██████   ██████  ██   ██ ██    ██ ██████  ██████   █████  ████████ ███████
+██   ██ ██    ██  ██ ██  ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+██████  ██    ██   ███   ██    ██ ██████  ██   ██ ███████    ██    █████
+██   ██ ██    ██  ██ ██  ██    ██ ██      ██   ██ ██   ██    ██    ██
+██████   ██████  ██   ██  ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void medicalBoxUpdate(void)
 {
@@ -2517,6 +2538,13 @@ void skillBoxUpdate(void)
         }
     }
 }
+/*
+██████   ██████  ██   ██ ██ ███    ██ ████████ ███████ ██████  ██████   █████  ██ ███    ██
+██   ██ ██    ██  ██ ██  ██ ████   ██    ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██
+██████  ██    ██   ███   ██ ██ ██  ██    ██    █████   ██████  ██████  ███████ ██ ██ ██  ██
+██   ██ ██    ██  ██ ██  ██ ██  ██ ██    ██    ██      ██   ██ ██   ██ ██   ██ ██ ██  ██ ██
+██████   ██████  ██   ██ ██ ██   ████    ██    ███████ ██   ██ ██   ██ ██   ██ ██ ██   ████
+*/
 
 bool boxInTerrain(int boxType, int boxNum)
 {
@@ -2578,6 +2606,13 @@ bool boxInTerrain(int boxType, int boxNum)
     return false;
 }
 
+/*
+██████   ██████  ██   ██ ██       █████  ███    ██ ██████  ███████ ██████
+██   ██ ██    ██  ██ ██  ██      ██   ██ ████   ██ ██   ██ ██      ██   ██
+██████  ██    ██   ███   ██      ███████ ██ ██  ██ ██   ██ █████   ██   ██
+██   ██ ██    ██  ██ ██  ██      ██   ██ ██  ██ ██ ██   ██ ██      ██   ██
+██████   ██████  ██   ██ ███████ ██   ██ ██   ████ ██████  ███████ ██████
+*/
 
 bool boxLanded(int boxType, int boxNum)
 {
@@ -2644,6 +2679,13 @@ bool boxLanded(int boxType, int boxNum)
             return true;
     return false;
 }
+/*
+███████ ██   ██ ██ ██      ██      ██    ██ ██████  ██████   █████  ████████ ███████
+██      ██  ██  ██ ██      ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+███████ █████   ██ ██      ██      ██    ██ ██████  ██   ██ ███████    ██    █████
+     ██ ██  ██  ██ ██      ██      ██    ██ ██      ██   ██ ██   ██    ██    ██
+███████ ██   ██ ██ ███████ ███████  ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void skillUpdate(void)
 {
@@ -2873,17 +2915,17 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     // do not use:
-    case 28:
-        //gCameraY--;
+    case VK_UP:
+        gCameraY -= kCameraVelocity;
         break;
-    case 40:
-        //gCameraY++;
+    case VK_DOWN:
+        gCameraY += kCameraVelocity;
         break;
-    case 37:
-        //gCameraX--;
+    case VK_LEFT:
+        gCameraX -= kCameraVelocity;
         break;
-    case 39:
-        //gCameraX++;
+    case VK_RIGHT:
+        gCameraX += kCameraVelocity;
         break;
     default:
         break;

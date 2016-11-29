@@ -9,12 +9,12 @@
 */
 #include "resource.h"
 #include <math.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
 #include <time.h>
 #include <windows.h>
-#include <stdarg.h>
 /*
  ██████  ██████  ███    ██ ███████ ████████
 ██      ██    ██ ████   ██ ██         ██
@@ -52,26 +52,26 @@ const int kSkillBoxPictureX      = 32;
 const int kSkillBoxPictureY      = 28;
 const int kGameStartButtonSizeX  = 100;    // 开始游戏按钮宽度
 const int kGameStartButtonSizeY  = 100;    // 开始游戏按钮高度
-const int kMaxRobotFrameNum      = 16;
-const int kRobotStopPictureIndex = 0;
-const int kTerrainPictureSizeX   = 288;
+const int kMaxRobotFrameNum      = 16;     // 机器人贴图最大帧数
+const int kRobotStopPictureIndex = 0;      // 机器人静止所在贴图
+const int kTerrainPictureSizeX   = 288;    // 地块贴图大小
 const int kTerrainPictureSizeY   = 270;
-const int kTerrainBlockSizeX     = 16;
+const int kTerrainBlockSizeX     = 16;    // 每个地块的贴图大小
 const int kTerrainBlockSizeY     = 16;
 
 // 机器人规则
-const int kRobotSizeX               = 32;    // 机器人宽度
-const int kRobotSizeY               = 56;    // 机器人高度
-const int kMaxFactionNumber         = 4;
-const int kMaxRobotNumberPerFaction = 4;
+const int kRobotSizeX               = 32;                                               // 机器人宽度
+const int kRobotSizeY               = 56;                                               // 机器人高度
+const int kMaxFactionNumber         = 4;                                                // 最大阵营数
+const int kMaxRobotNumberPerFaction = 4;                                                // 每个阵营最大机器人数
 const int kRobotNumber              = kMaxFactionNumber * kMaxRobotNumberPerFaction;    // 地图上最大的机器人数，最大支持四个阵营，每个阵营四个机器人
 const int kRobotFullHitPoint        = 1000;                                             // 机器人的最大血量
 const int kRobotVelocityX           = 3;                                                // 机器人横向位移速度
-const int kRobotVelocityJumping     = 2;
-const int kRobotVelocityY_startJump = 15;    // 机器人跳起速度
-const int kRobotEdgeIngnorance      = 3;     // 处理碰撞时的机器人边缘忽略
-const int kMaxWeaponNum             = 4;     // 机器人携带武器种类数，每次追加武器时更改该值
-const int kMaxSkillNum              = 4;     // 最大技能数
+const int kRobotVelocityJumping     = 2;                                                // 机器人跳起后水平速度
+const int kRobotVelocityY_startJump = 15;                                               // 机器人跳起速度
+const int kRobotEdgeIngnorance      = 3;                                                // 处理碰撞时的机器人边缘忽略
+const int kMaxWeaponNum             = 4;                                                // 机器人携带武器种类数，每次追加武器时更改该值
+const int kMaxSkillNum              = 4;                                                // 最大技能数
 const int kFacingLeft               = 1;
 const int kFacingRight              = 2;
 const int kPickingBoxRange          = 20;
@@ -167,16 +167,16 @@ const int    kGravityAcceleration = 1;                     // 重力加速度
 const double Pi                   = 3.1415926535897932;    // 圆周率
 
 // 地块规则
-const int kWorldWidth           = 1600;
-const int kWorldHeight          = 900;
-const int kTerrainWidth         = 16;                               // 地块宽度
-const int kTerrainHeight        = 16;                               // 地块高度
-const int kTerrainNumberX       = 2*kWorldWidth / kTerrainWidth;      // 横向地块数目
-const int kTerrainNumberY       = 2*kWorldHeight / kTerrainHeight;    // 纵向地块数目
-const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
-const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
-const int kMaxHoleNumber        = 10;                               // 最大山洞数
-const int kMaxHoleRadius        = 8;                                // 最大山洞半径
+const int kWorldWidth           = 4000;                                   // 世界的宽度
+const int kWorldHeight          = 1600;                                    // 世界的高度
+const int kTerrainWidth         = 16;                                     // 每个地块宽度
+const int kTerrainHeight        = 16;                                     // 每个地块高度
+const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地块数目
+const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
+const int kTerrainHeightBase    = 30;                                     // 用于随机化地形的高度大基准
+const int kLeftMostTerrainDelta = 10;                                     // 用于随机化地形的高度小基准
+const int kMaxHoleNumber        = 10;                                     // 最大山洞数
+const int kMaxHoleRadius        = 8;                                      // 最大山洞半径
 // 地块显示规则
 
 const int iTerrainEmpty             = -2;
@@ -221,6 +221,7 @@ const int kFactionHPBarDistance   = 5;
 const int kRobotControlSignHeight = 50;
 
 // 用户操作规则
+const int    kCameraVelocity        = 8;      // 摄像机切换速度
 const double kAngelChangingVelocity = 0.2;    // 改变武器发射角度的速率
 const int    kActionTime            = 0;      // 每回合操作时间
 const int    kWithdrawTime          = 0;      // 撤退时间
