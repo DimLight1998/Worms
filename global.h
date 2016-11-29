@@ -14,6 +14,7 @@
 #include <tchar.h>
 #include <time.h>
 #include <windows.h>
+#include <stdarg.h>
 /*
  ██████  ██████  ███    ██ ███████ ████████
 ██      ██    ██ ████   ██ ██         ██
@@ -53,10 +54,10 @@ const int kGameStartButtonSizeX  = 100;    // 开始游戏按钮宽度
 const int kGameStartButtonSizeY  = 100;    // 开始游戏按钮高度
 const int kMaxRobotFrameNum      = 16;
 const int kRobotStopPictureIndex = 0;
-const int kTerrainPictureSizeX = 288;
-const int kTerrainPictureSizeY = 270;
-const int kTerrainBlockSizeX = 16;
-const int kTerrainBlockSizeY = 16;
+const int kTerrainPictureSizeX   = 288;
+const int kTerrainPictureSizeY   = 270;
+const int kTerrainBlockSizeX     = 16;
+const int kTerrainBlockSizeY     = 16;
 
 // 机器人规则
 const int kRobotSizeX               = 32;    // 机器人宽度
@@ -299,11 +300,11 @@ struct Faction
 
 struct Terrain
 {
-    int     connectionStatus;
-    BOOL    isDestoried;
-    RECT    position;
-    HBITMAP hPicture;
-	VectorXY picturePosition;
+    int      connectionStatus;
+    BOOL     isDestoried;
+    RECT     position;
+    HBITMAP  hPicture;
+    VectorXY picturePosition;
 };
 
 struct GameButton
@@ -413,5 +414,8 @@ SkillBox creatSkillBox(VectorXY position, VectorXY velocity, VectorXY accelerati
 void drawClosedRectangle(HDC hdc, int left, int top, int right, int bottom);
 void drawClosedCircle(HDC hdc, int Ox, int Oy, int r);
 int pointPointDistanceSquare(int point_1_x, int point_1_y, int point_2_x, int point_2_y);
+
+VectorXY randomSelectTerrainBlockPicture(int num, ...);
+VectorXY getTerrainBlockPicture(int type);
 
 #endif

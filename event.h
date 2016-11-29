@@ -26,6 +26,7 @@ void windUpdate(void);
 
 void terrainUpdate(void);
 void terrainShapeUpdate(int,int,int,int);
+void terrainShapeUpdate(int, int);
 
 BOOL robotInTerrain(int factionNum, int robotNum);
 BOOL robotLanded(int factionNum, int robotNum);

@@ -105,7 +105,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hMedicalBoxPicture        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_MedicalBox));
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
-	hTerrainPicture= LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
+    hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -153,7 +153,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
 
     creatRandomTerrain(clock());
-	terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
+    terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
 
     // 将机器人放到地面上
     for (int i = 0; i < gFactionNumber; i++)
@@ -412,10 +412,12 @@ void renderGame(HWND hWnd)
 
 
     // 绘制所有的地块，实心矩形
-    /*
+
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
     HBRUSH terrainBrush;
     terrainBrush = CreatePatternBrush(hRockPicture);
+
+    
     SelectObject(hdcBuffer, terrainBrush);
     for (int i = 0; i < kTerrainNumberX; i++)
         for (int j = 0; j < kTerrainNumberY; j++)
@@ -424,17 +426,15 @@ void renderGame(HWND hWnd)
                 drawClosedRectangle(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, terrain[i][j].position.right, terrain[i][j].position.bottom);
             }
     DeleteObject(terrainBrush);
-	*/
 	
-	SelectObject(hdcBmp, hTerrainPicture);
-	{
-		for(int i=0;i<kTerrainNumberX;i++)
-			for (int j = 0; j < kTerrainNumberY; j++)
-			{
-				TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp,18*(terrain[i][j].picturePosition.x-1), 18 * (terrain[i][j].picturePosition.y - 1),16,16, RGB(255, 255, 255));
-			}
-	}
-	
+
+
+    SelectObject(hdcBmp, hTerrainPicture);
+    for (int i = 0; i < kTerrainNumberX; i++)
+        for (int j = 0; j < kTerrainNumberY; j++)
+        {
+            TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
+        }
 
 
     // 阵营血量显示
@@ -527,10 +527,8 @@ void renderGame(HWND hWnd)
                 Rectangle(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth + 1, faction[i].robot[j].position.x + width + 2, faction[i].robot[j].position.y - kHitPointBarDistance + 1);
                 DeleteObject(HPBarBrush);
             }
-
-
-            // render other UI
         }
+    // render other UI
     COLORREF activeColor;
     switch (gFactionControlled)
     {
@@ -780,6 +778,7 @@ void robotUpdate(void)
     for (int i = 0; i < gFactionNumber; i++)
     {
         for (int j = 0; j < gRobotNumberPerFaction; j++)
+
         {
             // 更新血量使其正常显示
             if ((faction[i].robot[j].hitPoint <= 0) && (faction[i].robot[j].alive))    // hp小于等于零判定死亡
@@ -1452,9 +1451,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, missilePositionCenterX, missilePositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
-			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -1506,9 +1507,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, grenadePositionCenterX, grenadePositionCenterY) <= kGrenadeHarmRange * kGrenadeHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
-			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -1560,9 +1563,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, StickyBombPositionCenterX, StickyBombPositionCenterY) <= kStickyBombHarmRange * kStickyBombHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
-			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
     }
     break;
@@ -1614,9 +1619,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, TNTPositionCenterX, TNTPositionCenterY) <= kTNTHarmRange * kTNTHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
-			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -2057,7 +2064,6 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 
 void terrainUpdate(void)
 {
-    
 }
 
 void terrainShapeUpdate(int left, int top, int right, int bottom)
@@ -2161,82 +2167,17 @@ void terrainShapeUpdate(int left, int top, int right, int bottom)
                 }
             }
 
-
-            switch (terrain[i][j].connectionStatus)
-            {
-            case iTerrainDefault:
-                break;
-            case iTerrainEmpty:
-                terrain[i][j].picturePosition.y = 5;
-                terrain[i][j].picturePosition.x = 10;
-                break;
-            case iTerrainFull:
-                terrain[i][j].picturePosition.y = 2;
-                terrain[i][j].picturePosition.x = 2;
-                break;
-            case iTerrainHalfRight:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 5;
-                break;
-            case iTerrainHalfLeft:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 1;
-                break;
-            case iTerrainHalfUp:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 2;
-                break;
-            case iTerrainHalfDown:
-                terrain[i][j].picturePosition.y = 3;
-                terrain[i][j].picturePosition.x = 2;
-                break;
-            case iTerrainMiddleUpDown:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 6;
-                break;
-            case iTerrainMiddleLeftRight:
-                terrain[i][j].picturePosition.y = 5;
-                terrain[i][j].picturePosition.x = 7;
-                break;
-            case iTerrainAngleLeftUp:
-                terrain[i][j].picturePosition.y = 4;
-                terrain[i][j].picturePosition.x = 1;
-                break;
-            case iTerrainAngleRightUp:
-                terrain[i][j].picturePosition.y = 4;
-                terrain[i][j].picturePosition.x = 2;
-                break;
-            case iTerrainAngleLeftDown:
-                terrain[i][j].picturePosition.y = 5;
-                terrain[i][j].picturePosition.x = 1;
-                break;
-            case iTarrainAngleRightDown:
-                terrain[i][j].picturePosition.y = 5;
-                terrain[i][j].picturePosition.x = 2;
-                break;
-            case iTerrainIndependantMiddle:
-                terrain[i][j].picturePosition.y = 4;
-                terrain[i][j].picturePosition.x = 10;
-                break;
-            case iTerrainIndependantLeft:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 10;
-                break;
-            case iTerrainIndependantRight:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 13;
-                break;
-            case iTerrainIndependantUp:
-                terrain[i][j].picturePosition.y = 1;
-                terrain[i][j].picturePosition.x = 7;
-                break;
-            case iTerrainIndependantDown:
-                terrain[i][j].picturePosition.y = 4;
-                terrain[i][j].picturePosition.x = 7;
-                break;
-            }
+            VectorXY pos                    = getTerrainBlockPicture(terrain[i][j].connectionStatus);
+            terrain[i][j].picturePosition.x = pos.x;
+            terrain[i][j].picturePosition.y = pos.y;
         }
 }
+
+void terrainShapeUpdate(int x, int y)
+{
+    terrainShapeUpdate(x, y, x, y);
+}
+
 /*
 ███████ ███████  █████  ██      ███████ ██    ██ ███████ ██      ██    ██ ██████  ██████   █████  ████████ ███████
 ██      ██      ██   ██ ██      ██      ██    ██ ██      ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
