@@ -535,22 +535,23 @@ void renderGame(HWND hWnd)
     default:
         break;
     }
-	HPEN activePen = CreatePen(PS_DOT, 5, activeColor);
-    SelectObject(hdcBuffer,activePen);
-	MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - 2*kRobotControlSignHeight,NULL);
-	LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
-	DeleteObject(activePen);
+    HPEN activePen = CreatePen(PS_DOT, 5, activeColor);
+    SelectObject(hdcBuffer, activePen);
+    MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - 2 * kRobotControlSignHeight, NULL);
+    LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
+    DeleteObject(activePen);
 
 
-        // 绘制所有机器人
-        for (int i = 0; i < gFactionNumber; i++) for (int j = 0; j < gRobotNumberPerFaction; j++)
-    {
-        if (faction[i].robot[j].alive)
+    // 绘制所有机器人
+    for (int i = 0; i < gFactionNumber; i++)
+        for (int j = 0; j < gRobotNumberPerFaction; j++)
         {
-            SelectObject(hdcBmp, faction[i].robot[j].hPicture);
-            TransparentBlt(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y, kRobotSizeX, kRobotSizeY, hdcBmp, 0, faction[i].robot[j].currentFrameNum * kRobotPictureY, kRobotPictureX, kRobotPictureY, RGB(255, 255, 255));
+            if (faction[i].robot[j].alive)
+            {
+                SelectObject(hdcBmp, faction[i].robot[j].hPicture);
+                TransparentBlt(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y, kRobotSizeX, kRobotSizeY, hdcBmp, 0, faction[i].robot[j].currentFrameNum * kRobotPictureY, kRobotPictureX, kRobotPictureY, RGB(255, 255, 255));
+            }
         }
-    }
 
     // 绘制武器角度和力度的改变
     if (gRobotWeaponOn && gWeaponSelected)
@@ -593,8 +594,10 @@ void renderGame(HWND hWnd)
         TransparentBlt(hdcBuffer, gTNT.position.x, gTNT.position.y, kTNTSizeX, kTNTSizeY, hdcBmp, 0, 0, kTNTPictureX, kTNTPictureY, RGB(255, 255, 255));
     }
 
-    // 绘制海洋
+    // 绘制技能的选择对象界面
+    if(gRobotSkillOn && (gSkillTargetRobot))
 
+    // 绘制海洋
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
     HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
     seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
@@ -1985,7 +1988,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
             faction[gFactionControlled].ammoTransfer--;
         }
         break;
-    case iSafeTransfer:
+    case iSafeTransfer:    // TODO
         if (faction[gFactionControlled].ammoSafeTransfer == kAmmoInfinity || faction[gFactionControlled].ammoSafeTransfer > 0)
         {
             if (faction[gFactionControlled].ammoSafeTransfer > 0)

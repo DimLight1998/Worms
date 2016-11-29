@@ -123,10 +123,10 @@ const int kTNTDefaultAmmo    = 1;
 
 // 技能规则 / 索引
 const int iNoSkill      = 0;    // 无技能
-const int iCure         = 1;    // 治疗技能
-const int iTransfer     = 2;    // 随机传送技能
-const int iSafeTransfer = 3;    // 安全传送技能
-const int iProtect      = 4;    // 护盾技能
+const int iCure         = 1;    // 治疗技能，治疗指定阵营的指定对象
+const int iTransfer     = 2;    // 随机传送技能，无输入，传送到随机地区
+const int iSafeTransfer = 3;    // 安全传送技能，传送到自己阵营的指定对象旁边
+const int iProtect      = 4;    // 护盾技能，打开自己的护盾
 // 技能规则 / 参数
 const int kCureEffect             = 500;
 const int kCureDefaultAmmo        = 2;
@@ -204,15 +204,15 @@ const double kWindPowerFactor = 1;
 
 
 // 用户界面规则
-const int kHitPointBarWidth     = 30;    // 血条的宽度
-const int kHitPointBarHeigth    = 5;     // 血条的高度
-const int kHitPointBarDistance  = 10;    // 血条距离人物的高度
-const int kAimUIWidth           = 50;    // 准星显示宽度
-const int kAimUIHeight          = 50;    // 准星显示高度
-const int kAimDistance          = 75;    // 准星距离机器人距离
-const int kFactionHPBarWidth    = 360;
-const int kFactionHPBarHeight   = 25;
-const int kFactionHPBarDistance = 5;
+const int kHitPointBarWidth       = 30;    // 血条的宽度
+const int kHitPointBarHeigth      = 5;     // 血条的高度
+const int kHitPointBarDistance    = 10;    // 血条距离人物的高度
+const int kAimUIWidth             = 50;    // 准星显示宽度
+const int kAimUIHeight            = 50;    // 准星显示高度
+const int kAimDistance            = 75;    // 准星距离机器人距离
+const int kFactionHPBarWidth      = 360;
+const int kFactionHPBarHeight     = 25;
+const int kFactionHPBarDistance   = 5;
 const int kRobotControlSignHeight = 50;
 
 // 用户操作规则
@@ -221,17 +221,18 @@ const int    kActionTime            = 0;      // 每回合操作时间
 const int    kWithdrawTime          = 0;      // 撤退时间
 
 // 颜色规则
-const COLORREF HPBar_1000      = RGB(0, 250, 0);
-const COLORREF HPBar_0750      = RGB(100, 150, 0);
-const COLORREF HPBar_0500      = RGB(150, 100, 0);
-const COLORREF HPBar_0250      = RGB(250, 0, 0);
-const COLORREF HPBar_0000      = RGB(0, 0, 0);
-const COLORREF Color_Aim       = RGB(26, 188, 156);
-const COLORREF Color_Sea       = RGB(0, 0, 250);
-const COLORREF Color_Faction_1 = RGB(39, 174, 96);
-const COLORREF Color_Faction_2 = RGB(231, 76, 60);
-const COLORREF Color_Faction_3 = RGB(41, 128, 185);
-const COLORREF Color_Faction_4 = RGB(241, 196, 15);
+const COLORREF HPBar_1000        = RGB(0, 250, 0);
+const COLORREF HPBar_0750        = RGB(100, 150, 0);
+const COLORREF HPBar_0500        = RGB(150, 100, 0);
+const COLORREF HPBar_0250        = RGB(250, 0, 0);
+const COLORREF HPBar_0000        = RGB(0, 0, 0);
+const COLORREF Color_Aim         = RGB(26, 188, 156);
+const COLORREF Color_Sea         = RGB(0, 0, 250);
+const COLORREF Color_Faction_1   = RGB(39, 174, 96);
+const COLORREF Color_Faction_2   = RGB(231, 76, 60);
+const COLORREF Color_Faction_3   = RGB(41, 128, 185);
+const COLORREF Color_Faction_4   = RGB(241, 196, 15);
+const COLORREF Color_SkillTarget = RGB(0, 0, 0);
 
 // 游戏状态定义
 const int Game_start   = 0;
