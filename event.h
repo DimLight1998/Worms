@@ -19,11 +19,13 @@ void renderPause(HWND hWnd);
 
 void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void robotUpdate(void);
-void terrainUpdate(void);
 void seaLevelUpdate(void);
 void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);
+
+void terrainUpdate(void);
+void terrainShapeUpdate(int,int,int,int);
 
 BOOL robotInTerrain(int factionNum, int robotNum);
 BOOL robotLanded(int factionNum, int robotNum);

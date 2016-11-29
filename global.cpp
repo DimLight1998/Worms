@@ -3,23 +3,23 @@
 Robot creatRobot(int faction, VectorXY position)
 {
     Robot robot;
-    robot.faction           = faction;
-    robot.hitPoint          = kRobotFullHitPoint;
-    robot.direction         = (rand() % 2) ? kFacingLeft : kFacingRight;
-    robot.alive             = true;
-    robot.weapon            = iNoWeapon;
-    robot.skill             = iNoSkill;
+    robot.faction             = faction;
+    robot.hitPoint            = kRobotFullHitPoint;
+    robot.direction           = (rand() % 2) ? kFacingLeft : kFacingRight;
+    robot.alive               = true;
+    robot.weapon              = iNoWeapon;
+    robot.skill               = iNoSkill;
     robot.protectiveShellTime = 0;
-    robot.isJumping         = false;
-    robot.position          = position;
-    robot.velocity.x        = 0;
-    robot.velocity.y        = 0;
-    robot.acceleration.x    = 0;
-    robot.acceleration.y    = 0;
-    robot.hPicture          = 0;
-    robot.maxFrameNum       = kMaxRobotFrameNum;
-    robot.currentFrameNum   = 0;
-    robot.frameCounter      = 0;
+    robot.isJumping           = false;
+    robot.position            = position;
+    robot.velocity.x          = 0;
+    robot.velocity.y          = 0;
+    robot.acceleration.x      = 0;
+    robot.acceleration.y      = 0;
+    robot.hPicture            = 0;
+    robot.maxFrameNum         = kMaxRobotFrameNum;
+    robot.currentFrameNum     = 0;
+    robot.frameCounter        = 0;
     return robot;
 }
 
@@ -60,11 +60,14 @@ Terrain creatTerrain(int numberX, int numberY)
 {
     Terrain terrain;
 
-    terrain.isDestoried     = false;
-    terrain.position.left   = numberX * kTerrainWidth + 1;
-    terrain.position.right  = (numberX + 1) * kTerrainWidth;
-    terrain.position.top    = numberY * kTerrainHeight + 1;
-    terrain.position.bottom = (numberY + 1) * kTerrainHeight;
+    terrain.isDestoried      = false;
+    terrain.connectionStatus = -1;
+    terrain.position.left    = numberX * kTerrainWidth + 1;
+    terrain.position.right   = (numberX + 1) * kTerrainWidth;
+    terrain.position.top     = numberY * kTerrainHeight + 1;
+    terrain.position.bottom  = (numberY + 1) * kTerrainHeight;
+	terrain.picturePosition.x = 0;
+	terrain.picturePosition.y = 0;
 
     return terrain;
 }

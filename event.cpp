@@ -105,6 +105,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hMedicalBoxPicture        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_MedicalBox));
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
+	hTerrainPicture= LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -152,6 +153,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
 
     creatRandomTerrain(clock());
+	terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
 
     // 将机器人放到地面上
     for (int i = 0; i < gFactionNumber; i++)
@@ -410,7 +412,7 @@ void renderGame(HWND hWnd)
 
 
     // 绘制所有的地块，实心矩形
-
+    /*
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
     HBRUSH terrainBrush;
     terrainBrush = CreatePatternBrush(hRockPicture);
@@ -422,6 +424,18 @@ void renderGame(HWND hWnd)
                 drawClosedRectangle(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, terrain[i][j].position.right, terrain[i][j].position.bottom);
             }
     DeleteObject(terrainBrush);
+	*/
+	
+	SelectObject(hdcBmp, hTerrainPicture);
+	{
+		for(int i=0;i<kTerrainNumberX;i++)
+			for (int j = 0; j < kTerrainNumberY; j++)
+			{
+				TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp,18*(terrain[i][j].picturePosition.x-1), 18 * (terrain[i][j].picturePosition.y - 1),16,16, RGB(255, 255, 255));
+			}
+	}
+	
+
 
     // 阵营血量显示
     HBRUSH factionHPBarBrush;
@@ -595,13 +609,13 @@ void renderGame(HWND hWnd)
     }
 
     // 绘制技能的选择对象界面
-    if(gRobotSkillOn && (gSkillTargetRobot))
+    if (gRobotSkillOn && (gSkillTargetRobot))
 
-    // 绘制海洋
-    SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
-    HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
-    seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
-    SelectObject(hdcBuffer, seaBrush);                    // 选择笔刷
+        // 绘制海洋
+        SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
+    HBRUSH seaBrush;                                          // 建立了一个笔刷的句柄
+    seaBrush = CreateSolidBrush(Color_Sea);                   // 指定笔刷的属性和颜色
+    SelectObject(hdcBuffer, seaBrush);                        // 选择笔刷
     drawClosedRectangle(hdcBuffer, 0, gSeaLevel, kWorldWidth, kWorldHeight);
     DeleteObject(seaBrush);    // 释放资源
 
@@ -1440,6 +1454,7 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, missilePositionCenterX, missilePositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
                         terrain[i][j].isDestoried = true;
                 }
+			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -1493,6 +1508,7 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, grenadePositionCenterX, grenadePositionCenterY) <= kGrenadeHarmRange * kGrenadeHarmRange)
                         terrain[i][j].isDestoried = true;
                 }
+			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -1546,6 +1562,7 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, StickyBombPositionCenterX, StickyBombPositionCenterY) <= kStickyBombHarmRange * kStickyBombHarmRange)
                         terrain[i][j].isDestoried = true;
                 }
+			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
     }
     break;
@@ -1599,6 +1616,7 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, TNTPositionCenterX, TNTPositionCenterY) <= kTNTHarmRange * kTNTHarmRange)
                         terrain[i][j].isDestoried = true;
                 }
+			terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
         }
         break;
     }
@@ -2039,6 +2057,185 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 
 void terrainUpdate(void)
 {
+    
+}
+
+void terrainShapeUpdate(int left, int top, int right, int bottom)
+{
+    int terrainExist = 0;
+    for (int i = left; i <= right; i++)
+        for (int j = top; j <= bottom; j++)
+        {
+            terrainExist = 0;
+            if (terrain[i][j].isDestoried)
+                terrain[i][j].connectionStatus = iTerrainEmpty;
+            else
+            {
+                if ((i != 0) && (i != kTerrainNumberX - 1) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = (int(!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);
+                }
+                if ((i == 0) && (j == 0))
+                {
+                    terrainExist = (1 << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //11xx
+                }
+                if ((i == kTerrainNumberX - 1) && (j == 0))
+                {
+                    terrainExist = (1 << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //1x1x
+                }
+                if ((i == 0) && (j == kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (1 << 0);    //x1x1
+                }
+                if ((i == kTerrainNumberX - 1) && (j == kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (1 << 0);    //xx11
+                }
+                if ((i == 0) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //x1xx
+                }
+                if ((i == kTerrainNumberX - 1) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //xx1x
+                }
+                if ((j == 0) && (i != 0) && (i != kTerrainNumberX - 1))
+                {
+                    terrainExist = (1 << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //1xxx
+                }
+                if ((j == kTerrainNumberY - 1) && (i != 0) && (i != kTerrainNumberX - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (1 << 0);    //xxx1
+                }
+
+                switch (terrainExist)
+                {
+                case ((0 << 3) + (0 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantMiddle;
+                    break;
+                case ((0 << 3) + (0 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantUp;
+                    break;
+                case ((0 << 3) + (0 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantLeft;
+                    break;
+                case ((0 << 3) + (0 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleLeftUp;
+                    break;
+                case ((0 << 3) + (1 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantRight;
+                    break;
+                case ((0 << 3) + (1 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleRightUp;
+                    break;
+                case ((0 << 3) + (1 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainMiddleLeftRight;
+                    break;
+                case ((0 << 3) + (1 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfUp;
+                    break;
+                case ((1 << 3) + (0 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainMiddleUpDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleLeftDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfLeft;
+                    break;
+                case ((1 << 3) + (1 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTarrainAngleRightDown;
+                    break;
+                case ((1 << 3) + (1 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfRight;
+                    break;
+                case ((1 << 3) + (1 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfDown;
+                    break;
+                case ((1 << 3) + (1 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainFull;
+                    break;
+                }
+            }
+
+
+            switch (terrain[i][j].connectionStatus)
+            {
+            case iTerrainDefault:
+                break;
+            case iTerrainEmpty:
+                terrain[i][j].picturePosition.y = 5;
+                terrain[i][j].picturePosition.x = 10;
+                break;
+            case iTerrainFull:
+                terrain[i][j].picturePosition.y = 2;
+                terrain[i][j].picturePosition.x = 2;
+                break;
+            case iTerrainHalfRight:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 5;
+                break;
+            case iTerrainHalfLeft:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 1;
+                break;
+            case iTerrainHalfUp:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 2;
+                break;
+            case iTerrainHalfDown:
+                terrain[i][j].picturePosition.y = 3;
+                terrain[i][j].picturePosition.x = 2;
+                break;
+            case iTerrainMiddleUpDown:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 6;
+                break;
+            case iTerrainMiddleLeftRight:
+                terrain[i][j].picturePosition.y = 5;
+                terrain[i][j].picturePosition.x = 7;
+                break;
+            case iTerrainAngleLeftUp:
+                terrain[i][j].picturePosition.y = 4;
+                terrain[i][j].picturePosition.x = 1;
+                break;
+            case iTerrainAngleRightUp:
+                terrain[i][j].picturePosition.y = 4;
+                terrain[i][j].picturePosition.x = 2;
+                break;
+            case iTerrainAngleLeftDown:
+                terrain[i][j].picturePosition.y = 5;
+                terrain[i][j].picturePosition.x = 1;
+                break;
+            case iTarrainAngleRightDown:
+                terrain[i][j].picturePosition.y = 5;
+                terrain[i][j].picturePosition.x = 2;
+                break;
+            case iTerrainIndependantMiddle:
+                terrain[i][j].picturePosition.y = 4;
+                terrain[i][j].picturePosition.x = 10;
+                break;
+            case iTerrainIndependantLeft:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 10;
+                break;
+            case iTerrainIndependantRight:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 13;
+                break;
+            case iTerrainIndependantUp:
+                terrain[i][j].picturePosition.y = 1;
+                terrain[i][j].picturePosition.x = 7;
+                break;
+            case iTerrainIndependantDown:
+                terrain[i][j].picturePosition.y = 4;
+                terrain[i][j].picturePosition.x = 7;
+                break;
+            }
+        }
 }
 /*
 ███████ ███████  █████  ██      ███████ ██    ██ ███████ ██      ██    ██ ██████  ██████   █████  ████████ ███████

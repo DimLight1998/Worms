@@ -53,6 +53,10 @@ const int kGameStartButtonSizeX  = 100;    // 开始游戏按钮宽度
 const int kGameStartButtonSizeY  = 100;    // 开始游戏按钮高度
 const int kMaxRobotFrameNum      = 16;
 const int kRobotStopPictureIndex = 0;
+const int kTerrainPictureSizeX = 288;
+const int kTerrainPictureSizeY = 270;
+const int kTerrainBlockSizeX = 16;
+const int kTerrainBlockSizeY = 16;
 
 // 机器人规则
 const int kRobotSizeX               = 32;    // 机器人宽度
@@ -173,7 +177,8 @@ const int kLeftMostTerrainDelta = 10;                               // 用于随
 const int kMaxHoleNumber        = 10;                               // 最大山洞数
 const int kMaxHoleRadius        = 8;                                // 最大山洞半径
 // 地块显示规则
-/*
+
+const int iTerrainEmpty             = -2;
 const int iTerrainDefault           = -1;    // 初始化值
 const int iTerrainFull              = 0;     // 满地块
 const int iTerrainHalfRight         = 1;     // 右边缺了一半
@@ -191,7 +196,6 @@ const int iTerrainIndependantLeft   = 12;    // 向左凸出一小块
 const int iTerrainIndependantRight  = 13;    // 向右凸出一小块
 const int iTerrainIndependantUp     = 14;    // 向上凸出一小块
 const int iTerrainIndependantDown   = 15;    // 向下凸出一小块
-*/
 
 
 // 海洋规则
@@ -299,6 +303,7 @@ struct Terrain
     BOOL    isDestoried;
     RECT    position;
     HBITMAP hPicture;
+	VectorXY picturePosition;
 };
 
 struct GameButton
