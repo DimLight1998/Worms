@@ -406,19 +406,19 @@ void renderGame(HWND hWnd)
     // 开始绘制
     hdc = BeginPaint(hWnd, &ps);
 
-    HDC     hdcBmp, hdcBuffer, hdcBackground;
+	HDC     hdcBmp, hdcBuffer;// hdcBackground;
     HBITMAP cptBmp;
 
     cptBmp        = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
     hdcBmp        = CreateCompatibleDC(hdc);
     hdcBuffer     = CreateCompatibleDC(hdc);
-    hdcBackground = CreateCompatibleDC(hdc);
+    //hdcBackground = CreateCompatibleDC(hdc);
 
     // 绘制背景图片至缓冲区
 
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
-    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+    TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0,kWindowWidth,kWindowHeight, RGB(255,0,0));
     /*
     SelectObject(hdcBackground, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
@@ -633,7 +633,7 @@ void renderGame(HWND hWnd)
     DeleteObject(cptBmp);
     DeleteDC(hdcBuffer);
     DeleteDC(hdcBmp);
-    DeleteDC(hdcBackground);
+    //DeleteDC(hdcBackground);
 
     // 结束绘制
     EndPaint(hWnd, &ps);
