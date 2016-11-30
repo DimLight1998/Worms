@@ -167,16 +167,16 @@ const int    kGravityAcceleration = 1;                     // 重力加速度
 const double Pi                   = 3.1415926535897932;    // 圆周率
 
 // 地块规则
-const int kWorldWidth           = 4000;                                   // 世界的宽度
-const int kWorldHeight          = 1600;                                    // 世界的高度
-const int kTerrainWidth         = 16;                                     // 每个地块宽度
-const int kTerrainHeight        = 16;                                     // 每个地块高度
+const int kWorldWidth           = 4000;                             // 世界的宽度
+const int kWorldHeight          = 1600;                             // 世界的高度
+const int kTerrainWidth         = 16;                               // 每个地块宽度
+const int kTerrainHeight        = 16;                               // 每个地块高度
 const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地块数目
 const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
-const int kTerrainHeightBase    = 30;                                     // 用于随机化地形的高度大基准
-const int kLeftMostTerrainDelta = 10;                                     // 用于随机化地形的高度小基准
-const int kMaxHoleNumber        = 10;                                     // 最大山洞数
-const int kMaxHoleRadius        = 8;                                      // 最大山洞半径
+const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
+const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
+const int kMaxHoleNumber        = 10;                               // 最大山洞数
+const int kMaxHoleRadius        = 8;                                // 最大山洞半径
 // 地块显示规则
 
 const int iTerrainEmpty             = -2;
@@ -221,6 +221,10 @@ const int kFactionHPBarDistance   = 5;
 const int kRobotControlSignHeight = 50;
 
 // 用户操作规则
+const int    kCameraLimitTop        = 0;
+const int    kCameraLimitLeft       = 0;
+const int    kCameraLimitButtom     = kWorldHeight - kWindowHeight;
+const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;
 const int    kCameraVelocity        = 8;      // 摄像机切换速度
 const double kAngelChangingVelocity = 0.2;    // 改变武器发射角度的速率
 const int    kActionTime            = 0;      // 每回合操作时间

@@ -406,19 +406,19 @@ void renderGame(HWND hWnd)
     // 开始绘制
     hdc = BeginPaint(hWnd, &ps);
 
-	HDC     hdcBmp, hdcBuffer;// hdcBackground;
+    HDC     hdcBmp, hdcBuffer;    // hdcBackground;
     HBITMAP cptBmp;
 
-    cptBmp        = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
-    hdcBmp        = CreateCompatibleDC(hdc);
-    hdcBuffer     = CreateCompatibleDC(hdc);
+    cptBmp    = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
+    hdcBmp    = CreateCompatibleDC(hdc);
+    hdcBuffer = CreateCompatibleDC(hdc);
     //hdcBackground = CreateCompatibleDC(hdc);
 
     // 绘制背景图片至缓冲区
 
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
-    TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0,kWindowWidth,kWindowHeight, RGB(255,0,0));
+    TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
     /*
     SelectObject(hdcBackground, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
@@ -2914,18 +2914,37 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
-    // do not use:
     case VK_UP:
-        gCameraY -= kCameraVelocity;
+        if (gCameraY > kCameraLimitTop)
+        {
+            gCameraY -= kCameraVelocity;
+            if (gCameraY < kCameraLimitTop)
+                gCameraY = kCameraLimitTop;
+        }
         break;
     case VK_DOWN:
-        gCameraY += kCameraVelocity;
+        if (gCameraY < kCameraLimitButtom)
+        {
+            gCameraY += kCameraVelocity;
+            if (gCameraY > kCameraLimitButtom)
+                gCameraY = kCameraLimitButtom;
+        }
         break;
     case VK_LEFT:
-        gCameraX -= kCameraVelocity;
+        if (gCameraX > kCameraLimitLeft)
+        {
+            gCameraX -= kCameraVelocity;
+            if (gCameraX < kCameraLimitLeft)
+                gCameraX = kCameraLimitLeft;
+        }
         break;
     case VK_RIGHT:
-        gCameraX += kCameraVelocity;
+        if (gCameraX < kCameraLimitRight)
+        {
+            gCameraX += kCameraVelocity;
+            if (gCameraX > kCameraLimitRight)
+                gCameraX = kCameraLimitRight;
+        }
         break;
     default:
         break;
