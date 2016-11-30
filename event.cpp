@@ -77,6 +77,7 @@ long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海
 int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
+bool gTerrainNeedUpdate = true;
 
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
@@ -88,6 +89,7 @@ int           gWindPower                   = 0;
 
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
+    
     // 将资源载入到资源句柄中
     hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hWelcomeBackgroundPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WelcomeBackground));
@@ -400,38 +402,42 @@ void renderStart(HWND hWnd)
 void renderGame(HWND hWnd)
 {
     // 游戏界面绘制
+	HDC hdc_RenderGameOnly;
     PAINTSTRUCT ps;
-    HDC         hdc;
 
     // 开始绘制
-    hdc = BeginPaint(hWnd, &ps);
+    hdc_RenderGameOnly = BeginPaint(hWnd, &ps);
 
-    HDC     hdcBmp, hdcBuffer;    // hdcBackground;
+    HDC     hdcBmp, hdcBuffer;   
     HBITMAP cptBmp;
 
-    cptBmp    = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
-    hdcBmp    = CreateCompatibleDC(hdc);
-    hdcBuffer = CreateCompatibleDC(hdc);
-    //hdcBackground = CreateCompatibleDC(hdc);
+
+    cptBmp    = CreateCompatibleBitmap(hdc_RenderGameOnly, kWorldWidth, kWorldHeight);
+    hdcBmp    = CreateCompatibleDC(hdc_RenderGameOnly);
+    hdcBuffer = CreateCompatibleDC(hdc_RenderGameOnly);
 
     // 绘制背景图片至缓冲区
 
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
     TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
-    /*
-    SelectObject(hdcBackground, cptBmp);
-    SelectObject(hdcBmp, gameStatus.hPicture);
-    BitBlt(hdcBackground, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
-	*/
+
 
     // 绘制所有的地块，实心矩形
-    SelectObject(hdcBmp, hTerrainPicture);
-    for (int i = 0; i < kTerrainNumberX; i++)
-        for (int j = 0; j < kTerrainNumberY; j++)
-        {
-            TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
-        }
+    //if (gTerrainNeedUpdate)
+    {
+        SelectObject(hdcBmp, hTerrainPicture);
+        for (int i = 0; i < kTerrainNumberX; i++)
+            for (int j = 0; j < kTerrainNumberY; j++)
+            {
+                TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
+            }
+        gTerrainNeedUpdate = false;
+        
+    }
+    
+	//BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+
 
     // 阵营血量显示
     HBRUSH factionHPBarBrush;
@@ -624,9 +630,9 @@ void renderGame(HWND hWnd)
 
 
     // 绘制到屏幕
-    //BitBlt(hdc, gCameraX, gCameraY, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
-    //BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBackground, 0, 0, SRCCOPY);
-    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+    //BitBlt(hdc_RenderGameOnly, gCameraX, gCameraY, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+    //BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBackground, 0, 0, SRCCOPY);
+    BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
 
 
     // 释放资源
@@ -2080,7 +2086,8 @@ void terrainUpdate(void)
 
 void terrainShapeUpdate(int left, int top, int right, int bottom)
 {
-    int terrainExist = 0;
+    gTerrainNeedUpdate = true;
+    int terrainExist   = 0;
     for (int i = left; i <= right; i++)
         for (int j = top; j <= bottom; j++)
         {
