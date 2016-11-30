@@ -89,7 +89,6 @@ bool gTerrainNeedUpdate = true;
 
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
-    
     // 将资源载入到资源句柄中
     hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hWelcomeBackgroundPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WelcomeBackground));
@@ -402,13 +401,13 @@ void renderStart(HWND hWnd)
 void renderGame(HWND hWnd)
 {
     // 游戏界面绘制
-	HDC hdc_RenderGameOnly;
+    HDC         hdc_RenderGameOnly;
     PAINTSTRUCT ps;
 
     // 开始绘制
     hdc_RenderGameOnly = BeginPaint(hWnd, &ps);
 
-    HDC     hdcBmp, hdcBuffer;   
+    HDC     hdcBmp, hdcBuffer;
     HBITMAP cptBmp;
 
 
@@ -423,8 +422,8 @@ void renderGame(HWND hWnd)
     TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
 
 
-    // 绘制所有的地块，实心矩形
-    //if (gTerrainNeedUpdate)
+    // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
+    if (gTerrainNeedUpdate)
     {
         SelectObject(hdcBmp, hTerrainPicture);
         for (int i = 0; i < kTerrainNumberX; i++)
@@ -433,10 +432,9 @@ void renderGame(HWND hWnd)
                 TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
             }
         gTerrainNeedUpdate = false;
-        
     }
-    
-	//BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+
+    //BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
 
 
     // 阵营血量显示

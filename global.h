@@ -423,4 +423,5 @@ int pointPointDistanceSquare(int point_1_x, int point_1_y, int point_2_x, int po
 VectorXY randomSelectTerrainBlockPicture(int num, ...);
 VectorXY getTerrainBlockPicture(int type);
 
+
 #endif
