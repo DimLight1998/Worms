@@ -177,12 +177,33 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     }
 
     // 创建开始游戏的按钮
-    VectorXY temp_1, temp_2;
-    temp_1.x        = kGameStartButtonSizeX;    // 开始游戏按钮的横向大小
-    temp_1.y        = kGameStartButtonSizeY;    // 开始游戏按钮的纵向大小
-    temp_2.x        = 200;                      // 开始游戏按钮的横坐标
-    temp_2.y        = 200;                      // 开始游戏按钮的纵坐标
-    gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    {
+        VectorXY temp_1, temp_2;
+        temp_1.x        = kGameStartButtonSizeX;    // 开始游戏按钮的横向大小
+        temp_1.y        = kGameStartButtonSizeY;    // 开始游戏按钮的纵向大小
+        temp_2.x        = 200;                      // 开始游戏按钮的横坐标
+        temp_2.y        = 200;                      // 开始游戏按钮的纵坐标
+        gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    }
+
+    {// TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x        = kGameStartButtonSizeX;    
+        temp_1.y        = kGameStartButtonSizeY;    
+        temp_2.x        = 500;                      
+        temp_2.y        = 200;                      
+        gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    }
+
+    {// TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x        = kGameStartButtonSizeX;    
+        temp_1.y        = kGameStartButtonSizeY;    
+        temp_2.x        = 800;                      
+        temp_2.y        = 200;                      
+        gameExitButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    }
+
 
     // 设置游戏状态
     gameStatus.status   = Game_start;
@@ -378,6 +399,14 @@ void renderStart(HWND hWnd)
     // 绘制开始游戏按钮
     SelectObject(hdcBmp, gameStartButton.hPicture);
     TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, gameStartButton.size.x, gameStartButton.size.y, RGB(0, 0, 0));
+
+    // 绘制退出按钮
+	SelectObject(hdcBmp, gameExitButton.hPicture);
+	TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, gameExitButton.size.x, gameExitButton.size.y, RGB(0, 0, 0));
+
+    // 绘制帮助按钮
+	SelectObject(hdcBmp, gameHelpButton.hPicture);
+	TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, gameHelpButton.size.x, gameHelpButton.size.y, RGB(0, 0, 0));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);

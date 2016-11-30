@@ -26,6 +26,8 @@ HBITMAP hTerrainPicture;
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
 GameButton gameStartButton;
+GameButton gameHelpButton;
+GameButton gameExitButton;
 
 Missile    gMissile;
 Grenade    gGrenade;
