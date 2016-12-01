@@ -31,18 +31,26 @@ todolist
 #include "global.h"
 #include "item.h"
 
-bool gGamePaused = false;
 
-int gRobotControlled   = 0;    // 当前活跃的机器人
-int gFactionControlled = 0;
-int gFactionAlive      = -1;
+/*
+ ██████  ██       ██████  ██████   █████  ██
+██       ██      ██    ██ ██   ██ ██   ██ ██
+██   ███ ██      ██    ██ ██████  ███████ ██
+██    ██ ██      ██    ██ ██   ██ ██   ██ ██
+ ██████  ███████  ██████  ██████  ██   ██ ███████
+*/
+bool gGamePaused = false;    // 状态变量，记录当前游戏是否暂停
 
-int gFactionNumber;
-int gRobotNumberPerFaction;
-int gRobotNumber;
+int gRobotControlled   = 0;     // 当前活跃的机器人
+int gFactionControlled = 0;     // 当前活跃的阵营
+int gFactionAlive      = -1;    // 最后一个活下的阵营
 
-int gCameraX;
-int gCameraY;
+int gFactionNumber;            // 游戏开始时阵营数目
+int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
+int gRobotNumber;              // 这个游戏中的机器人数目
+
+int gCameraX;    // 摄像机水平位置
+int gCameraY;    // 摄像机数值位置
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -69,6 +77,9 @@ long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海
 int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
+bool    gTerrainNeedUpdate = true;
+HBITMAP hTerrainBmp;
+
 
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
@@ -93,7 +104,9 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hRobotPicture[5]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_right));
     hRobotPicture[6]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_right));
     hRobotPicture[7]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_04_right));
-    hGameStartButtonPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameButton_01));
+    hGameStartButtonPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_StartGame));
+    hGameExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitGame));
+    hGameHelpButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Help));
     hMissilePictureRight      = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Right));
     hMissilePictureLeft       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Left));
     hMissilePictureUp         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Up));
@@ -105,6 +118,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hMedicalBoxPicture        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_MedicalBox));
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
+    hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -152,6 +166,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
 
     creatRandomTerrain(clock());
+    terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
 
     // 将机器人放到地面上
     for (int i = 0; i < gFactionNumber; i++)
@@ -166,12 +181,33 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     }
 
     // 创建开始游戏的按钮
-    VectorXY temp_1, temp_2;
-    temp_1.x        = kGameStartButtonSizeX;    // 开始游戏按钮的横向大小
-    temp_1.y        = kGameStartButtonSizeY;    // 开始游戏按钮的纵向大小
-    temp_2.x        = 200;                      // 开始游戏按钮的横坐标
-    temp_2.y        = 200;                      // 开始游戏按钮的纵坐标
-    gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    {
+        VectorXY temp_1, temp_2;
+        temp_1.x        = kButtonWidth;     // 开始游戏按钮的横向大小
+        temp_1.y        = kButtonHeight;    // 开始游戏按钮的纵向大小
+        temp_2.x        = 200;              // 开始游戏按钮的横坐标
+        temp_2.y        = 200;              // 开始游戏按钮的纵坐标
+        gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    }
+
+    {    // TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x       = kButtonWidth;
+        temp_1.y       = kButtonHeight;
+        temp_2.x       = 1000;
+        temp_2.y       = 200;
+        gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameHelpButtonPicture);
+    }
+
+    {    // TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x       = kButtonWidth;
+        temp_1.y       = kButtonHeight;
+        temp_2.x       = 800;
+        temp_2.y       = 200;
+        gameExitButton = creatGameButton(temp_1, temp_2, false, hGameExitButtonPicture);
+    }
+
 
     // 设置游戏状态
     gameStatus.status   = Game_start;
@@ -333,6 +369,9 @@ void render(HWND hWnd)
     case Game_pause:
         renderPause(hWnd);    // 游戏暂停界面
         break;
+    case Game_help:
+        renderHelp(hWnd);
+        break;
     default:
         break;
     }
@@ -366,7 +405,15 @@ void renderStart(HWND hWnd)
 
     // 绘制开始游戏按钮
     SelectObject(hdcBmp, gameStartButton.hPicture);
-    TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, gameStartButton.size.x, gameStartButton.size.y, RGB(0, 0, 0));
+    TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, kGameStartButtonPictureX, kGameStartButtonPictureY, RGB(0, 0, 0));
+
+    // 绘制退出按钮
+    SelectObject(hdcBmp, gameExitButton.hPicture);
+    TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, kGameExitButtonPictureX, kGameExitButtonPictureY, RGB(0, 0, 0));
+
+    // 绘制帮助按钮
+    SelectObject(hdcBmp, gameHelpButton.hPicture);
+    TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, kGameHelpButtonPictureX, kGameHelpButtonPictureY, RGB(0, 0, 0));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -390,8 +437,8 @@ void renderStart(HWND hWnd)
 void renderGame(HWND hWnd)
 {
     // 游戏界面绘制
-    PAINTSTRUCT ps;
     HDC         hdc;
+    PAINTSTRUCT ps;
 
     // 开始绘制
     hdc = BeginPaint(hWnd, &ps);
@@ -399,29 +446,48 @@ void renderGame(HWND hWnd)
     HDC     hdcBmp, hdcBuffer;
     HBITMAP cptBmp;
 
-    cptBmp    = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
+
+    cptBmp    = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
     hdcBmp    = CreateCompatibleDC(hdc);
     hdcBuffer = CreateCompatibleDC(hdc);
 
-    // 绘制背景图片至缓冲区
+    // 绘制背景图片
     SelectObject(hdcBuffer, cptBmp);
-    SelectObject(hdcBmp, gameStatus.hPicture);
-    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
 
-
-    // [old // 绘制所有的地块，实心矩形
-
-    SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
-    HBRUSH terrainBrush;
-    terrainBrush = CreatePatternBrush(hRockPicture);
-    SelectObject(hdcBuffer, terrainBrush);
-    for (int i = 0; i < kTerrainNumberX; i++)
-        for (int j = 0; j < kTerrainNumberY; j++)
-            if (!terrain[i][j].isDestoried)
+    // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
+    if (gTerrainNeedUpdate)
+    {
+        // 绘制背景图片至缓冲区
+        SelectObject(hdcBmp, gameStatus.hPicture);
+        TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
+        // 绘制地块
+        SelectObject(hdcBmp, hTerrainPicture);
+        for (int i = 0; i < kTerrainNumberX; i++)
+            for (int j = 0; j < kTerrainNumberY; j++)
             {
-                drawClosedRectangle(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, terrain[i][j].position.right, terrain[i][j].position.bottom);
+                TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
             }
-    DeleteObject(terrainBrush);
+        gTerrainNeedUpdate = false;    // 直到下次地块破坏前，无需更新
+
+        BYTE *pData  = NULL;
+        HDC   hdcMem = CreateCompatibleDC(hdcBuffer);
+        // 设置位图信息结构体
+        BITMAPINFO bmpInfo           = {};
+        bmpInfo.bmiHeader.biSize     = sizeof(BITMAPINFOHEADER);
+        bmpInfo.bmiHeader.biWidth    = kWorldWidth;
+        bmpInfo.bmiHeader.biHeight   = kWorldHeight;
+        bmpInfo.bmiHeader.biPlanes   = 1;
+        bmpInfo.bmiHeader.biBitCount = 24;
+        // 创建新的位图
+		DeleteObject(hTerrainBmp);
+        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);    // 内存泄漏
+        SelectObject(hdcMem, hTerrainBmp);
+        BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
+        DeleteDC(hdcMem);
+    }
+	// 将位图转到缓冲区上
+    SelectObject(hdcBmp, hTerrainBmp);
+    BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
 
     // 阵营血量显示
     HBRUSH factionHPBarBrush;
@@ -477,8 +543,7 @@ void renderGame(HWND hWnd)
         }
     }
 
-
-    // 血量显示
+    // 绘制血条
     for (int i = 0; i < gFactionNumber; i++)
         for (int j = 0; j < gRobotNumberPerFaction; j++)
         {
@@ -497,7 +562,6 @@ void renderGame(HWND hWnd)
                 else
                     HPBarColor = HPBar_0000;
 
-                // 绘制血条
                 for (int k = faction[i].robot[j].position.x; k < faction[i].robot[j].position.x + kHitPointBarWidth; k++)
                 {
                     SetPixel(hdcBuffer, k, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth, HPBarColor);
@@ -516,6 +580,30 @@ void renderGame(HWND hWnd)
             }
         }
 
+    // 绘制指示器
+    COLORREF activeColor;
+    switch (gFactionControlled)
+    {
+    case 0:
+        activeColor = Color_Faction_1;
+        break;
+    case 1:
+        activeColor = Color_Faction_2;
+        break;
+    case 2:
+        activeColor = Color_Faction_3;
+        break;
+    case 3:
+        activeColor = Color_Faction_4;
+        break;
+    default:
+        break;
+    }
+    HPEN activePen = CreatePen(PS_DOT, 5, activeColor);
+    SelectObject(hdcBuffer, activePen);
+    MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - 2 * kRobotControlSignHeight, NULL);
+    LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
+    DeleteObject(activePen);
 
     // 绘制所有机器人
     for (int i = 0; i < gFactionNumber; i++)
@@ -534,7 +622,6 @@ void renderGame(HWND hWnd)
         SelectObject(hdcBmp, hAimPicture);
         TransparentBlt(hdcBuffer, int((faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2) + kAimDistance * cos(gLaunchingAngle) - kAimUIWidth / 2), int((faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2) - kAimDistance * sin(gLaunchingAngle) - kAimUIHeight / 2), kAimUIWidth, kAimUIHeight, hdcBmp, 0, 0, kAimPictureX, kAimPictureY, RGB(255, 255, 255));
     }
-
     if (gIncreasingWeaponPower && gWeaponSelected)
     {
         HPEN weaponPowerPen;
@@ -544,6 +631,7 @@ void renderGame(HWND hWnd)
         LineTo(hdcBuffer, int(faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2 + (kAimDistance * cos(gLaunchingAngle) * gPower / 100)), int(faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - (kAimDistance * sin(gLaunchingAngle) * gPower / 100)));
         DeleteObject(weaponPowerPen);
     }
+
     // 绘制武器
     if (gMissileActivated)
     {
@@ -569,8 +657,10 @@ void renderGame(HWND hWnd)
         TransparentBlt(hdcBuffer, gTNT.position.x, gTNT.position.y, kTNTSizeX, kTNTSizeY, hdcBmp, 0, 0, kTNTPictureX, kTNTPictureY, RGB(255, 255, 255));
     }
 
-    // 绘制海洋
+    // 绘制技能的选择对象界面
+    //if (gRobotSkillOn && (gSkillTargetRobot))
 
+    // 绘制海洋
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
     HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
     seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
@@ -590,8 +680,8 @@ void renderGame(HWND hWnd)
 
 
     // 绘制到屏幕
-    //BitBlt(hdc, gCameraX, gCameraY, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -697,7 +787,46 @@ void renderPause(HWND hWnd)
     // 结束绘制
     EndPaint(hWnd, &ps);
 }
+void renderHelp(HWND hWnd)
+{
+    PAINTSTRUCT ps;
+    HDC         hdc;
 
+    // 开始绘制
+    hdc = BeginPaint(hWnd, &ps);
+    HDC     hdcBmp, hdcBuffer;
+    HBITMAP cptBmp;
+    cptBmp    = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
+    hdcBmp    = CreateCompatibleDC(hdc);
+    hdcBuffer = CreateCompatibleDC(hdc);
+
+    // 绘制背景到缓冲区
+    SelectObject(hdcBuffer, cptBmp);
+    SelectObject(hdcBmp, gameStatus.hPicture);
+    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+
+    RECT       rect;
+    TEXTMETRIC tm;
+    GetTextMetrics(ps.hdc, &tm);
+    rect.top    = kWindowHeight / 2 - 1.5 * tm.tmHeight;
+    rect.left   = 0;
+    rect.right  = kWindowWidth;
+    rect.bottom = rect.top + 3 * tm.tmHeight;
+    SetTextColor(hdcBuffer, RGB(255, 255, 255));
+    SetBkMode(hdcBuffer, TRANSPARENT);
+    DrawTextW(hdcBuffer, L"这是帮助界面", -1, &rect, DT_CENTER);
+
+    // 绘制到屏幕
+    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
+
+    // 释放资源
+    DeleteObject(cptBmp);
+    DeleteDC(hdcBuffer);
+    DeleteDC(hdcBmp);
+
+    // 结束绘制
+    EndPaint(hWnd, &ps);
+}
 /*
 ████████ ██ ███    ███ ███████ ██████  ██    ██ ██████  ██████   █████  ████████ ███████
    ██    ██ ████  ████ ██      ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -739,6 +868,7 @@ void robotUpdate(void)
     for (int i = 0; i < gFactionNumber; i++)
     {
         for (int j = 0; j < gRobotNumberPerFaction; j++)
+
         {
             // 更新血量使其正常显示
             if ((faction[i].robot[j].hitPoint <= 0) && (faction[i].robot[j].alive))    // hp小于等于零判定死亡
@@ -756,13 +886,12 @@ void robotUpdate(void)
             }
 
 
-
             if (faction[i].robot[j].alive)
             {
-                if(faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime>0)
+                if (faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime > 0)
                 {
                     // TODO
-                    // 机器人护甲时间递减    
+                    // 机器人护甲时间递减
                 }
 
 
@@ -1412,7 +1541,10 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, missilePositionCenterX, missilePositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
         }
         break;
@@ -1465,7 +1597,10 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, grenadePositionCenterX, grenadePositionCenterY) <= kGrenadeHarmRange * kGrenadeHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
         }
         break;
@@ -1518,7 +1653,10 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, StickyBombPositionCenterX, StickyBombPositionCenterY) <= kStickyBombHarmRange * kStickyBombHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
         }
     }
@@ -1571,7 +1709,10 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterX = (terrain[i][j].position.left + terrain[i][j].position.right) / 2;
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, TNTPositionCenterX, TNTPositionCenterY) <= kTNTHarmRange * kTNTHarmRange)
+                    {
                         terrain[i][j].isDestoried = true;
+                        terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
+                    }
                 }
         }
         break;
@@ -1923,6 +2064,13 @@ bool TNTLanded(void)
     return false;
 }
 
+/*
+███████ ██   ██ ██ ██      ██       █████   ██████ ████████ ██ ██    ██  █████  ████████ ███████
+██      ██  ██  ██ ██      ██      ██   ██ ██         ██    ██ ██    ██ ██   ██    ██    ██
+███████ █████   ██ ██      ██      ███████ ██         ██    ██ ██    ██ ███████    ██    █████
+     ██ ██  ██  ██ ██      ██      ██   ██ ██         ██    ██  ██  ██  ██   ██    ██    ██
+███████ ██   ██ ██ ███████ ███████ ██   ██  ██████    ██    ██   ████   ██   ██    ██    ███████
+*/
 
 void skillActivate(void)    // TODO 记得把数量给减掉
 {
@@ -1938,6 +2086,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
                 faction[gFactionControlled].ammoCure--;
             }
             faction[gSkillTargetFaction].robot[gSkillTargetRobot].hitPoint += kCureEffect;
+            faction[gFactionControlled].ammoCure--;
         }
         break;
     case iTransfer:
@@ -1958,9 +2107,10 @@ void skillActivate(void)    // TODO 记得把数量给减掉
             {
                 faction[gFactionControlled].robot[gRobotControlled].position.y++;
             }
+            faction[gFactionControlled].ammoTransfer--;
         }
         break;
-    case iSafeTransfer:
+    case iSafeTransfer:    // TODO
         if (faction[gFactionControlled].ammoSafeTransfer == kAmmoInfinity || faction[gFactionControlled].ammoSafeTransfer > 0)
         {
             if (faction[gFactionControlled].ammoSafeTransfer > 0)
@@ -1979,6 +2129,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
                 faction[gFactionControlled].robot[gRobotControlled].position.x = faction[gFactionControlled].robot[transferTo].position.x;
                 faction[gFactionControlled].robot[gRobotControlled].position.y = faction[gFactionControlled].robot[transferTo].position.y;
             }
+            faction[gFactionControlled].ammoSafeTransfer--;
         }
         break;
     case iProtect:
@@ -1992,6 +2143,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
             {
                 faction[gFactionControlled].robot[gRobotControlled].protectiveShellTime = kProtectiveShellTime;
             }
+            faction[gFactionControlled].ammoProtect--;
         }
         break;
     default:
@@ -2011,6 +2163,127 @@ void terrainUpdate(void)
 {
 }
 /*
+████████ ███████ ██████  ██████   █████  ██ ███    ██ ███████ ██   ██  █████  ██████  ███████ ██    ██ ██████  ██████   █████  ████████ ███████
+   ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██ ██      ██   ██ ██   ██ ██   ██ ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+   ██    █████   ██████  ██████  ███████ ██ ██ ██  ██ ███████ ███████ ███████ ██████  █████   ██    ██ ██████  ██   ██ ███████    ██    █████
+   ██    ██      ██   ██ ██   ██ ██   ██ ██ ██  ██ ██      ██ ██   ██ ██   ██ ██      ██      ██    ██ ██      ██   ██ ██   ██    ██    ██
+   ██    ███████ ██   ██ ██   ██ ██   ██ ██ ██   ████ ███████ ██   ██ ██   ██ ██      ███████  ██████  ██      ██████  ██   ██    ██    ███████
+*/
+
+void terrainShapeUpdate(int left, int top, int right, int bottom)
+{
+    gTerrainNeedUpdate = true;
+    int terrainExist   = 0;
+    for (int i = left; i <= right; i++)
+        for (int j = top; j <= bottom; j++)
+        {
+            terrainExist = 0;
+            if (terrain[i][j].isDestoried)
+                terrain[i][j].connectionStatus = iTerrainEmpty;
+            else
+            {
+                if ((i != 0) && (i != kTerrainNumberX - 1) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = (int(!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);
+                }
+                if ((i == 0) && (j == 0))
+                {
+                    terrainExist = (1 << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //11xx
+                }
+                if ((i == kTerrainNumberX - 1) && (j == 0))
+                {
+                    terrainExist = (1 << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //1x1x
+                }
+                if ((i == 0) && (j == kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (1 << 0);    //x1x1
+                }
+                if ((i == kTerrainNumberX - 1) && (j == kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (1 << 0);    //xx11
+                }
+                if ((i == 0) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (1 << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //x1xx
+                }
+                if ((i == kTerrainNumberX - 1) && (j != 0) && (j != kTerrainNumberY - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (1 << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //xx1x
+                }
+                if ((j == 0) && (i != 0) && (i != kTerrainNumberX - 1))
+                {
+                    terrainExist = (1 << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (int(!terrain[i][j + 1].isDestoried) << 0);    //1xxx
+                }
+                if ((j == kTerrainNumberY - 1) && (i != 0) && (i != kTerrainNumberX - 1))
+                {
+                    terrainExist = int((!terrain[i][j - 1].isDestoried) << 3) + (int(!terrain[i - 1][j].isDestoried) << 2) + (int(!terrain[i + 1][j].isDestoried) << 1) + (1 << 0);    //xxx1
+                }
+
+                switch (terrainExist)
+                {
+                case ((0 << 3) + (0 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantMiddle;
+                    break;
+                case ((0 << 3) + (0 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantUp;
+                    break;
+                case ((0 << 3) + (0 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantLeft;
+                    break;
+                case ((0 << 3) + (0 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleLeftUp;
+                    break;
+                case ((0 << 3) + (1 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantRight;
+                    break;
+                case ((0 << 3) + (1 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleRightUp;
+                    break;
+                case ((0 << 3) + (1 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainMiddleLeftRight;
+                    break;
+                case ((0 << 3) + (1 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfUp;
+                    break;
+                case ((1 << 3) + (0 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainIndependantDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainMiddleUpDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainAngleLeftDown;
+                    break;
+                case ((1 << 3) + (0 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfLeft;
+                    break;
+                case ((1 << 3) + (1 << 2) + (0 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTarrainAngleRightDown;
+                    break;
+                case ((1 << 3) + (1 << 2) + (0 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfRight;
+                    break;
+                case ((1 << 3) + (1 << 2) + (1 << 1) + (0 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainHalfDown;
+                    break;
+                case ((1 << 3) + (1 << 2) + (1 << 1) + (1 << 0)):
+                    terrain[i][j].connectionStatus = iTerrainFull;
+                    break;
+                }
+            }
+
+            VectorXY pos                    = getTerrainBlockPicture(terrain[i][j].connectionStatus);
+            terrain[i][j].picturePosition.x = pos.x;
+            terrain[i][j].picturePosition.y = pos.y;
+        }
+}
+
+void terrainShapeUpdate(int x, int y)
+{
+    terrainShapeUpdate(x, y, x, y);
+}
+
+/*
 ███████ ███████  █████  ██      ███████ ██    ██ ███████ ██      ██    ██ ██████  ██████   █████  ████████ ███████
 ██      ██      ██   ██ ██      ██      ██    ██ ██      ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
 ███████ █████   ███████ ██      █████   ██    ██ █████   ██      ██    ██ ██████  ██   ██ ███████    ██    █████
@@ -2027,6 +2300,13 @@ void seaLevelUpdate(void)
         DEBUG_ONLY_seaLevelIncHelper = 0;
     }
 }
+/*
+██████   ██████  ██   ██ ██    ██ ██████  ██████   █████  ████████ ███████
+██   ██ ██    ██  ██ ██  ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+██████  ██    ██   ███   ██    ██ ██████  ██   ██ ███████    ██    █████
+██   ██ ██    ██  ██ ██  ██    ██ ██      ██   ██ ██   ██    ██    ██
+██████   ██████  ██   ██  ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void medicalBoxUpdate(void)
 {
@@ -2351,6 +2631,13 @@ void skillBoxUpdate(void)
         }
     }
 }
+/*
+██████   ██████  ██   ██ ██ ███    ██ ████████ ███████ ██████  ██████   █████  ██ ███    ██
+██   ██ ██    ██  ██ ██  ██ ████   ██    ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██
+██████  ██    ██   ███   ██ ██ ██  ██    ██    █████   ██████  ██████  ███████ ██ ██ ██  ██
+██   ██ ██    ██  ██ ██  ██ ██  ██ ██    ██    ██      ██   ██ ██   ██ ██   ██ ██ ██  ██ ██
+██████   ██████  ██   ██ ██ ██   ████    ██    ███████ ██   ██ ██   ██ ██   ██ ██ ██   ████
+*/
 
 bool boxInTerrain(int boxType, int boxNum)
 {
@@ -2412,6 +2699,13 @@ bool boxInTerrain(int boxType, int boxNum)
     return false;
 }
 
+/*
+██████   ██████  ██   ██ ██       █████  ███    ██ ██████  ███████ ██████
+██   ██ ██    ██  ██ ██  ██      ██   ██ ████   ██ ██   ██ ██      ██   ██
+██████  ██    ██   ███   ██      ███████ ██ ██  ██ ██   ██ █████   ██   ██
+██   ██ ██    ██  ██ ██  ██      ██   ██ ██  ██ ██ ██   ██ ██      ██   ██
+██████   ██████  ██   ██ ███████ ██   ██ ██   ████ ██████  ███████ ██████
+*/
 
 bool boxLanded(int boxType, int boxNum)
 {
@@ -2477,6 +2771,43 @@ bool boxLanded(int boxType, int boxNum)
         if (!terrain[i][bottomTerrainCoordinate + 1].isDestoried)
             return true;
     return false;
+}
+/*
+███████ ██   ██ ██ ██      ██      ██    ██ ██████  ██████   █████  ████████ ███████
+██      ██  ██  ██ ██      ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+███████ █████   ██ ██      ██      ██    ██ ██████  ██   ██ ███████    ██    █████
+     ██ ██  ██  ██ ██      ██      ██    ██ ██      ██   ██ ██   ██    ██    ██
+███████ ██   ██ ██ ███████ ███████  ██████  ██      ██████  ██   ██    ██    ███████
+*/
+
+void skillUpdate(void)
+{
+    if (gRobotSkillOn)
+    {
+        switch (gSkillSelected)
+        {
+        case iNoSkill:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iCure:
+            gSkillRangeSelecting  = true;
+            gSkillTargetSelecting = false;
+            break;
+        case iTransfer:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iSafeTransfer:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = false;
+            break;
+        case iProtect:
+            gSkillRangeSelecting  = false;
+            gSkillTargetSelecting = true;
+            break;
+        }
+    }
 }
 
 /*
@@ -2676,18 +3007,37 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
-    // do not use:
-    case 28:
-        //gCameraY--;
+    case VK_UP:
+        if (gCameraY > kCameraLimitTop)
+        {
+            gCameraY -= kCameraVelocity;
+            if (gCameraY < kCameraLimitTop)
+                gCameraY = kCameraLimitTop;
+        }
         break;
-    case 40:
-        //gCameraY++;
+    case VK_DOWN:
+        if (gCameraY < kCameraLimitButtom)
+        {
+            gCameraY += kCameraVelocity;
+            if (gCameraY > kCameraLimitButtom)
+                gCameraY = kCameraLimitButtom;
+        }
         break;
-    case 37:
-        //gCameraX--;
+    case VK_LEFT:
+        if (gCameraX > kCameraLimitLeft)
+        {
+            gCameraX -= kCameraVelocity;
+            if (gCameraX < kCameraLimitLeft)
+                gCameraX = kCameraLimitLeft;
+        }
         break;
-    case 39:
-        //gCameraX++;
+    case VK_RIGHT:
+        if (gCameraX < kCameraLimitRight)
+        {
+            gCameraX += kCameraVelocity;
+            if (gCameraX > kCameraLimitRight)
+                gCameraX = kCameraLimitRight;
+        }
         break;
     default:
         break;
@@ -2747,16 +3097,39 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     ptMouse.x = LOWORD(lParam);
     ptMouse.y = HIWORD(lParam);
 
-    // 以下代码只是针对开始游戏按钮
-    RECT temp;
-    temp.left   = gameStartButton.position.x;
-    temp.right  = gameStartButton.position.x + gameStartButton.size.x;
-    temp.top    = gameStartButton.position.y;
-    temp.bottom = gameStartButton.position.y + gameStartButton.size.y;
-    if (gameStatus.status == 0 && gameButtonClicked(ptMouse, temp))
+    // 针对开始游戏按钮
+    RECT startButtonRECT;
+    startButtonRECT.left   = gameStartButton.position.x;
+    startButtonRECT.right  = gameStartButton.position.x + gameStartButton.size.x;
+    startButtonRECT.top    = gameStartButton.position.y;
+    startButtonRECT.bottom = gameStartButton.position.y + gameStartButton.size.y;
+    if (gameStatus.status == 0 && gameButtonClicked(ptMouse, startButtonRECT))
     {
         SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
         gameStatus.status = Game_running;
+        InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+    }
+
+    // 针对退出游戏按钮
+    RECT exitButtonRECT;
+    exitButtonRECT.left   = gameExitButton.position.x;
+    exitButtonRECT.right  = gameExitButton.position.x + gameExitButton.size.x;
+    exitButtonRECT.top    = gameExitButton.position.y;
+    exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
+    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
+    {
+        PostQuitMessage(0);
+    }
+
+    // 针对帮助按钮
+    RECT helpButtonRECT;
+    helpButtonRECT.left   = gameHelpButton.position.x;
+    helpButtonRECT.right  = gameHelpButton.position.x + gameHelpButton.size.x;
+    helpButtonRECT.top    = gameHelpButton.position.y;
+    helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
+    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
+    {
+        gameStatus.status = Game_help;
         InvalidateRect(hWnd, NULL, TRUE);    // 重绘
     }
 }

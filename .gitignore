@@ -6,3 +6,5 @@ stock/
 *.vcxproj
 *.filters
 *.user
+resource.h
+resource1.h
