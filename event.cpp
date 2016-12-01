@@ -77,7 +77,9 @@ long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海
 int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
-bool gTerrainNeedUpdate = true;
+bool    gTerrainNeedUpdate = true;
+HBITMAP hTerrainBmp;
+
 
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
@@ -188,21 +190,21 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
     }
 
-    {// TODO
+    {    // TODO
         VectorXY temp_1, temp_2;
-		temp_1.x =  kButtonWidth;
-		temp_1.y =  kButtonHeight;
-        temp_2.x        = 1000;                      
-        temp_2.y        = 200;                      
+        temp_1.x       = kButtonWidth;
+        temp_1.y       = kButtonHeight;
+        temp_2.x       = 1000;
+        temp_2.y       = 200;
         gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameHelpButtonPicture);
     }
 
-    {// TODO
+    {    // TODO
         VectorXY temp_1, temp_2;
-		temp_1.x =  kButtonWidth;
-		temp_1.y =  kButtonHeight;
-        temp_2.x        = 800;                      
-        temp_2.y        = 200;                      
+        temp_1.x       = kButtonWidth;
+        temp_1.y       = kButtonHeight;
+        temp_2.x       = 800;
+        temp_2.y       = 200;
         gameExitButton = creatGameButton(temp_1, temp_2, false, hGameExitButtonPicture);
     }
 
@@ -367,9 +369,9 @@ void render(HWND hWnd)
     case Game_pause:
         renderPause(hWnd);    // 游戏暂停界面
         break;
-	case Game_help:
-		renderHelp(hWnd);
-		break;
+    case Game_help:
+        renderHelp(hWnd);
+        break;
     default:
         break;
     }
@@ -406,12 +408,12 @@ void renderStart(HWND hWnd)
     TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, kGameStartButtonPictureX, kGameStartButtonPictureY, RGB(0, 0, 0));
 
     // 绘制退出按钮
-	SelectObject(hdcBmp, gameExitButton.hPicture);
-	TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, kGameExitButtonPictureX, kGameExitButtonPictureY, RGB(0, 0, 0));
+    SelectObject(hdcBmp, gameExitButton.hPicture);
+    TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, kGameExitButtonPictureX, kGameExitButtonPictureY, RGB(0, 0, 0));
 
     // 绘制帮助按钮
-	SelectObject(hdcBmp, gameHelpButton.hPicture);
-	TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, kGameHelpButtonPictureX, kGameHelpButtonPictureY, RGB(0, 0, 0));
+    SelectObject(hdcBmp, gameHelpButton.hPicture);
+    TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, kGameHelpButtonPictureX, kGameHelpButtonPictureY, RGB(0, 0, 0));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -435,41 +437,57 @@ void renderStart(HWND hWnd)
 void renderGame(HWND hWnd)
 {
     // 游戏界面绘制
-    HDC         hdc_RenderGameOnly;
+    HDC         hdc;
     PAINTSTRUCT ps;
 
     // 开始绘制
-    hdc_RenderGameOnly = BeginPaint(hWnd, &ps);
+    hdc = BeginPaint(hWnd, &ps);
 
     HDC     hdcBmp, hdcBuffer;
     HBITMAP cptBmp;
 
 
-    cptBmp    = CreateCompatibleBitmap(hdc_RenderGameOnly, kWorldWidth, kWorldHeight);
-    hdcBmp    = CreateCompatibleDC(hdc_RenderGameOnly);
-    hdcBuffer = CreateCompatibleDC(hdc_RenderGameOnly);
+    cptBmp    = CreateCompatibleBitmap(hdc, kWorldWidth, kWorldHeight);
+    hdcBmp    = CreateCompatibleDC(hdc);
+    hdcBuffer = CreateCompatibleDC(hdc);
 
-    // 绘制背景图片至缓冲区
-
+    // 绘制背景图片
     SelectObject(hdcBuffer, cptBmp);
-    SelectObject(hdcBmp, gameStatus.hPicture);
-    TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
-
 
     // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
     if (gTerrainNeedUpdate)
     {
+        // 绘制背景图片至缓冲区
+        SelectObject(hdcBmp, gameStatus.hPicture);
+        TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
+        // 绘制地块
         SelectObject(hdcBmp, hTerrainPicture);
         for (int i = 0; i < kTerrainNumberX; i++)
             for (int j = 0; j < kTerrainNumberY; j++)
             {
                 TransparentBlt(hdcBuffer, terrain[i][j].position.left, terrain[i][j].position.top, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (terrain[i][j].picturePosition.x - 1), 18 * (terrain[i][j].picturePosition.y - 1), 16, 16, RGB(255, 255, 255));
             }
-        gTerrainNeedUpdate = false;
+        gTerrainNeedUpdate = false;    // 直到下次地块破坏前，无需更新
+
+        BYTE *pData  = NULL;
+        HDC   hdcMem = CreateCompatibleDC(hdcBuffer);
+        // 设置位图信息结构体
+        BITMAPINFO bmpInfo           = {};
+        bmpInfo.bmiHeader.biSize     = sizeof(BITMAPINFOHEADER);
+        bmpInfo.bmiHeader.biWidth    = kWorldWidth;
+        bmpInfo.bmiHeader.biHeight   = kWorldHeight;
+        bmpInfo.bmiHeader.biPlanes   = 1;
+        bmpInfo.bmiHeader.biBitCount = 24;
+        // 创建新的位图
+		DeleteObject(hTerrainBmp);
+        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);    // 内存泄漏
+        SelectObject(hdcMem, hTerrainBmp);
+        BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
+        DeleteDC(hdcMem);
     }
-
-    //BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
-
+	// 将位图转到缓冲区上
+    SelectObject(hdcBmp, hTerrainBmp);
+    BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
 
     // 阵营血量显示
     HBRUSH factionHPBarBrush;
@@ -662,16 +680,13 @@ void renderGame(HWND hWnd)
 
 
     // 绘制到屏幕
-    //BitBlt(hdc_RenderGameOnly, gCameraX, gCameraY, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
-    //BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBackground, 0, 0, SRCCOPY);
-    BitBlt(hdc_RenderGameOnly, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
 
 
     // 释放资源
     DeleteObject(cptBmp);
     DeleteDC(hdcBuffer);
     DeleteDC(hdcBmp);
-    //DeleteDC(hdcBackground);
 
     // 结束绘制
     EndPaint(hWnd, &ps);
@@ -774,43 +789,43 @@ void renderPause(HWND hWnd)
 }
 void renderHelp(HWND hWnd)
 {
-	PAINTSTRUCT ps;
-	HDC         hdc;
+    PAINTSTRUCT ps;
+    HDC         hdc;
 
-	// 开始绘制
-	hdc = BeginPaint(hWnd, &ps);
-	HDC     hdcBmp, hdcBuffer;
-	HBITMAP cptBmp;
-	cptBmp = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
-	hdcBmp = CreateCompatibleDC(hdc);
-	hdcBuffer = CreateCompatibleDC(hdc);
+    // 开始绘制
+    hdc = BeginPaint(hWnd, &ps);
+    HDC     hdcBmp, hdcBuffer;
+    HBITMAP cptBmp;
+    cptBmp    = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
+    hdcBmp    = CreateCompatibleDC(hdc);
+    hdcBuffer = CreateCompatibleDC(hdc);
 
-	// 绘制背景到缓冲区
-	SelectObject(hdcBuffer, cptBmp);
-	SelectObject(hdcBmp, gameStatus.hPicture);
-	BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+    // 绘制背景到缓冲区
+    SelectObject(hdcBuffer, cptBmp);
+    SelectObject(hdcBmp, gameStatus.hPicture);
+    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
 
-	RECT       rect;
-	TEXTMETRIC tm;
-	GetTextMetrics(ps.hdc, &tm);
-	rect.top = kWindowHeight / 2 - 1.5 * tm.tmHeight;
-	rect.left = 0;
-	rect.right = kWindowWidth;
-	rect.bottom = rect.top + 3 * tm.tmHeight;
-	SetTextColor(hdcBuffer, RGB(255, 255, 255));
-	SetBkMode(hdcBuffer, TRANSPARENT);
-	DrawTextW(hdcBuffer, L"这是帮助界面", -1, &rect, DT_CENTER);
+    RECT       rect;
+    TEXTMETRIC tm;
+    GetTextMetrics(ps.hdc, &tm);
+    rect.top    = kWindowHeight / 2 - 1.5 * tm.tmHeight;
+    rect.left   = 0;
+    rect.right  = kWindowWidth;
+    rect.bottom = rect.top + 3 * tm.tmHeight;
+    SetTextColor(hdcBuffer, RGB(255, 255, 255));
+    SetBkMode(hdcBuffer, TRANSPARENT);
+    DrawTextW(hdcBuffer, L"这是帮助界面", -1, &rect, DT_CENTER);
 
-	// 绘制到屏幕
-	BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
+    // 绘制到屏幕
+    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
 
-	// 释放资源
-	DeleteObject(cptBmp);
-	DeleteDC(hdcBuffer);
-	DeleteDC(hdcBmp);
+    // 释放资源
+    DeleteObject(cptBmp);
+    DeleteDC(hdcBuffer);
+    DeleteDC(hdcBmp);
 
-	// 结束绘制
-	EndPaint(hWnd, &ps);
+    // 结束绘制
+    EndPaint(hWnd, &ps);
 }
 /*
 ████████ ██ ███    ███ ███████ ██████  ██    ██ ██████  ██████   █████  ████████ ███████
@@ -3095,26 +3110,26 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         InvalidateRect(hWnd, NULL, TRUE);    // 重绘
     }
 
-	// 针对退出游戏按钮
-	RECT exitButtonRECT;
-	exitButtonRECT.left = gameExitButton.position.x;
-	exitButtonRECT.right = gameExitButton.position.x + gameExitButton.size.x;
-	exitButtonRECT.top = gameExitButton.position.y;
-	exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
-	if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
-	{
-		PostQuitMessage(0);
-	}
+    // 针对退出游戏按钮
+    RECT exitButtonRECT;
+    exitButtonRECT.left   = gameExitButton.position.x;
+    exitButtonRECT.right  = gameExitButton.position.x + gameExitButton.size.x;
+    exitButtonRECT.top    = gameExitButton.position.y;
+    exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
+    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
+    {
+        PostQuitMessage(0);
+    }
 
-	// 针对帮助按钮
-	RECT helpButtonRECT;
-	helpButtonRECT.left = gameHelpButton.position.x;
-	helpButtonRECT.right = gameHelpButton.position.x + gameHelpButton.size.x;
-	helpButtonRECT.top = gameHelpButton.position.y;
-	helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
-	if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
-	{
-		gameStatus.status = Game_help;
-		InvalidateRect(hWnd, NULL, TRUE);    // 重绘
-	}
+    // 针对帮助按钮
+    RECT helpButtonRECT;
+    helpButtonRECT.left   = gameHelpButton.position.x;
+    helpButtonRECT.right  = gameHelpButton.position.x + gameHelpButton.size.x;
+    helpButtonRECT.top    = gameHelpButton.position.y;
+    helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
+    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
+    {
+        gameStatus.status = Game_help;
+        InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+    }
 }
