@@ -13,7 +13,7 @@ void render(HWND hWnd);
 void renderStart(HWND hWnd);
 void renderGame(HWND hWnd);
 
-
+void renderHelp(HWND hWnd);
 void renderEnd(HWND hWnd);
 void renderPause(HWND hWnd);
 

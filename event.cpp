@@ -102,7 +102,9 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hRobotPicture[5]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_right));
     hRobotPicture[6]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_right));
     hRobotPicture[7]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_04_right));
-    hGameStartButtonPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameButton_01));
+    hGameStartButtonPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_StartGame));
+    hGameExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitGame));
+    hGameHelpButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Help));
     hMissilePictureRight      = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Right));
     hMissilePictureLeft       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Left));
     hMissilePictureUp         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Missile_Up));
@@ -179,29 +181,29 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     // 创建开始游戏的按钮
     {
         VectorXY temp_1, temp_2;
-        temp_1.x        = kGameStartButtonSizeX;    // 开始游戏按钮的横向大小
-        temp_1.y        = kGameStartButtonSizeY;    // 开始游戏按钮的纵向大小
-        temp_2.x        = 200;                      // 开始游戏按钮的横坐标
-        temp_2.y        = 200;                      // 开始游戏按钮的纵坐标
+        temp_1.x        = kButtonWidth;     // 开始游戏按钮的横向大小
+        temp_1.y        = kButtonHeight;    // 开始游戏按钮的纵向大小
+        temp_2.x        = 200;              // 开始游戏按钮的横坐标
+        temp_2.y        = 200;              // 开始游戏按钮的纵坐标
         gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
     }
 
     {// TODO
         VectorXY temp_1, temp_2;
-        temp_1.x        = kGameStartButtonSizeX;    
-        temp_1.y        = kGameStartButtonSizeY;    
-        temp_2.x        = 500;                      
+		temp_1.x =  kButtonWidth;
+		temp_1.y =  kButtonHeight;
+        temp_2.x        = 1000;                      
         temp_2.y        = 200;                      
-        gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+        gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameHelpButtonPicture);
     }
 
     {// TODO
         VectorXY temp_1, temp_2;
-        temp_1.x        = kGameStartButtonSizeX;    
-        temp_1.y        = kGameStartButtonSizeY;    
+		temp_1.x =  kButtonWidth;
+		temp_1.y =  kButtonHeight;
         temp_2.x        = 800;                      
         temp_2.y        = 200;                      
-        gameExitButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+        gameExitButton = creatGameButton(temp_1, temp_2, false, hGameExitButtonPicture);
     }
 
 
@@ -365,6 +367,9 @@ void render(HWND hWnd)
     case Game_pause:
         renderPause(hWnd);    // 游戏暂停界面
         break;
+	case Game_help:
+		renderHelp(hWnd);
+		break;
     default:
         break;
     }
@@ -398,15 +403,15 @@ void renderStart(HWND hWnd)
 
     // 绘制开始游戏按钮
     SelectObject(hdcBmp, gameStartButton.hPicture);
-    TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, gameStartButton.size.x, gameStartButton.size.y, RGB(0, 0, 0));
+    TransparentBlt(hdcBuffer, gameStartButton.position.x, gameStartButton.position.y, gameStartButton.size.x, gameStartButton.size.y, hdcBmp, 0, 0, kGameStartButtonPictureX, kGameStartButtonPictureY, RGB(0, 0, 0));
 
     // 绘制退出按钮
 	SelectObject(hdcBmp, gameExitButton.hPicture);
-	TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, gameExitButton.size.x, gameExitButton.size.y, RGB(0, 0, 0));
+	TransparentBlt(hdcBuffer, gameExitButton.position.x, gameExitButton.position.y, gameExitButton.size.x, gameExitButton.size.y, hdcBmp, 0, 0, kGameExitButtonPictureX, kGameExitButtonPictureY, RGB(0, 0, 0));
 
     // 绘制帮助按钮
 	SelectObject(hdcBmp, gameHelpButton.hPicture);
-	TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, gameHelpButton.size.x, gameHelpButton.size.y, RGB(0, 0, 0));
+	TransparentBlt(hdcBuffer, gameHelpButton.position.x, gameHelpButton.position.y, gameHelpButton.size.x, gameHelpButton.size.y, hdcBmp, 0, 0, kGameHelpButtonPictureX, kGameHelpButtonPictureY, RGB(0, 0, 0));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -767,7 +772,46 @@ void renderPause(HWND hWnd)
     // 结束绘制
     EndPaint(hWnd, &ps);
 }
+void renderHelp(HWND hWnd)
+{
+	PAINTSTRUCT ps;
+	HDC         hdc;
 
+	// 开始绘制
+	hdc = BeginPaint(hWnd, &ps);
+	HDC     hdcBmp, hdcBuffer;
+	HBITMAP cptBmp;
+	cptBmp = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
+	hdcBmp = CreateCompatibleDC(hdc);
+	hdcBuffer = CreateCompatibleDC(hdc);
+
+	// 绘制背景到缓冲区
+	SelectObject(hdcBuffer, cptBmp);
+	SelectObject(hdcBmp, gameStatus.hPicture);
+	BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+
+	RECT       rect;
+	TEXTMETRIC tm;
+	GetTextMetrics(ps.hdc, &tm);
+	rect.top = kWindowHeight / 2 - 1.5 * tm.tmHeight;
+	rect.left = 0;
+	rect.right = kWindowWidth;
+	rect.bottom = rect.top + 3 * tm.tmHeight;
+	SetTextColor(hdcBuffer, RGB(255, 255, 255));
+	SetBkMode(hdcBuffer, TRANSPARENT);
+	DrawTextW(hdcBuffer, L"这是帮助界面", -1, &rect, DT_CENTER);
+
+	// 绘制到屏幕
+	BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
+
+	// 释放资源
+	DeleteObject(cptBmp);
+	DeleteDC(hdcBuffer);
+	DeleteDC(hdcBmp);
+
+	// 结束绘制
+	EndPaint(hWnd, &ps);
+}
 /*
 ████████ ██ ███    ███ ███████ ██████  ██    ██ ██████  ██████   █████  ████████ ███████
    ██    ██ ████  ████ ██      ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -3038,16 +3082,39 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     ptMouse.x = LOWORD(lParam);
     ptMouse.y = HIWORD(lParam);
 
-    // 以下代码只是针对开始游戏按钮
-    RECT temp;
-    temp.left   = gameStartButton.position.x;
-    temp.right  = gameStartButton.position.x + gameStartButton.size.x;
-    temp.top    = gameStartButton.position.y;
-    temp.bottom = gameStartButton.position.y + gameStartButton.size.y;
-    if (gameStatus.status == 0 && gameButtonClicked(ptMouse, temp))
+    // 针对开始游戏按钮
+    RECT startButtonRECT;
+    startButtonRECT.left   = gameStartButton.position.x;
+    startButtonRECT.right  = gameStartButton.position.x + gameStartButton.size.x;
+    startButtonRECT.top    = gameStartButton.position.y;
+    startButtonRECT.bottom = gameStartButton.position.y + gameStartButton.size.y;
+    if (gameStatus.status == 0 && gameButtonClicked(ptMouse, startButtonRECT))
     {
         SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
         gameStatus.status = Game_running;
         InvalidateRect(hWnd, NULL, TRUE);    // 重绘
     }
+
+	// 针对退出游戏按钮
+	RECT exitButtonRECT;
+	exitButtonRECT.left = gameExitButton.position.x;
+	exitButtonRECT.right = gameExitButton.position.x + gameExitButton.size.x;
+	exitButtonRECT.top = gameExitButton.position.y;
+	exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
+	if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
+	{
+		PostQuitMessage(0);
+	}
+
+	// 针对帮助按钮
+	RECT helpButtonRECT;
+	helpButtonRECT.left = gameHelpButton.position.x;
+	helpButtonRECT.right = gameHelpButton.position.x + gameHelpButton.size.x;
+	helpButtonRECT.top = gameHelpButton.position.y;
+	helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
+	if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
+	{
+		gameStatus.status = Game_help;
+		InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+	}
 }

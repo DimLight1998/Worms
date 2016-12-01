@@ -50,8 +50,12 @@ const int kWeaponBoxPictureX     = 32;
 const int kWeaponBoxPictureY     = 28;
 const int kSkillBoxPictureX      = 32;
 const int kSkillBoxPictureY      = 28;
-const int kGameStartButtonSizeX  = 100;    // 开始游戏按钮宽度
-const int kGameStartButtonSizeY  = 100;    // 开始游戏按钮高度
+const int kGameStartButtonPictureX  = 512;    // 开始游戏按钮宽度
+const int kGameStartButtonPictureY  = 512;    // 开始游戏按钮高度
+const int kGameExitButtonPictureX  = 128;    // 开始游戏按钮宽度
+const int kGameExitButtonPictureY  = 122;    // 开始游戏按钮高度
+const int kGameHelpButtonPictureX  = 200;    // 开始游戏按钮宽度
+const int kGameHelpButtonPictureY  = 200;    // 开始游戏按钮高度
 const int kMaxRobotFrameNum      = 16;     // 机器人贴图最大帧数
 const int kRobotStopPictureIndex = 0;      // 机器人静止所在贴图
 const int kTerrainPictureSizeX   = 288;    // 地块贴图大小
@@ -209,6 +213,8 @@ const double kWindPowerFactor = 1;
 
 
 // 用户界面规则
+const int kButtonWidth=100;
+const int kButtonHeight=100;
 const int kHitPointBarWidth       = 30;    // 血条的宽度
 const int kHitPointBarHeigth      = 5;     // 血条的高度
 const int kHitPointBarDistance    = 10;    // 血条距离人物的高度
