@@ -246,7 +246,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 425)
         {
-            for (int j = 0; j < min(prevHeight + 1, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 1, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -260,7 +260,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 650)
         {
-            for (int j = 0; j < min(prevHeight + 2, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 2, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -274,7 +274,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 800)
         {
-            for (int j = 0; j < min(prevHeight + 3, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 3, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -288,7 +288,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 875)
         {
-            for (int j = 0; j < min(prevHeight + 4, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 4, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -302,7 +302,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 925)
         {
-            for (int j = 0; j < min(prevHeight + 5, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 5, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -316,7 +316,7 @@ void creatRandomTerrain(int seed)
         }
         else if (decider < 975)
         {
-            for (int j = 0; j < min(prevHeight + 6, kTerrainNumberY); j++)
+            for (int j = 0; j < min(prevHeight + 6, kMinTerrainHeight); j++)
             {
                 terrain[i][j].isDestoried = true;
             }
@@ -333,7 +333,7 @@ void creatRandomTerrain(int seed)
             prevHeight++;
     }
     // 随机山洞
-    int numOfHole = rand() % (kMaxHoleNumber - 1) + 2;
+    int numOfHole = rand() % (kMaxHoleNumber-kMinHoleNumber+1) + kMinHoleNumber;
     for (int i = 0; i <= numOfHole; i++)
     {
         int radius      = rand() % (kMaxHoleRadius) + 2;
@@ -480,7 +480,7 @@ void renderGame(HWND hWnd)
         bmpInfo.bmiHeader.biBitCount = 24;
         // 创建新的位图
 		DeleteObject(hTerrainBmp);
-        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);    // 内存泄漏
+        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);  
         SelectObject(hdcMem, hTerrainBmp);
         BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
         DeleteDC(hdcMem);
