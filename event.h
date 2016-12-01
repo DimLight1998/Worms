@@ -31,6 +31,8 @@ void terrainShapeUpdate(int, int);
 BOOL robotInTerrain(int factionNum, int robotNum);
 BOOL robotLanded(int factionNum, int robotNum);
 
+void cameraUpdate(void);
+
 void weaponUpdate(void);
 void weaponLaunch(void);
 void weaponDestroied(void);

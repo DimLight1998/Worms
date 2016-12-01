@@ -49,8 +49,9 @@ int gFactionNumber;            // 游戏开始时阵营数目
 int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
 int gRobotNumber;              // 这个游戏中的机器人数目
 
-int gCameraX;    // 摄像机水平位置
-int gCameraY;    // 摄像机数值位置
+int  gCameraX;    // 摄像机水平位置
+int  gCameraY;    // 摄像机数值位置
+bool gCameraOverride = false;
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -333,7 +334,7 @@ void creatRandomTerrain(int seed)
             prevHeight++;
     }
     // 随机山洞
-    int numOfHole = rand() % (kMaxHoleNumber-kMinHoleNumber+1) + kMinHoleNumber;
+    int numOfHole = rand() % (kMaxHoleNumber - kMinHoleNumber + 1) + kMinHoleNumber;
     for (int i = 0; i <= numOfHole; i++)
     {
         int radius      = rand() % (kMaxHoleRadius) + 2;
@@ -479,13 +480,13 @@ void renderGame(HWND hWnd)
         bmpInfo.bmiHeader.biPlanes   = 1;
         bmpInfo.bmiHeader.biBitCount = 24;
         // 创建新的位图
-		DeleteObject(hTerrainBmp);
-        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);  
+        DeleteObject(hTerrainBmp);
+        hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);
         SelectObject(hdcMem, hTerrainBmp);
         BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
         DeleteDC(hdcMem);
     }
-	// 将位图转到缓冲区上
+    // 将位图转到缓冲区上
     SelectObject(hdcBmp, hTerrainBmp);
     BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
 
@@ -842,6 +843,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
     {
         robotUpdate();    // 更新所有机器人状态
         factionUpdate();
+        cameraUpdate();
         windUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
@@ -1143,6 +1145,24 @@ BOOL robotLanded(int factionNum, int robotNum)
         if (!terrain[i][bottomTerrainCoordinate + 1].isDestoried)
             return true;
     return false;
+}
+
+void cameraUpdate(void)
+{
+    if (!gCameraOverride)
+    {
+        // TODO smooth change
+        gCameraX = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
+        gCameraY = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
+        if (gCameraX < kCameraLimitLeft)
+            gCameraX = kCameraLimitLeft;
+        if (gCameraX > kCameraLimitRight)
+            gCameraX = kCameraLimitRight;
+        if (gCameraY < kCameraLimitTop)
+            gCameraY = kCameraLimitTop;
+        if (gCameraY > kCameraLimitButtom)
+            gCameraY = kCameraLimitButtom;
+    }
 }
 /*
 ██     ██ ███████  █████  ██████   ██████  ███    ██ ██    ██ ██████  ██████   █████  ████████ ███████
@@ -2162,6 +2182,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 void terrainUpdate(void)
 {
 }
+
 /*
 ████████ ███████ ██████  ██████   █████  ██ ███    ██ ███████ ██   ██  █████  ██████  ███████ ██    ██ ██████  ██████   █████  ████████ ███████
    ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██ ██      ██   ██ ██   ██ ██   ██ ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -2885,6 +2906,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     case 'W':    // W键上跳，设定速度与加速度。跳起后，无法控制。
         if ((!gRobotSkillOn) && (!gRobotWeaponOn) && (!faction[gFactionControlled].robot[gRobotControlled].isJumping))
         {
+            gCameraOverride                                                    = false;
             faction[gFactionControlled].robot[gRobotControlled].velocity.y     = -kRobotVelocityY_startJump;
             faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
             faction[gFactionControlled].robot[gRobotControlled].isJumping      = true;
@@ -2901,6 +2923,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     case 'A':
         if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
         {
+            gCameraOverride = false;
             if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
                 faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityX;
             else
@@ -2910,6 +2933,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     case 'D':
         if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
         {
+            gCameraOverride = false;
             if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
                 faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityX;
             else
@@ -2922,15 +2946,18 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
             faction[gFactionControlled].robot[gRobotControlled].weapon++;
             if (faction[gFactionControlled].robot[gRobotControlled].weapon == kMaxWeaponNum + 1)
                 faction[gFactionControlled].robot[gRobotControlled].weapon = 0;
+            gCameraOverride                                                = false;
         }
         if (gRobotSkillOn)
         {
             faction[gFactionControlled].robot[gRobotControlled].skill++;
             if (faction[gFactionControlled].robot[gRobotControlled].skill == kMaxSkillNum + 1)
                 faction[gFactionControlled].robot[gRobotControlled].skill = 0;
+            gCameraOverride                                               = false;
         }
         break;
     case '\t':    // Tab键切换机器人，只在调试时使用
+        gCameraOverride = false;
         do
         {
             gRobotControlled++;
@@ -2940,6 +2967,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         gRobotWeaponOn = false;
         break;
     case 13:
+        gCameraOverride = false;
         do
         {
             gFactionControlled++;
@@ -2952,46 +2980,64 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     case 'F':
         if (gRobotSkillOn)
         {
-            gRobotSkillOn = false;
+            gRobotSkillOn   = false;
+            gCameraOverride = false;
         }
         if (!gRobotWeaponOn)
         {
             gRobotWeaponOn  = true;
             gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
+            gCameraOverride = false;
         }
         else
         {
             gRobotWeaponOn  = false;
             gWeaponSelected = iNoWeapon;
+            gCameraOverride = false;
         }
         break;
     case 'S':
         if (gRobotWeaponOn)    // 关闭武器选择系统
         {
-            gRobotWeaponOn = false;
+            gRobotWeaponOn  = false;
+            gCameraOverride = false;
         }
         if (!gRobotSkillOn)    // 打开技能界面
         {
-            gRobotSkillOn  = true;
-            gSkillSelected = faction[gFactionControlled].robot[gRobotControlled].skill;
+            gRobotSkillOn   = true;
+            gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
+            gCameraOverride = false;
         }
         else    // 关闭技能界面
         {
-            gRobotSkillOn  = false;
-            gSkillSelected = iNoSkill;
+            gRobotSkillOn   = false;
+            gSkillSelected  = iNoSkill;
+            gCameraOverride = false;
         }
         break;
     case 'Q':
+
         if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+        {
             gChangingWeaponAngle = 1;
+            gCameraOverride      = false;
+        }
         break;
     case 'E':
+
         if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+        {
             gChangingWeaponAngle = -1;
+            gCameraOverride      = false;
+        }
         break;
     case ' ':
+
         if (gRobotWeaponOn && !gChangingWeaponAngle && gWeaponSelected)
+        {
             gIncreasingWeaponPower = true;
+            gCameraOverride        = false;
+        }
         break;
     case 'P':
         if (gameStatus.status == Game_running)
@@ -3008,6 +3054,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case VK_UP:
+        gCameraOverride = true;
         if (gCameraY > kCameraLimitTop)
         {
             gCameraY -= kCameraVelocity;
@@ -3016,6 +3063,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case VK_DOWN:
+        gCameraOverride = true;
         if (gCameraY < kCameraLimitButtom)
         {
             gCameraY += kCameraVelocity;
@@ -3024,6 +3072,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case VK_LEFT:
+        gCameraOverride = true;
         if (gCameraX > kCameraLimitLeft)
         {
             gCameraX -= kCameraVelocity;
@@ -3032,6 +3081,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case VK_RIGHT:
+        gCameraOverride = true;
         if (gCameraX < kCameraLimitRight)
         {
             gCameraX += kCameraVelocity;
