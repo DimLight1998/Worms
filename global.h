@@ -179,8 +179,10 @@ const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地
 const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
 const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
 const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
-const int kMaxHoleNumber        = 10;                               // 最大山洞数
-const int kMaxHoleRadius        = 8;                                // 最大山洞半径
+const int kMinTerrainHeight = 50;
+const int kMinHoleNumber = 20;
+const int kMaxHoleNumber        = 30;                               // 最大山洞数
+const int kMaxHoleRadius        = 16;                                // 最大山洞半径
 // 地块显示规则
 
 const int iTerrainEmpty             = -2;
