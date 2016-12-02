@@ -20,6 +20,7 @@ void renderPause(HWND hWnd);
 void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void robotUpdate(void);
 void seaLevelUpdate(void);
+void seaUpdate(void);
 void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);

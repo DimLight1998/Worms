@@ -72,7 +72,7 @@ double gLaunchingAngle        = 0;        // 武器发射的角度
 int    gPower                 = 0;        // 武器发射的力度
 
 long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海平面上涨的速度的因子
-int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记录海平面高度
+int           gSeaLevel                    = 95;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
 bool    gTerrainNeedUpdate = true;
@@ -651,12 +651,14 @@ void renderGame(HWND hWnd)
     //if (gRobotSkillOn && (gSkillTargetRobot))
 
     // 绘制海洋
+	/*
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
     HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
     seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
     SelectObject(hdcBuffer, seaBrush);                    // 选择笔刷
     drawClosedRectangle(hdcBuffer, 0, gSeaLevel, kWorldWidth, kWorldHeight);
     DeleteObject(seaBrush);    // 释放资源
+	*/
 
 
     // 绘制到屏幕
@@ -941,7 +943,7 @@ void robotUpdate(void)
                 faction[i].aliveRobot--;
             }
 
-            if ((faction[i].robot[j].position.y > gSeaLevel) && (faction[i].robot[j].alive))    // 低于海平面判定死亡
+            if ((faction[i].robot[j].position.y > gSeaLevel*(kTerrainHeight-1)) && (faction[i].robot[j].alive))    // 低于海平面判定死亡
             {
                 faction[i].robot[j].alive    = false;
                 faction[i].robot[j].hitPoint = 0;
@@ -2262,6 +2264,7 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 
 void terrainUpdate(void)
 {
+
 }
 
 /*
@@ -2374,10 +2377,17 @@ void terrainShapeUpdate(int left, int top, int right, int bottom)
                 }
             }
 
-            VectorXY pos                    = getTerrainBlockPicture(terrain[i][j].connectionStatus);
-            terrain[i][j].picturePosition.x = pos.x;
-            terrain[i][j].picturePosition.y = pos.y;
+           
         }
+
+    seaUpdate();
+	for(int i=left;i<=right;i++)
+		for (int j = top; j <=bottom; j++) {
+
+			VectorXY pos = getTerrainBlockPicture(terrain[i][j].connectionStatus);
+			terrain[i][j].picturePosition.x = pos.x;
+			terrain[i][j].picturePosition.y = pos.y;
+		}
 }
 
 void terrainShapeUpdate(int x, int y)
@@ -2400,6 +2410,18 @@ void seaLevelUpdate(void)
     {
         gSeaLevel -= kSeaLevelIncreasingVelocity;
         DEBUG_ONLY_seaLevelIncHelper = 0;
+    }
+}
+
+void seaUpdate(void)
+{
+    for(int i=0;i<kTerrainNumberX;i++)
+    {
+        terrain[i][gSeaLevel].connectionStatus=iWaterSurface;
+        for(int j=gSeaLevel+1;j<kTerrainNumberY;j++)
+        {
+            terrain[i][j].connectionStatus=iWaterDeep;
+        }
     }
 }
 /*

@@ -184,7 +184,8 @@ const int kMinHoleNumber        = 20;                               // 最少山
 const int kMaxHoleNumber        = 30;                               // 最大山洞数
 const int kMaxHoleRadius        = 16;                               // 最大山洞半径
 // 地块显示规则
-
+const int iWaterSurface             = -4;
+const int iWaterDeep                = -3;
 const int iTerrainEmpty             = -2;    // 空地形快
 const int iTerrainDefault           = -1;    // 初始化值
 const int iTerrainFull              = 0;     // 满地块
@@ -206,7 +207,7 @@ const int iTerrainIndependantDown   = 15;    // 向下凸出一小块
 
 
 // 海洋规则
-const int kOringinalSeaLevel          = kWorldHeight - 25;    // 初始海洋高度
+const int kOringinalSeaLevel          = kTerrainNumberY - 5;    // 初始海洋高度
 const int kSeaLevelIncreasingVelocity = 0;                    // 海洋上涨速度
 
 // 风规则
@@ -434,6 +435,7 @@ int pointPointDistanceSquare(int point_1_x, int point_1_y, int point_2_x, int po
 
 VectorXY randomSelectTerrainBlockPicture(int num, ...);
 VectorXY getTerrainBlockPicture(int type);
+
 
 
 #endif
