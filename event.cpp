@@ -870,6 +870,10 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         cameraUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
+        seaLevelUpdate();
+        medicalBoxUpdate();
+        weaponBoxUpdate();
+        skillBoxUpdate();
         if (gRoundWaiting)
         {
             gRoundWaitingTimeRemain--;
@@ -902,10 +906,8 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
 void roundUpdate(void)
 {
     windUpdate();
-    seaLevelUpdate();
-    medicalBoxUpdate();
-    weaponBoxUpdate();
-    skillBoxUpdate();
+    boxRefresh();
+    
 
     gRobotWeaponOn           = false;
     gRobotSkillOn            = false;
@@ -2412,45 +2414,23 @@ void medicalBoxUpdate(void)
 {
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
     {
-        // 如果有医疗箱被捡起，就再刷出来一个
-        if (gMedicalBox[i].picked)
+        if (!gMedicalBox[i].picked)
         {
-            VectorXY position;
-            VectorXY velocity;
-            VectorXY acceleration;
-            // 随机决定医疗包位置
-            position.x     = rand() % kWorldWidth + 1;
-            position.y     = kWorldHeight / 2;
-            velocity.x     = 0;
-            velocity.y     = 0;
-            acceleration.x = 0;
-            acceleration.y = 0;
-            gMedicalBox[i] = creatMedicalBox(position, velocity, acceleration, hMedicalBoxPicture);
-            // 合法化医疗包位置
-            while (boxInTerrain(kMedicalBoxNumber, i))
-            {
-                gMedicalBox[i].position.y--;
-            }
-            while (!boxLanded(kMedicalBoxNumber, i))
-            {
-                gMedicalBox[i].position.y++;
-            }
-        }
-
-        // 如果机器人靠近医疗包，就让医疗包被捡起，同时给人物加血
-        for (int j = 0; j < gFactionNumber; j++)
-            for (int k = 0; k < gRobotNumberPerFaction; k++)
-            {
-                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
-                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
-                int boxCenterX           = gMedicalBox[i].position.x + kMedicalBoxSizeX / 2;
-                int boxCenterY           = gMedicalBox[i].position.y + kMedicalBoxSizeY / 2;
-                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+            // 如果机器人靠近医疗包，就让医疗包被捡起，同时给人物加血
+            for (int j = 0; j < gFactionNumber; j++)
+                for (int k = 0; k < gRobotNumberPerFaction; k++)
                 {
-                    gMedicalBox[i].picked        = true;
-                    faction[j].robot[k].hitPoint = min(faction[j].robot[k].hitPoint + kMedicalBoxEffect, kRobotFullHitPoint);    // 如果血量加满，保证血量不溢出
+                    int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                    int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                    int boxCenterX           = gMedicalBox[i].position.x + kMedicalBoxSizeX / 2;
+                    int boxCenterY           = gMedicalBox[i].position.y + kMedicalBoxSizeY / 2;
+                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+                    {
+                        gMedicalBox[i].picked        = true;
+                        faction[j].robot[k].hitPoint = min(faction[j].robot[k].hitPoint + kMedicalBoxEffect, kRobotFullHitPoint);    // 如果血量加满，保证血量不溢出
+                    }
                 }
-            }
+        }
     }
 
     // 医疗包的自由落体
@@ -2510,60 +2490,41 @@ void weaponBoxUpdate(void)
 {
     for (int i = 0; i < kMaxWeaponBoxNum; i++)
     {
-        if (gWeaponBox[i].picked)
+        if (!gWeaponBox[i].picked)
         {
-            VectorXY position;
-            VectorXY velocity;
-            VectorXY acceleration;
-            position.x     = rand() % kWorldWidth + 1;
-            position.y     = kWorldHeight / 2;
-            velocity.x     = 0;
-            velocity.y     = 0;
-            acceleration.x = 0;
-            acceleration.y = 0;
-            gWeaponBox[i]  = creatWeaponBox(position, velocity, acceleration, hWeaponBoxPicture);
-            while (boxInTerrain(kWeaponBoxNumber, i))
-            {
-                gWeaponBox[i].position.y--;
-            }
-            while (!boxLanded(kWeaponBoxNumber, i))
-            {
-                gWeaponBox[i].position.y++;
-            }
-        }
-
-        for (int j = 0; j < gFactionNumber; j++)
-            for (int k = 0; k < gRobotNumberPerFaction; k++)
-            {
-                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
-                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
-                int boxCenterX           = gWeaponBox[i].position.x + kWeaponBoxSizeX / 2;
-                int boxCenterY           = gWeaponBox[i].position.y + kWeaponBoxSizeY / 2;
-                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+            for (int j = 0; j < gFactionNumber; j++)
+                for (int k = 0; k < gRobotNumberPerFaction; k++)
                 {
-                    gWeaponBox[i].picked = true;
-
-                    switch (gWeaponBox[i].content)
+                    int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                    int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                    int boxCenterX           = gWeaponBox[i].position.x + kWeaponBoxSizeX / 2;
+                    int boxCenterY           = gWeaponBox[i].position.y + kWeaponBoxSizeY / 2;
+                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
                     {
-                    case iMissile:
-                        if (faction[j].ammoMissile >= 0)
-                            faction[j].ammoMissile++;
-                        break;
-                    case iGrenade:
-                        if (faction[j].ammoGrenade >= 0)
-                            faction[j].ammoGrenade++;
-                        break;
-                    case iStickyBomb:
-                        if (faction[j].ammoStickyBomb >= 0)
-                            faction[j].ammoStickyBomb++;
-                        break;
-                    case iTNT:
-                        if (faction[j].ammoTNT >= 0)
-                            faction[j].ammoTNT++;
-                        break;
+                        gWeaponBox[i].picked = true;
+
+                        switch (gWeaponBox[i].content)
+                        {
+                        case iMissile:
+                            if (faction[j].ammoMissile >= 0)
+                                faction[j].ammoMissile++;
+                            break;
+                        case iGrenade:
+                            if (faction[j].ammoGrenade >= 0)
+                                faction[j].ammoGrenade++;
+                            break;
+                        case iStickyBomb:
+                            if (faction[j].ammoStickyBomb >= 0)
+                                faction[j].ammoStickyBomb++;
+                            break;
+                        case iTNT:
+                            if (faction[j].ammoTNT >= 0)
+                                faction[j].ammoTNT++;
+                            break;
+                        }
                     }
                 }
-            }
+        }
     }
 
     // 武器箱自由落体处理
@@ -2622,62 +2583,41 @@ void skillBoxUpdate(void)
 {
     for (int i = 0; i < kMaxSkillBoxNum; i++)
     {
-        // 如果技能箱被捡起，就刷一个新的
-        if (gSkillBox[i].picked)
+        if (!gSkillBox[i].picked)
         {
-            VectorXY position;
-            VectorXY velocity;
-            VectorXY acceleration;
-            position.x     = rand() % kWorldWidth + 1;
-            position.y     = kWorldHeight / 2;
-            velocity.x     = 0;
-            velocity.y     = 0;
-            acceleration.x = 0;
-            acceleration.y = 0;
-            gSkillBox[i]   = creatSkillBox(position, velocity, acceleration, hSkillBoxPicture);
-            // 合法化技能箱位置
-            while (boxInTerrain(kSkillBoxNumber, i))
-            {
-                gSkillBox[i].position.y--;
-            }
-            while (!boxLanded(kSkillBoxNumber, i))
-            {
-                gSkillBox[i].position.y++;
-            }
-        }
-
-        for (int j = 0; j < gFactionNumber; j++)
-            for (int k = 0; k < gRobotNumberPerFaction; k++)
-            {
-                int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
-                int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
-                int boxCenterX           = gSkillBox[i].position.x + kSkillBoxSizeX / 2;
-                int boxCenterY           = gSkillBox[i].position.y + kSkillBoxSizeY / 2;
-                if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
+            for (int j = 0; j < gFactionNumber; j++)
+                for (int k = 0; k < gRobotNumberPerFaction; k++)
                 {
-                    gSkillBox[i].picked = true;
-
-                    switch (gSkillBox[i].content)
+                    int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                    int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                    int boxCenterX           = gSkillBox[i].position.x + kSkillBoxSizeX / 2;
+                    int boxCenterY           = gSkillBox[i].position.y + kSkillBoxSizeY / 2;
+                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, boxCenterX, boxCenterY) <= kPickingBoxRange * kPickingBoxRange)
                     {
-                    case iCure:
-                        if (faction[j].ammoCure >= 0)
-                            faction[j].ammoCure++;
-                        break;
-                    case iGrenade:
-                        if (faction[j].ammoTransfer >= 0)
-                            faction[j].ammoTransfer++;
-                        break;
-                    case iStickyBomb:
-                        if (faction[j].ammoSafeTransfer >= 0)
-                            faction[j].ammoSafeTransfer++;
-                        break;
-                    case iTNT:
-                        if (faction[j].ammoProtect >= 0)
-                            faction[j].ammoProtect++;
-                        break;
+                        gSkillBox[i].picked = true;
+
+                        switch (gSkillBox[i].content)
+                        {
+                        case iCure:
+                            if (faction[j].ammoCure >= 0)
+                                faction[j].ammoCure++;
+                            break;
+                        case iGrenade:
+                            if (faction[j].ammoTransfer >= 0)
+                                faction[j].ammoTransfer++;
+                            break;
+                        case iStickyBomb:
+                            if (faction[j].ammoSafeTransfer >= 0)
+                                faction[j].ammoSafeTransfer++;
+                            break;
+                        case iTNT:
+                            if (faction[j].ammoProtect >= 0)
+                                faction[j].ammoProtect++;
+                            break;
+                        }
                     }
                 }
-            }
+        }
     }
 
     // 技能箱自由落体处理
@@ -2728,6 +2668,89 @@ void skillBoxUpdate(void)
         if (!boxLanded(kSkillBoxNumber, i) && !boxInTerrain(kSkillBoxNumber, i))
         {
             gSkillBox[i].acceleration.y = kGravityAcceleration;
+        }
+    }
+}
+
+void boxRefresh(void)
+{
+    for (int i = 0; i < kMaxMedicalBoxNum; i++)
+    {
+        // 如果有医疗箱被捡起，就再刷出来一个
+        if (gMedicalBox[i].picked)
+        {
+            VectorXY position;
+            VectorXY velocity;
+            VectorXY acceleration;
+            // 随机决定医疗包位置
+            position.x     = rand() % kWorldWidth + 1;
+            position.y     = kWorldHeight / 2;
+            velocity.x     = 0;
+            velocity.y     = 0;
+            acceleration.x = 0;
+            acceleration.y = 0;
+            gMedicalBox[i] = creatMedicalBox(position, velocity, acceleration, hMedicalBoxPicture);
+            // 合法化医疗包位置
+            while (boxInTerrain(kMedicalBoxNumber, i))
+            {
+                gMedicalBox[i].position.y--;
+            }
+            while (!boxLanded(kMedicalBoxNumber, i))
+            {
+                gMedicalBox[i].position.y++;
+            }
+        }
+    }
+
+    for (int i = 0; i < kMaxWeaponBoxNum; i++)
+    {
+        if (gWeaponBox[i].picked)
+        {
+            VectorXY position;
+            VectorXY velocity;
+            VectorXY acceleration;
+            position.x     = rand() % kWorldWidth + 1;
+            position.y     = kWorldHeight / 2;
+            velocity.x     = 0;
+            velocity.y     = 0;
+            acceleration.x = 0;
+            acceleration.y = 0;
+            gWeaponBox[i]  = creatWeaponBox(position, velocity, acceleration, hWeaponBoxPicture);
+            while (boxInTerrain(kWeaponBoxNumber, i))
+            {
+                gWeaponBox[i].position.y--;
+            }
+            while (!boxLanded(kWeaponBoxNumber, i))
+            {
+                gWeaponBox[i].position.y++;
+            }
+        }
+    }
+
+    for (int i = 0; i < kMaxSkillBoxNum; i++)
+    {
+        // 如果技能箱被捡起，就刷一个新的
+        if (gSkillBox[i].picked)
+        {
+            VectorXY position;
+            VectorXY velocity;
+            VectorXY acceleration;
+            position.x     = rand() % kWorldWidth + 1;
+            position.y     = kWorldHeight / 2;
+            velocity.x     = 0;
+            velocity.y     = 0;
+            acceleration.x = 0;
+            acceleration.y = 0;
+            gSkillBox[i]   = creatSkillBox(position, velocity, acceleration, hSkillBoxPicture);
+            // 合法化技能箱位置
+            while (boxInTerrain(kSkillBoxNumber, i))
+            {
+                gSkillBox[i].position.y--;
+            }
+            while (!boxLanded(kSkillBoxNumber, i))
+            {
+                gSkillBox[i].position.y++;
+            }
         }
     }
 }
