@@ -39,20 +39,18 @@ todolist
 ██    ██ ██      ██    ██ ██   ██ ██   ██ ██
  ██████  ███████  ██████  ██████  ██   ██ ███████
 */
-bool gGamePaused = false;    // 状态变量，记录当前游戏是否暂停
-
-int gRobotControlled   = 0;     // 当前活跃的机器人
-int gFactionControlled = 0;     // 当前活跃的阵营
-int gFactionAlive      = -1;    // 最后一个活下的阵营
 
 int gFactionNumber;            // 游戏开始时阵营数目
 int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
 int gRobotNumber;              // 这个游戏中的机器人数目
 
+int gRobotControlled   = 0;                 // 当前活跃的机器人
+int gFactionControlled = gFactionNumber;    // 当前活跃的阵营
+int gFactionAlive      = -1;                // 最后一个活下的阵营
+
 int  gCameraX;    // 摄像机水平位置
 int  gCameraY;    // 摄像机数值位置
 bool gCameraOverride = false;
-
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -68,22 +66,23 @@ bool gSkillTargetSelecting = false;
 int  gSkillTargetFaction   = -1;
 int  gSkillTargetRobot     = -1;
 
-
-int  gChangingWeaponAngle   = 0;        // 用以指定武器旋转状态，值为1为逆时针旋转，-1为顺时针，0为不旋转
-bool gIncreasingWeaponPower = false;    // 用以指定是否在加大武器力量，0为在加大，1为未加大
-
-double gLaunchingAngle = 0;    // 武器发射的角度
-int    gPower          = 0;    // 武器发射的力度
+int    gChangingWeaponAngle   = 0;        // 用以指定武器旋转状态，值为1为逆时针旋转，-1为顺时针，0为不旋转
+bool   gIncreasingWeaponPower = false;    // 用以指定是否在加大武器力量，0为在加大，1为未加大
+double gLaunchingAngle        = 0;        // 武器发射的角度
+int    gPower                 = 0;        // 武器发射的力度
 
 long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海平面上涨的速度的因子
 int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
 bool    gTerrainNeedUpdate = true;
-bool	gRenderOnce = false;
+bool    gRenderOnce        = false;
 HBITMAP hTerrainBmp;
 
-
+bool gRobotMoving             = false;
+bool gRobotEscaping           = false;
+int  gRobotMovingTimeRemain   = kActionTime;
+int  gRobotEscapingTimeRemain = kWithdrawTime;
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
@@ -94,6 +93,8 @@ HBITMAP hTerrainBmp;
 
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
+    srand(unsigned((time(0))));
+
     // 将资源载入到资源句柄中
     hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hWelcomeBackgroundPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WelcomeBackground));
@@ -216,7 +217,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     gameStatus.status   = Game_start;
     gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
 
-    srand(unsigned((time(0))));
+
+    switchToNextFaction();
 }
 /*
  ██████ ██████  ███████  █████  ████████ ██████   █████  ███    ██ ██████   ██████  ███    ███ ████████ ███████ ██████  ██████   █████  ██ ███    ██
@@ -460,12 +462,12 @@ void renderGame(HWND hWnd)
     // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
     if (gTerrainNeedUpdate)
     {
-		gameStatus.hPicture = hGameBackgroundPicture;
-		RENDER_INIT:
-		// 绘制背景图片至hdc
-		SelectObject(hdcBmp, gameStatus.hPicture);
-		//TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
-		BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
+        gameStatus.hPicture = hGameBackgroundPicture;
+    RENDER_INIT:
+        // 绘制背景图片至hdc
+        SelectObject(hdcBmp, gameStatus.hPicture);
+        //TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
+        BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
         // 绘制地块
         SelectObject(hdcBmp, hTerrainPicture);
         for (int i = 0; i < kTerrainNumberX; i++)
@@ -485,15 +487,15 @@ void renderGame(HWND hWnd)
         bmpInfo.bmiHeader.biPlanes   = 1;
         bmpInfo.bmiHeader.biBitCount = 24;
         // 创建新的位图
-		if (gRenderOnce)
-		{
-			DeleteObject(hTerrainBmp);		
-		}
+        if (gRenderOnce)
+        {
+            DeleteObject(hTerrainBmp);
+        }
         hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);
         SelectObject(hdcMem, hTerrainBmp);
         BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
         DeleteDC(hdcMem);
-		gRenderOnce = true;
+        gRenderOnce = true;
     }
 
     // 将位图转到缓冲区上
@@ -533,7 +535,6 @@ void renderGame(HWND hWnd)
         {
             if (faction[i].robot[j].alive)
             {
-				
                 // 确定血条颜色
                 COLORREF HPBarColor;
                 if (faction[i].robot[j].hitPoint > 750)
@@ -557,8 +558,8 @@ void renderGame(HWND hWnd)
                     SetPixel(hdcBuffer, faction[i].robot[j].position.x, k, HPBarColor);
                     SetPixel(hdcBuffer, faction[i].robot[j].position.x + kHitPointBarWidth, k, HPBarColor);
                 }
-                int    width      = (kHitPointBarWidth)*faction[i].robot[j].hitPoint / kRobotFullHitPoint;
-				SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
+                int width = (kHitPointBarWidth)*faction[i].robot[j].hitPoint / kRobotFullHitPoint;
+                SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
                 HBRUSH HPBarBrush = CreateSolidBrush(HPBarColor);
                 SelectObject(hdcBuffer, HPBarBrush);
                 Rectangle(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth + 1, faction[i].robot[j].position.x + width + 2, faction[i].robot[j].position.y - kHitPointBarDistance + 1);
@@ -585,9 +586,10 @@ void renderGame(HWND hWnd)
     default:
         break;
     }
+
     HPEN activePen = CreatePen(PS_DOT, 5, activeColor);
     SelectObject(hdcBuffer, activePen);
-    MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - 2 * kRobotControlSignHeight, NULL);
+    MoveToEx(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - (kRobotControlSignHeight + kRobotControlSignLength), NULL);
     LineTo(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2 - kRobotControlSignHeight);
     DeleteObject(activePen);
 
@@ -655,52 +657,54 @@ void renderGame(HWND hWnd)
     DeleteObject(seaBrush);    // 释放资源
 
 
-    // 绘制比分
-    TCHAR szDist[1000] = L"";                                                                                                                                                                               // 目测是比分字符串
-    SetTextColor(hdcBuffer, RGB(255, 255, 255));                                                                                                                                                            // 设置颜色
-    SetBkMode(hdcBuffer, TRANSPARENT);                                                                                                                                                                      // 目测是字符串背景属性，设成透明
-    wsprintf(szDist, L"%d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);    // 猜测是把一个字符串赋给前面
-    TextOut(hdcBuffer, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
-    wsprintf(szDist, L"weapon %d   skill %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
-    TextOut(hdcBuffer, kWindowWidth - 500, 25, szDist, _tcslen(szDist));
-
-
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
 
     // 阵营血量显示
-	
+
     HBRUSH factionHPBarBrush;
     int    factionHPBarWidth;
 
-	SelectObject(hdc, GetStockObject(NULL_PEN));
+    SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_1);
     SelectObject(hdc, factionHPBarBrush);
     factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
     drawClosedRectangle(hdc, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth, kFactionHPBarDistance, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
-	
-	SelectObject(hdc, GetStockObject(NULL_PEN));
+
+    SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_2);
     SelectObject(hdc, factionHPBarBrush);
     factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
     drawClosedRectangle(hdc, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth, kFactionHPBarDistance, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
-	
-	SelectObject(hdc, GetStockObject(NULL_PEN));
+
+    SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_3);
     SelectObject(hdc, factionHPBarBrush);
     factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
     drawClosedRectangle(hdc, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth, kFactionHPBarDistance, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
-	
-	SelectObject(hdc, GetStockObject(NULL_PEN));
+
+    SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_4);
     SelectObject(hdc, factionHPBarBrush);
     factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
     drawClosedRectangle(hdc, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
+    // 绘制info
+    TCHAR szDist[1000] = L"";
+    SetTextColor(hdc, RGB(255, 0, 0));    // 设置颜色
+    SetBkMode(hdc, TRANSPARENT);
+    wsprintf(szDist, L"ammo %d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);
+    TextOut(hdc, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"weaponOn %d   skillOn %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
+    TextOut(hdc, kWindowWidth - 500, 35, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"mov %d-%d   esc %d-%d", gRobotMoving, gRobotMovingTimeRemain, gRobotEscaping, gRobotEscapingTimeRemain);
+    TextOut(hdc, kWindowWidth - 500, 55, szDist, _tcslen(szDist));
+	wsprintf(szDist, L"currFac %d   currRob %d", gFactionControlled,gRobotControlled);
+	TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -862,18 +866,40 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         robotUpdate();    // 更新所有机器人状态
         factionUpdate();
         cameraUpdate();
-        windUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
-        seaLevelUpdate();
-        medicalBoxUpdate();
-        weaponBoxUpdate();
-        skillBoxUpdate();
+        if (gRobotMoving)
+        {
+            gRobotMovingTimeRemain--;
+            if (gRobotMovingTimeRemain <= 0)
+                switchToNextFaction();
+        }
+        else if (gRobotEscaping)
+        {
+            gRobotEscapingTimeRemain--;
+            if (gRobotEscapingTimeRemain <= 0)
+                switchToNextFaction();
+        }
     }
-	gameStatusUpdate();    // 更新游戏状态，应该是判断游戏是否结束或移交控制权之类
+    gameStatusUpdate();    // 更新游戏状态，应该是判断游戏是否结束或移交控制权之类
     if (gameStatus.status == Game_end)
         KillTimer(hWnd, kTimerID);
     InvalidateRect(hWnd, NULL, FALSE);    // 该函数向指定的窗体更新区域添加一个矩形，然后窗口客户区域的这一部分将被重新绘制。
+}
+void roundUpdate(void)
+{
+    windUpdate();
+    seaLevelUpdate();
+    medicalBoxUpdate();
+    weaponBoxUpdate();
+    skillBoxUpdate();
+
+    gRobotWeaponOn               = false;
+    gRobotSkillOn                = false;
+    gRobotMoving                 = true;
+    gRobotEscaping               = false;
+	gRobotMovingTimeRemain   = kActionTime;
+    gRobotEscapingTimeRemain = kWithdrawTime;
 }
 /*
 ██████   ██████  ██████   ██████  ████████ ██    ██ ██████  ██████   █████  ████████ ███████
@@ -1450,13 +1476,18 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
             {
                 faction[gFactionControlled].ammoMissile--;
             }
-            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-            velocity.x     = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
-            velocity.y     = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
-            acceleration.x = 0;
-            acceleration.y = kGravityAcceleration;
-            gMissile       = creatMissile(position, velocity, acceleration, hMissilePictureRight);
+            position.x      = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y      = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x      = int(kMissileVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y      = int(-kMissileVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x  = 0;
+            acceleration.y  = kGravityAcceleration;
+            gMissile        = creatMissile(position, velocity, acceleration, hMissilePictureRight);
+            gRobotMoving    = false;
+            gRobotEscaping  = true;
+            gRobotWeaponOn  = false;
+            gWeaponSelected = iNoWeapon;
+            gCameraOverride = false;
         }
         gPower = 0;
         break;
@@ -1468,13 +1499,18 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
             {
                 faction[gFactionControlled].ammoGrenade--;
             }
-            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-            velocity.x     = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
-            velocity.y     = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
-            acceleration.x = 0;
-            acceleration.y = kGravityAcceleration;
-            gGrenade       = creatGrenade(position, velocity, acceleration, hGrenadePicture);
+            position.x      = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y      = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x      = int(kGrenadeVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y      = int(-kGrenadeVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x  = 0;
+            acceleration.y  = kGravityAcceleration;
+            gGrenade        = creatGrenade(position, velocity, acceleration, hGrenadePicture);
+            gRobotMoving    = false;
+            gRobotEscaping  = true;
+            gRobotWeaponOn  = false;
+            gWeaponSelected = iNoWeapon;
+            gCameraOverride = false;
         }
         gPower = 0;
         break;
@@ -1486,13 +1522,18 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
             {
                 faction[gFactionControlled].ammoStickyBomb--;
             }
-            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-            velocity.x     = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
-            velocity.y     = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
-            acceleration.x = 0;
-            acceleration.y = kGravityAcceleration;
-            gStickyBomb    = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
+            position.x      = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y      = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x      = int(kStickyBombVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y      = int(-kStickyBombVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x  = 0;
+            acceleration.y  = kGravityAcceleration;
+            gStickyBomb     = creatStickyBomb(position, velocity, acceleration, hStickyBombPicture);
+            gRobotMoving    = false;
+            gRobotEscaping  = true;
+            gRobotWeaponOn  = false;
+            gWeaponSelected = iNoWeapon;
+            gCameraOverride = false;
         }
         gPower = 0;
         break;
@@ -1504,13 +1545,18 @@ void weaponLaunch(void)    // 武器发射函数，用来初始化全局武器�
             {
                 faction[gFactionControlled].ammoTNT--;
             }
-            position.x     = faction[gFactionControlled].robot[gRobotControlled].position.x;
-            position.y     = faction[gFactionControlled].robot[gRobotControlled].position.y;
-            velocity.x     = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
-            velocity.y     = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
-            acceleration.x = 0;
-            acceleration.y = kGravityAcceleration;
-            gTNT           = creatTNT(position, velocity, acceleration, hTNTPicture);
+            position.x      = faction[gFactionControlled].robot[gRobotControlled].position.x;
+            position.y      = faction[gFactionControlled].robot[gRobotControlled].position.y;
+            velocity.x      = int(kTNTVelocity * gPower * cos(gLaunchingAngle) / 100);
+            velocity.y      = int(-kTNTVelocity * gPower * sin(gLaunchingAngle) / 100);
+            acceleration.x  = 0;
+            acceleration.y  = kGravityAcceleration;
+            gTNT            = creatTNT(position, velocity, acceleration, hTNTPicture);
+            gRobotMoving    = false;
+            gRobotEscaping  = true;
+            gRobotWeaponOn  = false;
+            gWeaponSelected = iNoWeapon;
+            gCameraOverride = false;
         }
         gPower = 0;
         break;
@@ -2849,6 +2895,30 @@ void skillUpdate(void)
     }
 }
 
+int getNextRobotControlled(void)
+{
+    int res = faction[gFactionControlled].robotControlled;
+    do
+    {
+        res++;
+        if (res >= gRobotNumberPerFaction)
+            res = 0;
+    } while (!faction[gFactionControlled].robot[res].alive);
+    faction[gFactionControlled].robotControlled = res;
+    return res;
+}
+void switchToNextFaction(void)
+{
+    gCameraOverride = false;
+    do
+    {
+        gFactionControlled++;
+        if (gFactionControlled >= gFactionNumber)
+            gFactionControlled = 0;
+    } while (!faction[gFactionControlled].alive);
+    gRobotControlled = getNextRobotControlled();
+    roundUpdate();
+}
 /*
  ██████   █████  ███    ███ ███████ ███████ ████████  █████  ████████ ██    ██ ███████ ██    ██ ██████  ██████   █████  ████████ ███████
 ██       ██   ██ ████  ████ ██      ██         ██    ██   ██    ██    ██    ██ ██      ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -2985,52 +3055,50 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         gRobotWeaponOn = false;
         break;
     case 13:
-        gCameraOverride = false;
-        do
-        {
-            gFactionControlled++;
-            if (gFactionControlled >= gFactionNumber)
-                gFactionControlled = 0;
-        } while (!faction[gFactionControlled].alive);
-        gRobotControlled = 0;
-        gRobotWeaponOn   = false;
+        switchToNextFaction();
         break;
     case 'F':
-        if (gRobotSkillOn)
+        if (gRobotMoving)
         {
-            gRobotSkillOn   = false;
-            gCameraOverride = false;
-        }
-        if (!gRobotWeaponOn)
-        {
-            gRobotWeaponOn  = true;
-            gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
-            gCameraOverride = false;
-        }
-        else
-        {
-            gRobotWeaponOn  = false;
-            gWeaponSelected = iNoWeapon;
-            gCameraOverride = false;
+            if (gRobotSkillOn)
+            {
+                gRobotSkillOn   = false;
+                gCameraOverride = false;
+            }
+            if (!gRobotWeaponOn)
+            {
+                gRobotWeaponOn  = true;
+                gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
+                gCameraOverride = false;
+            }
+            else
+            {
+                gRobotWeaponOn  = false;
+                gWeaponSelected = iNoWeapon;
+                gCameraOverride = false;
+            }
         }
         break;
     case 'S':
-        if (gRobotWeaponOn)    // 关闭武器选择系统
+        if (gRobotMoving)
         {
-            gRobotWeaponOn  = false;
-            gCameraOverride = false;
-        }
-        if (!gRobotSkillOn)    // 打开技能界面
-        {
-            gRobotSkillOn   = true;
-            gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
-            gCameraOverride = false;
-        }
-        else    // 关闭技能界面
-        {
-            gRobotSkillOn   = false;
-            gSkillSelected  = iNoSkill;
-            gCameraOverride = false;
+            if (gRobotWeaponOn)    // 关闭武器选择系统
+            {
+                gRobotWeaponOn  = false;
+                gCameraOverride = false;
+            }
+            if (!gRobotSkillOn)    // 打开技能界面
+            {
+                gRobotSkillOn   = true;
+                gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
+                gCameraOverride = false;
+            }
+            else    // 关闭技能界面
+            {
+                gRobotSkillOn   = false;
+                gSkillSelected  = iNoSkill;
+                gCameraOverride = false;
+            }
         }
         break;
     case 'Q':
@@ -3061,13 +3129,11 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         if (gameStatus.status == Game_running)
         {
             gameStatus.status = Game_pause;
-            gGamePaused       = true;
             break;
         }
         if (gameStatus.status == Game_pause)
         {
             gameStatus.status = Game_running;
-            gGamePaused       = false;
             break;
         }
         break;

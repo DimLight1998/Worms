@@ -23,9 +23,13 @@ void seaLevelUpdate(void);
 void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);
+void roundUpdate(void);
+
+int  getNextRobotControlled(void);
+void switchToNextFaction(void);
 
 void terrainUpdate(void);
-void terrainShapeUpdate(int,int,int,int);
+void terrainShapeUpdate(int, int, int, int);
 void terrainShapeUpdate(int, int);
 
 BOOL robotInTerrain(int factionNum, int robotNum);

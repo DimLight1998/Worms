@@ -226,6 +226,7 @@ const int kAimDistance            = 75;     // 准星距离机器人距离
 const int kFactionHPBarWidth      = 360;    // 阵营血条宽度
 const int kFactionHPBarHeight     = 25;     // 阵营血条高度
 const int kFactionHPBarDistance   = 5;      // 阵营血条间隔
+const int kRobotControlSignLength = 20;
 const int kRobotControlSignHeight = 50;     // 机器人控制标志高度
 
 // 用户操作规则
@@ -236,8 +237,8 @@ const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;      // 摄像
 const int    kCameraVelocity        = 8;                               // 摄像机切换速度
 const int    kCameraStartVelocity   = 8;                               // 摄像机平滑切换的时候的启动速度
 const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
-const int    kActionTime            = 0;                               // 每回合操作时间
-const int    kWithdrawTime          = 0;                               // 撤退时间
+const int    kActionTime = 1500;                               // 每回合操作时间<ms>
+const int    kWithdrawTime          = 250;                               // 撤退时间<ms>
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);
@@ -301,6 +302,7 @@ struct Faction
     int   hitPoint;
     bool  alive;
     Robot robot[kMaxRobotNumberPerFaction];
+    int robotControlled;
     int   aliveRobot;
     int   ammoMissile;
     int   ammoGrenade;
