@@ -26,7 +26,6 @@ HBITMAP hSkillBoxPicture;
 HBITMAP hTerrainPicture;
 
 
-
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
 GameButton gameStartButton;

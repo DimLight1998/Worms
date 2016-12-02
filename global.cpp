@@ -296,17 +296,17 @@ VectorXY getTerrainBlockPicture(int type)
         return randomSelectTerrainBlockPicture(3, vec[0], vec[1], vec[2]);
         break;
     }
-	case iWaterSurface:
-	{
-		VectorXY vec[8] = { { 8, 14 },{ 9, 14 },{ 10, 14 },{ 11, 14 },{ 12, 14 },{ 13, 14 },{ 14, 14 },{ 15, 14 } };
-		return randomSelectTerrainBlockPicture(8, vec[0], vec[1], vec[2], vec[3], vec[4], vec[5], vec[6], vec[7]);
-		break;
-	}
-	case iWaterDeep:
-	{
-		VectorXY vec[8] = { { 8, 15 },{ 9, 15 },{ 10, 15 },{ 11, 15 },{ 12, 15 },{ 13, 15 },{ 14, 15 },{ 15, 15 } };
-		return randomSelectTerrainBlockPicture(8, vec[0], vec[1], vec[2], vec[3], vec[4], vec[5], vec[6], vec[7]);
-		break;
-	}
+    case iWaterSurface:
+    {
+        VectorXY vec[8] = { { 8, 14 }, { 9, 14 }, { 10, 14 }, { 11, 14 }, { 12, 14 }, { 13, 14 }, { 14, 14 }, { 15, 14 } };
+        return randomSelectTerrainBlockPicture(8, vec[0], vec[1], vec[2], vec[3], vec[4], vec[5], vec[6], vec[7]);
+        break;
+    }
+    case iWaterDeep:
+    {
+        VectorXY vec[8] = { { 8, 15 }, { 9, 15 }, { 10, 15 }, { 11, 15 }, { 12, 15 }, { 13, 15 }, { 14, 15 }, { 15, 15 } };
+        return randomSelectTerrainBlockPicture(8, vec[0], vec[1], vec[2], vec[3], vec[4], vec[5], vec[6], vec[7]);
+        break;
+    }
     }
 }

@@ -71,8 +71,8 @@ bool   gIncreasingWeaponPower = false;    // 用以指定是否在加大武器�
 double gLaunchingAngle        = 0;        // 武器发射的角度
 int    gPower                 = 0;        // 武器发射的力度
 
-int           gSeaLevel                    = 95;    // 全局记录海平面高度
-int           gWindPower                   = 0;
+int gSeaLevel  = 95;    // 全局记录海平面高度
+int gWindPower = 0;
 
 bool    gTerrainNeedUpdate = true;
 bool    gRenderOnce        = false;
@@ -650,7 +650,7 @@ void renderGame(HWND hWnd)
     //if (gRobotSkillOn && (gSkillTargetRobot))
 
     // 绘制海洋
-	/*
+    /*
     SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
     HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
     seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
@@ -908,8 +908,8 @@ void roundUpdate(void)
 {
     windUpdate();
     boxRefresh();
-	seaLevelUpdate();
-	terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
+    seaLevelUpdate();
+    terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
     gRobotWeaponOn           = false;
     gRobotSkillOn            = false;
     gRobotMoving             = false;
@@ -942,7 +942,7 @@ void robotUpdate(void)
                 faction[i].aliveRobot--;
             }
 
-            if ((faction[i].robot[j].position.y > gSeaLevel*(kTerrainHeight-1)) && (faction[i].robot[j].alive))    // 低于海平面判定死亡
+            if ((faction[i].robot[j].position.y > (gSeaLevel - 1) * kTerrainHeight) && (faction[i].robot[j].alive))    // 低于海平面判定死亡
             {
                 faction[i].robot[j].alive    = false;
                 faction[i].robot[j].hitPoint = 0;
@@ -2263,7 +2263,6 @@ void skillActivate(void)    // TODO 记得把数量给减掉
 
 void terrainUpdate(void)
 {
-
 }
 
 /*
@@ -2375,18 +2374,16 @@ void terrainShapeUpdate(int left, int top, int right, int bottom)
                     break;
                 }
             }
-
-           
         }
 
     seaUpdate();
-	for(int i=left;i<=right;i++)
-		for (int j = top; j <=bottom; j++) {
-
-			VectorXY pos = getTerrainBlockPicture(terrain[i][j].connectionStatus);
-			terrain[i][j].picturePosition.x = pos.x;
-			terrain[i][j].picturePosition.y = pos.y;
-		}
+    for (int i = left; i <= right; i++)
+        for (int j = top; j <= bottom; j++)
+        {
+            VectorXY pos                    = getTerrainBlockPicture(terrain[i][j].connectionStatus);
+            terrain[i][j].picturePosition.x = pos.x;
+            terrain[i][j].picturePosition.y = pos.y;
+        }
 }
 
 void terrainShapeUpdate(int x, int y)
@@ -2404,17 +2401,17 @@ void terrainShapeUpdate(int x, int y)
 
 void seaLevelUpdate(void)
 {
-	gSeaLevel -= kSeaLevelIncreasingVelocity;
+    gSeaLevel -= kSeaLevelIncreasingVelocity;
 }
 
 void seaUpdate(void)
 {
-    for(int i=0;i<kTerrainNumberX;i++)
+    for (int i = 0; i < kTerrainNumberX; i++)
     {
-        terrain[i][gSeaLevel].connectionStatus=iWaterSurface;
-        for(int j=gSeaLevel+1;j<kTerrainNumberY;j++)
+        terrain[i][gSeaLevel].connectionStatus = iWaterSurface;
+        for (int j = gSeaLevel + 1; j < kTerrainNumberY; j++)
         {
-            terrain[i][j].connectionStatus=iWaterDeep;
+            terrain[i][j].connectionStatus = iWaterDeep;
         }
     }
 }
@@ -2430,6 +2427,10 @@ void medicalBoxUpdate(void)
 {
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
     {
+        // 如果箱子在水下，就标记为被拾起
+        if (gMedicalBox[i].position.y > (gSeaLevel - 1) * kTerrainHeight)
+            gMedicalBox[i].picked = true;
+
         if (!gMedicalBox[i].picked)
         {
             // 如果机器人靠近医疗包，就让医疗包被捡起，同时给人物加血
@@ -2506,6 +2507,11 @@ void weaponBoxUpdate(void)
 {
     for (int i = 0; i < kMaxWeaponBoxNum; i++)
     {
+        // 如果箱子在水下，就标记为被拾起
+        if (gWeaponBox[i].position.y > (gSeaLevel - 1) * kTerrainHeight)
+            gWeaponBox[i].picked = true;
+
+
         if (!gWeaponBox[i].picked)
         {
             for (int j = 0; j < gFactionNumber; j++)
@@ -2599,6 +2605,11 @@ void skillBoxUpdate(void)
 {
     for (int i = 0; i < kMaxSkillBoxNum; i++)
     {
+        // 如果箱子在水下，就标记为被拾起
+        if (gSkillBox[i].position.y > (gSeaLevel - 1) * kTerrainHeight)
+            gSkillBox[i].picked = true;
+
+
         if (!gSkillBox[i].picked)
         {
             for (int j = 0; j < gFactionNumber; j++)

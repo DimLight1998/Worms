@@ -208,7 +208,7 @@ const int iTerrainIndependantDown   = 15;    // 向下凸出一小块
 
 // 海洋规则
 const int kOringinalSeaLevel          = kTerrainNumberY - 5;    // 初始海洋高度
-const int kSeaLevelIncreasingVelocity = 1;                    // 海洋上涨速度
+const int kSeaLevelIncreasingVelocity = 1;                      // 海洋上涨速度
 
 // 风规则
 const int    kWindPowerRange  = 3;    // 风向取值范围
@@ -238,9 +238,9 @@ const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;      // 摄像
 const int    kCameraVelocity        = 10;                              // 摄像机切换速度
 const int    kCameraStartVelocity   = 8;                               // 摄像机平滑切换的时候的启动速度
 const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
-const int    kActionTime            = 50;//1500;                            // 每回合操作时间<ms>
+const int    kActionTime            = 50;                              //1500;                            // 每回合操作时间<ms>
 const int    kWithdrawTime          = 250;                             // 撤退时间<ms>
-const int    kWaitTime = 0;//250;                             // 回合间等待时间
+const int    kWaitTime              = 0;                               //250;                             // 回合间等待时间
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);
@@ -435,7 +435,6 @@ int pointPointDistanceSquare(int point_1_x, int point_1_y, int point_2_x, int po
 
 VectorXY randomSelectTerrainBlockPicture(int num, ...);
 VectorXY getTerrainBlockPicture(int type);
-
 
 
 #endif
