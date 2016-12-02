@@ -71,7 +71,6 @@ bool   gIncreasingWeaponPower = false;    // 用以指定是否在加大武器�
 double gLaunchingAngle        = 0;        // 武器发射的角度
 int    gPower                 = 0;        // 武器发射的力度
 
-long long int DEBUG_ONLY_seaLevelIncHelper = 0;                     // 用作海平面上涨的速度的因子
 int           gSeaLevel                    = 95;    // 全局记录海平面高度
 int           gWindPower                   = 0;
 
@@ -872,7 +871,6 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         cameraUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
-        seaLevelUpdate();
         medicalBoxUpdate();
         weaponBoxUpdate();
         skillBoxUpdate();
@@ -905,12 +903,13 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         KillTimer(hWnd, kTimerID);
     InvalidateRect(hWnd, NULL, FALSE);    // 该函数向指定的窗体更新区域添加一个矩形，然后窗口客户区域的这一部分将被重新绘制。
 }
+
 void roundUpdate(void)
 {
     windUpdate();
     boxRefresh();
-    
-
+	seaLevelUpdate();
+	terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
     gRobotWeaponOn           = false;
     gRobotSkillOn            = false;
     gRobotMoving             = false;
@@ -2405,12 +2404,7 @@ void terrainShapeUpdate(int x, int y)
 
 void seaLevelUpdate(void)
 {
-    DEBUG_ONLY_seaLevelIncHelper++;
-    if (DEBUG_ONLY_seaLevelIncHelper == 10)
-    {
-        gSeaLevel -= kSeaLevelIncreasingVelocity;
-        DEBUG_ONLY_seaLevelIncHelper = 0;
-    }
+	gSeaLevel -= kSeaLevelIncreasingVelocity;
 }
 
 void seaUpdate(void)
