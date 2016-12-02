@@ -49,13 +49,10 @@ int gFactionNumber;            // 游戏开始时阵营数目
 int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
 int gRobotNumber;              // 这个游戏中的机器人数目
 
-int      gCameraX;    // 摄像机水平位置
-int      gCameraY;    // 摄像机数值位置
-bool     gCameraOverride = false;
-VectorXY gCameraOriginalPosition;
-VectorXY gCameraTargetPosition;
-VectorXY gCameraVelocity;
-VectorXY gCameraAcceleration;
+int  gCameraX;    // 摄像机水平位置
+int  gCameraY;    // 摄像机数值位置
+bool gCameraOverride = false;
+
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -83,6 +80,7 @@ int           gSeaLevel                    = kOringinalSeaLevel;    // 全局记
 int           gWindPower                   = 0;
 
 bool    gTerrainNeedUpdate = true;
+bool	gRenderOnce = false;
 HBITMAP hTerrainBmp;
 
 
@@ -462,9 +460,12 @@ void renderGame(HWND hWnd)
     // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
     if (gTerrainNeedUpdate)
     {
-        // 绘制背景图片至缓冲区
-        SelectObject(hdcBmp, gameStatus.hPicture);
-        TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
+		gameStatus.hPicture = hGameBackgroundPicture;
+		RENDER_INIT:
+		// 绘制背景图片至hdc
+		SelectObject(hdcBmp, gameStatus.hPicture);
+		//TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
+		BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
         // 绘制地块
         SelectObject(hdcBmp, hTerrainPicture);
         for (int i = 0; i < kTerrainNumberX; i++)
@@ -484,43 +485,21 @@ void renderGame(HWND hWnd)
         bmpInfo.bmiHeader.biPlanes   = 1;
         bmpInfo.bmiHeader.biBitCount = 24;
         // 创建新的位图
-        DeleteObject(hTerrainBmp);
+		if (gRenderOnce)
+		{
+			DeleteObject(hTerrainBmp);		
+		}
         hTerrainBmp = CreateDIBSection(hdcMem, &bmpInfo, DIB_RGB_COLORS, reinterpret_cast<VOID **>(&pData), NULL, 0);
         SelectObject(hdcMem, hTerrainBmp);
         BitBlt(hdcMem, 0, 0, kWorldWidth, kWorldHeight, hdcBuffer, 0, 0, SRCCOPY);
         DeleteDC(hdcMem);
+		gRenderOnce = true;
     }
+
     // 将位图转到缓冲区上
     SelectObject(hdcBmp, hTerrainBmp);
     BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
 
-    // 阵营血量显示
-    HBRUSH factionHPBarBrush;
-    int    factionHPBarWidth;
-
-    factionHPBarBrush = CreateSolidBrush(Color_Faction_1);
-    SelectObject(hdcBuffer, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
-    drawClosedRectangle(hdcBuffer, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth, kFactionHPBarDistance, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
-    DeleteObject(factionHPBarBrush);
-
-    factionHPBarBrush = CreateSolidBrush(Color_Faction_2);
-    SelectObject(hdcBuffer, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
-    drawClosedRectangle(hdcBuffer, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth, kFactionHPBarDistance, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
-    DeleteObject(factionHPBarBrush);
-
-    factionHPBarBrush = CreateSolidBrush(Color_Faction_3);
-    SelectObject(hdcBuffer, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
-    drawClosedRectangle(hdcBuffer, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth, kFactionHPBarDistance, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
-    DeleteObject(factionHPBarBrush);
-
-    factionHPBarBrush = CreateSolidBrush(Color_Faction_4);
-    SelectObject(hdcBuffer, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
-    drawClosedRectangle(hdcBuffer, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
-    DeleteObject(factionHPBarBrush);
 
     // 绘制箱子
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
@@ -554,6 +533,7 @@ void renderGame(HWND hWnd)
         {
             if (faction[i].robot[j].alive)
             {
+				
                 // 确定血条颜色
                 COLORREF HPBarColor;
                 if (faction[i].robot[j].hitPoint > 750)
@@ -578,6 +558,7 @@ void renderGame(HWND hWnd)
                     SetPixel(hdcBuffer, faction[i].robot[j].position.x + kHitPointBarWidth, k, HPBarColor);
                 }
                 int    width      = (kHitPointBarWidth)*faction[i].robot[j].hitPoint / kRobotFullHitPoint;
+				SelectObject(hdcBuffer, GetStockObject(NULL_PEN));
                 HBRUSH HPBarBrush = CreateSolidBrush(HPBarColor);
                 SelectObject(hdcBuffer, HPBarBrush);
                 Rectangle(hdcBuffer, faction[i].robot[j].position.x, faction[i].robot[j].position.y - kHitPointBarDistance - kHitPointBarHeigth + 1, faction[i].robot[j].position.x + width + 2, faction[i].robot[j].position.y - kHitPointBarDistance + 1);
@@ -687,6 +668,39 @@ void renderGame(HWND hWnd)
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
 
+    // 阵营血量显示
+	
+    HBRUSH factionHPBarBrush;
+    int    factionHPBarWidth;
+
+	SelectObject(hdc, GetStockObject(NULL_PEN));
+    factionHPBarBrush = CreateSolidBrush(Color_Faction_1);
+    SelectObject(hdc, factionHPBarBrush);
+    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    drawClosedRectangle(hdc, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth, kFactionHPBarDistance, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
+    DeleteObject(factionHPBarBrush);
+	
+	SelectObject(hdc, GetStockObject(NULL_PEN));
+    factionHPBarBrush = CreateSolidBrush(Color_Faction_2);
+    SelectObject(hdc, factionHPBarBrush);
+    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    drawClosedRectangle(hdc, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth, kFactionHPBarDistance, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
+    DeleteObject(factionHPBarBrush);
+	
+	SelectObject(hdc, GetStockObject(NULL_PEN));
+    factionHPBarBrush = CreateSolidBrush(Color_Faction_3);
+    SelectObject(hdc, factionHPBarBrush);
+    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    drawClosedRectangle(hdc, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth, kFactionHPBarDistance, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
+    DeleteObject(factionHPBarBrush);
+	
+	SelectObject(hdc, GetStockObject(NULL_PEN));
+    factionHPBarBrush = CreateSolidBrush(Color_Faction_4);
+    SelectObject(hdc, factionHPBarBrush);
+    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    drawClosedRectangle(hdc, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
+    DeleteObject(factionHPBarBrush);
+
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -768,7 +782,7 @@ void renderPause(HWND hWnd)
     // 绘制背景到缓冲区
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
-    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, gCameraX, gCameraY, SRCCOPY);
 
     RECT       rect;
     TEXTMETRIC tm;
@@ -856,7 +870,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         weaponBoxUpdate();
         skillBoxUpdate();
     }
-    gameStatusUpdate();    // 更新游戏状态，应该是判断游戏是否结束或移交控制权之类
+	gameStatusUpdate();    // 更新游戏状态，应该是判断游戏是否结束或移交控制权之类
     if (gameStatus.status == Game_end)
         KillTimer(hWnd, kTimerID);
     InvalidateRect(hWnd, NULL, FALSE);    // 该函数向指定的窗体更新区域添加一个矩形，然后窗口客户区域的这一部分将被重新绘制。
