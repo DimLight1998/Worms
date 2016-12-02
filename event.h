@@ -53,6 +53,7 @@ void skillUpdate(void);
 void medicalBoxUpdate(void);
 void weaponBoxUpdate(void);
 void skillBoxUpdate(void);
+void boxRefresh(void);
 bool boxInTerrain(int boxType, int boxNum);
 bool boxLanded(int boxType, int boxNum);
 

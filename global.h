@@ -86,7 +86,7 @@ const int kAmmoInfinity = -1;    // 无限弹药
 const int iNoWeapon     = 0;     // 未选择武器
 const int iMissile      = 1;     // 选择导弹
 const int iGrenade      = 2;     // 选择手雷
-const int iStickyBomb   = 3;     // 选择粘性炸弹'
+const int iStickyBomb   = 3;     // 选择粘性炸弹
 const int iTNT          = 4;     // 选择TNT
 // 武器规则 / 导弹
 const int kMissileSizeX          = 34;     // 导弹实体宽度
@@ -227,18 +227,19 @@ const int kFactionHPBarWidth      = 360;    // 阵营血条宽度
 const int kFactionHPBarHeight     = 25;     // 阵营血条高度
 const int kFactionHPBarDistance   = 5;      // 阵营血条间隔
 const int kRobotControlSignLength = 20;
-const int kRobotControlSignHeight = 50;     // 机器人控制标志高度
+const int kRobotControlSignHeight = 50;    // 机器人控制标志高度
 
 // 用户操作规则
 const int    kCameraLimitTop        = 0;                               // 摄像机上限
 const int    kCameraLimitLeft       = 0;                               // 摄像机左限
 const int    kCameraLimitButtom     = kWorldHeight - kWindowHeight;    // 摄像机下限
 const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;      // 摄像机右限
-const int    kCameraVelocity        = 8;                               // 摄像机切换速度
+const int    kCameraVelocity        = 10;                              // 摄像机切换速度
 const int    kCameraStartVelocity   = 8;                               // 摄像机平滑切换的时候的启动速度
 const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
-const int    kActionTime = 1500;                               // 每回合操作时间<ms>
-const int    kWithdrawTime          = 250;                               // 撤退时间<ms>
+const int    kActionTime            = 1500;                            // 每回合操作时间<ms>
+const int    kWithdrawTime          = 250;                             // 撤退时间<ms>
+const int    kWaitTime              = 250;                             // 回合间等待时间
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);
@@ -302,7 +303,7 @@ struct Faction
     int   hitPoint;
     bool  alive;
     Robot robot[kMaxRobotNumberPerFaction];
-    int robotControlled;
+    int   robotControlled;
     int   aliveRobot;
     int   ammoMissile;
     int   ammoGrenade;

@@ -4,7 +4,7 @@
 #pragma comment(lib, "msimg32.lib")
 
 TCHAR szWindowClass[] = _T("win32app");
-TCHAR szTitle[]       = _T("Faster Than Light");
+TCHAR szTitle[]       = _T("Goblin's Warfare");
 
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)

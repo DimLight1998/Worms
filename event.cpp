@@ -81,8 +81,10 @@ HBITMAP hTerrainBmp;
 
 bool gRobotMoving             = false;
 bool gRobotEscaping           = false;
+bool gRoundWaiting            = false;
 int  gRobotMovingTimeRemain   = kActionTime;
 int  gRobotEscapingTimeRemain = kWithdrawTime;
+int  gRoundWaitingTimeRemain  = kWaitTime;
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
@@ -701,10 +703,10 @@ void renderGame(HWND hWnd)
     TextOut(hdc, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
     wsprintf(szDist, L"weaponOn %d   skillOn %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
     TextOut(hdc, kWindowWidth - 500, 35, szDist, _tcslen(szDist));
-    wsprintf(szDist, L"mov %d-%d   esc %d-%d", gRobotMoving, gRobotMovingTimeRemain, gRobotEscaping, gRobotEscapingTimeRemain);
+    wsprintf(szDist, L"mov %d-%d   esc %d-%d  wait %d-%d", gRobotMoving, gRobotMovingTimeRemain, gRobotEscaping, gRobotEscapingTimeRemain, gRoundWaiting, gRoundWaitingTimeRemain);
     TextOut(hdc, kWindowWidth - 500, 55, szDist, _tcslen(szDist));
-	wsprintf(szDist, L"currFac %d   currRob %d", gFactionControlled,gRobotControlled);
-	TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"currFac %d   currRob %d   wind %d", gFactionControlled, gRobotControlled, gWindPower);
+    TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -868,7 +870,18 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         cameraUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
-        if (gRobotMoving)
+        if (gRoundWaiting)
+        {
+            gRoundWaitingTimeRemain--;
+            if (gRoundWaitingTimeRemain <= 0)
+            {
+                gRoundWaiting   = false;
+                gRobotMoving    = true;
+                gCameraOverride = false;
+                cameraUpdate();
+            }
+        }
+        else if (gRobotMoving)
         {
             gRobotMovingTimeRemain--;
             if (gRobotMovingTimeRemain <= 0)
@@ -894,12 +907,14 @@ void roundUpdate(void)
     weaponBoxUpdate();
     skillBoxUpdate();
 
-    gRobotWeaponOn               = false;
-    gRobotSkillOn                = false;
-    gRobotMoving                 = true;
-    gRobotEscaping               = false;
-	gRobotMovingTimeRemain   = kActionTime;
+    gRobotWeaponOn           = false;
+    gRobotSkillOn            = false;
+    gRobotMoving             = false;
+    gRobotEscaping           = false;
+    gRoundWaiting            = true;
+    gRobotMovingTimeRemain   = kActionTime;
     gRobotEscapingTimeRemain = kWithdrawTime;
+    gRoundWaitingTimeRemain  = kWaitTime;
 }
 /*
 ██████   ██████  ██████   ██████  ████████ ██    ██ ██████  ██████   █████  ████████ ███████
@@ -2992,149 +3007,182 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     switch (wParam)
     {
     case 'W':    // W键上跳，设定速度与加速度。跳起后，无法控制。
-        if ((!gRobotSkillOn) && (!gRobotWeaponOn) && (!faction[gFactionControlled].robot[gRobotControlled].isJumping))
+        if (!gRoundWaiting)
         {
-            gCameraOverride                                                    = false;
-            faction[gFactionControlled].robot[gRobotControlled].velocity.y     = -kRobotVelocityY_startJump;
-            faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
-            faction[gFactionControlled].robot[gRobotControlled].isJumping      = true;
-            if (faction[gFactionControlled].robot[gRobotControlled].velocity.x > 0)
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn) && (!faction[gFactionControlled].robot[gRobotControlled].isJumping))
             {
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
-            }
-            else if (faction[gFactionControlled].robot[gRobotControlled].velocity.x < 0)
-            {
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
+                gCameraOverride                                                    = false;
+                faction[gFactionControlled].robot[gRobotControlled].velocity.y     = -kRobotVelocityY_startJump;
+                faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
+                faction[gFactionControlled].robot[gRobotControlled].isJumping      = true;
+                if (faction[gFactionControlled].robot[gRobotControlled].velocity.x > 0)
+                {
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
+                }
+                else if (faction[gFactionControlled].robot[gRobotControlled].velocity.x < 0)
+                {
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
+                }
             }
         }
         break;
     case 'A':
-        if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+        if (!gRoundWaiting)
         {
-            gCameraOverride = false;
-            if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityX;
-            else
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+            {
+                gCameraOverride = false;
+                if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityX;
+                else
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
+            }
         }
         break;
     case 'D':
-        if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+        if (!gRoundWaiting)
         {
-            gCameraOverride = false;
-            if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityX;
-            else
-                faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+            {
+                gCameraOverride = false;
+                if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityX;
+                else
+                    faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
+            }
         }
         break;
     case 'R':    // 根据目前打开的界面来决定自己的功能
-        if (gRobotWeaponOn)
+        if (!gRoundWaiting)
         {
-            faction[gFactionControlled].robot[gRobotControlled].weapon++;
-            if (faction[gFactionControlled].robot[gRobotControlled].weapon == kMaxWeaponNum + 1)
-                faction[gFactionControlled].robot[gRobotControlled].weapon = 0;
-            gCameraOverride                                                = false;
-        }
-        if (gRobotSkillOn)
-        {
-            faction[gFactionControlled].robot[gRobotControlled].skill++;
-            if (faction[gFactionControlled].robot[gRobotControlled].skill == kMaxSkillNum + 1)
-                faction[gFactionControlled].robot[gRobotControlled].skill = 0;
-            gCameraOverride                                               = false;
+            if (gRobotWeaponOn)
+            {
+                faction[gFactionControlled].robot[gRobotControlled].weapon++;
+                if (faction[gFactionControlled].robot[gRobotControlled].weapon == kMaxWeaponNum + 1)
+                    faction[gFactionControlled].robot[gRobotControlled].weapon = 0;
+                gCameraOverride                                                = false;
+            }
+            if (gRobotSkillOn)
+            {
+                faction[gFactionControlled].robot[gRobotControlled].skill++;
+                if (faction[gFactionControlled].robot[gRobotControlled].skill == kMaxSkillNum + 1)
+                    faction[gFactionControlled].robot[gRobotControlled].skill = 0;
+                gCameraOverride                                               = false;
+            }
         }
         break;
     case '\t':    // Tab键切换机器人，只在调试时使用
-        gCameraOverride = false;
-        do
+        if (!gRoundWaiting)
         {
-            gRobotControlled++;
-            if (gRobotControlled >= gRobotNumberPerFaction)
-                gRobotControlled = 0;
-        } while (!faction[gFactionControlled].robot[gRobotControlled].alive);
-        gRobotWeaponOn = false;
+            gCameraOverride = false;
+            do
+            {
+                gRobotControlled++;
+                if (gRobotControlled >= gRobotNumberPerFaction)
+                    gRobotControlled = 0;
+            } while (!faction[gFactionControlled].robot[gRobotControlled].alive);
+            gRobotWeaponOn = false;
+        }
         break;
     case 13:
-        switchToNextFaction();
+        if (!gRoundWaiting)
+        {
+            switchToNextFaction();
+        }
         break;
     case 'F':
-        if (gRobotMoving)
+        if (!gRoundWaiting)
         {
-            if (gRobotSkillOn)
+            if (gRobotMoving)
             {
-                gRobotSkillOn   = false;
-                gCameraOverride = false;
-            }
-            if (!gRobotWeaponOn)
-            {
-                gRobotWeaponOn  = true;
-                gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
-                gCameraOverride = false;
-            }
-            else
-            {
-                gRobotWeaponOn  = false;
-                gWeaponSelected = iNoWeapon;
-                gCameraOverride = false;
+                if (gRobotSkillOn)
+                {
+                    gRobotSkillOn   = false;
+                    gCameraOverride = false;
+                }
+                if (!gRobotWeaponOn)
+                {
+                    gRobotWeaponOn  = true;
+                    gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
+                    gCameraOverride = false;
+                }
+                else
+                {
+                    gRobotWeaponOn  = false;
+                    gWeaponSelected = iNoWeapon;
+                    gCameraOverride = false;
+                }
             }
         }
         break;
     case 'S':
-        if (gRobotMoving)
+        if (!gRoundWaiting)
         {
-            if (gRobotWeaponOn)    // 关闭武器选择系统
+            if (gRobotMoving)
             {
-                gRobotWeaponOn  = false;
-                gCameraOverride = false;
-            }
-            if (!gRobotSkillOn)    // 打开技能界面
-            {
-                gRobotSkillOn   = true;
-                gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
-                gCameraOverride = false;
-            }
-            else    // 关闭技能界面
-            {
-                gRobotSkillOn   = false;
-                gSkillSelected  = iNoSkill;
-                gCameraOverride = false;
+                if (gRobotWeaponOn)    // 关闭武器选择系统
+                {
+                    gRobotWeaponOn  = false;
+                    gCameraOverride = false;
+                }
+                if (!gRobotSkillOn)    // 打开技能界面
+                {
+                    gRobotSkillOn   = true;
+                    gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
+                    gCameraOverride = false;
+                }
+                else    // 关闭技能界面
+                {
+                    gRobotSkillOn   = false;
+                    gSkillSelected  = iNoSkill;
+                    gCameraOverride = false;
+                }
             }
         }
         break;
     case 'Q':
-
-        if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+        if (!gRoundWaiting)
         {
-            gChangingWeaponAngle = 1;
-            gCameraOverride      = false;
+            if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+            {
+                gChangingWeaponAngle = 1;
+                gCameraOverride      = false;
+            }
         }
         break;
     case 'E':
-
-        if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+        if (!gRoundWaiting)
         {
-            gChangingWeaponAngle = -1;
-            gCameraOverride      = false;
+            if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
+            {
+                gChangingWeaponAngle = -1;
+                gCameraOverride      = false;
+            }
         }
         break;
     case ' ':
-
-        if (gRobotWeaponOn && !gChangingWeaponAngle && gWeaponSelected)
+        if (!gRoundWaiting)
         {
-            gIncreasingWeaponPower = true;
-            gCameraOverride        = false;
+            if (gRobotWeaponOn && !gChangingWeaponAngle && gWeaponSelected)
+            {
+                gIncreasingWeaponPower = true;
+                gCameraOverride        = false;
+            }
         }
         break;
     case 'P':
-        if (gameStatus.status == Game_running)
+        if (!gRoundWaiting)
         {
-            gameStatus.status = Game_pause;
-            break;
-        }
-        if (gameStatus.status == Game_pause)
-        {
-            gameStatus.status = Game_running;
-            break;
+            if (gameStatus.status == Game_running)
+            {
+                gameStatus.status = Game_pause;
+                break;
+            }
+            if (gameStatus.status == Game_pause)
+            {
+                gameStatus.status = Game_running;
+                break;
+            }
         }
         break;
     case VK_UP:
