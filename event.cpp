@@ -605,6 +605,51 @@ void renderGame(HWND hWnd)
             }
         }
 
+	// 绘制机器人的武器
+	if (gRobotWeaponOn)
+	{
+		switch (gWeaponSelected)
+		{
+		case iNoWeapon:
+			break;
+		case iMissile:
+			if (faction[gFactionControlled].robot[gRobotControlled].direction == kFacingLeft)
+			{
+				SelectObject(hdcBmp, hMissilePictureLeft);
+				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y+kRobotSizeY/3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
+			}
+			else
+			{
+				SelectObject(hdcBmp, hMissilePictureRight);
+				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
+			}
+			break;
+		case iGrenade:
+			
+			
+				SelectObject(hdcBmp, hGrenadePicture);
+				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kGrenadeSizeX, kGrenadeSizeY, hdcBmp, 0, 0, kGrenadePictureX, kGrenadePictureY, RGB(255, 255, 255));
+				break;
+			
+		case iStickyBomb:
+		
+			SelectObject(hdcBmp, hStickyBombPicture);
+			TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kStickyBombSizeX, kStickyBombSizeY, hdcBmp, 0, 0, kStickyBombPictureX, kStickyBombPictureY, RGB(255, 255, 255));
+
+		
+			break;
+
+		case iTNT:
+		
+			SelectObject(hdcBmp, hTNTPicture);
+			TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kTNTSizeX, kTNTSizeY, hdcBmp, 0, 0, kTNTPictureX, kTNTPictureY, RGB(255, 255, 255));
+
+		
+			break;
+
+		}
+	}
+
     // 绘制武器角度和力度的改变
     if (gRobotWeaponOn && gWeaponSelected)
     {
@@ -696,7 +741,7 @@ void renderGame(HWND hWnd)
     drawClosedRectangle(hdc, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
-    // 绘制info
+    // 绘制log
     TCHAR szDist[1000] = L"";
     SetTextColor(hdc, RGB(255, 0, 0));    // 设置颜色
     SetBkMode(hdc, TRANSPARENT);
@@ -709,6 +754,8 @@ void renderGame(HWND hWnd)
     wsprintf(szDist, L"currFac %d   currRob %d   wind %d", gFactionControlled, gRobotControlled, gWindPower);
     TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
 
+	// 绘制info
+	
     // 释放资源
     DeleteObject(cptBmp);
     DeleteDC(hdcBuffer);
@@ -1131,7 +1178,7 @@ BOOL robotInTerrain(int factionNum, int robotNum)
     if ((faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
     {
         right = faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance;
-    }
+    } 
     else
     {
         right = ((faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
@@ -1245,6 +1292,21 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         }
         else if (gChangingWeaponAngle == -1)
             gLaunchingAngle -= kAngelChangingVelocity / Pi;
+
+		if (gChangingWeaponAngle != 0)
+		{
+			if (cos(gLaunchingAngle) >= 0)
+			{
+				faction[gFactionControlled].robot[gRobotControlled].direction = kFacingRight;
+				faction[gFactionControlled].robot[gRobotControlled].hPicture = hRobotPicture[gFactionControlled + gFactionNumber];
+			}
+			else
+			{
+				faction[gFactionControlled].robot[gRobotControlled].direction = kFacingLeft;
+				faction[gFactionControlled].robot[gRobotControlled].hPicture = hRobotPicture[gFactionControlled];
+
+			}
+		}
 
         if (gIncreasingWeaponPower && (gPower <= 100))
             gPower++;
@@ -3066,7 +3128,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
                 faction[gFactionControlled].robot[gRobotControlled].isJumping      = true;
                 if (faction[gFactionControlled].robot[gRobotControlled].velocity.x > 0)
-                {
+                { 
                     faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
                 }
                 else if (faction[gFactionControlled].robot[gRobotControlled].velocity.x < 0)
@@ -3077,9 +3139,9 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 'A':
-        if (!gRoundWaiting)
+        if (!gRoundWaiting) 
         {
-            if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn))
             {
                 gCameraOverride = false;
                 if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
@@ -3087,12 +3149,12 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 else
                     faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
             }
-        }
+        } 
         break;
     case 'D':
         if (!gRoundWaiting)
         {
-            if ((!gRobotSkillOn) && (!gRobotWeaponOn) /*&& (!faction[gFactionControlled].robot[gRobotControlled].isJumping)*/)
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn) )
             {
                 gCameraOverride = false;
                 if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
