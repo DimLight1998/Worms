@@ -32,36 +32,36 @@ const int kTimerID     = 1;
 const int kTimerElapse = 20;
 
 // 资源尺寸
-const int kRobotPictureX         = 32;     // 机器人贴图宽度
-const int kRobotPictureY         = 56;     // 机器人贴图高度
-const int kAimPictureX           = 512;    // 武器准星贴图宽度
-const int kAimPictureY           = 512;    // 武器准星贴图高度
-const int kMissilePictureX       = 32;     // 导弹贴图宽度
-const int kMissilePictureY       = 16;     // 导弹贴图高度
-const int kGrenadePictureX       = 14;     // 手雷贴图宽度
-const int kGrenadePictureY       = 20;     // 手雷贴图高度
-const int kStickyBombPictureX    = 22;     // 粘性炸弹贴图宽度
-const int kStickyBombPictureY    = 30;     // 粘性炸弹贴图高度
-const int kTNTPictureX           = 10;
-const int kTNTPictureY           = 32;
-const int kMedicalBoxPictureX    = 32;
-const int kMedicalBoxPictureY    = 28;
-const int kWeaponBoxPictureX     = 32;
-const int kWeaponBoxPictureY     = 28;
-const int kSkillBoxPictureX      = 32;
-const int kSkillBoxPictureY      = 28;
-const int kGameStartButtonPictureX  = 512;    // 开始游戏按钮宽度
-const int kGameStartButtonPictureY  = 512;    // 开始游戏按钮高度
+const int kRobotPictureX           = 32;     // 机器人贴图宽度
+const int kRobotPictureY           = 56;     // 机器人贴图高度
+const int kAimPictureX             = 512;    // 武器准星贴图宽度
+const int kAimPictureY             = 512;    // 武器准星贴图高度
+const int kMissilePictureX         = 32;     // 导弹贴图宽度
+const int kMissilePictureY         = 16;     // 导弹贴图高度
+const int kGrenadePictureX         = 14;     // 手雷贴图宽度
+const int kGrenadePictureY         = 20;     // 手雷贴图高度
+const int kStickyBombPictureX      = 22;     // 粘性炸弹贴图宽度
+const int kStickyBombPictureY      = 30;     // 粘性炸弹贴图高度
+const int kTNTPictureX             = 10;     // TNT贴图宽度
+const int kTNTPictureY             = 32;     // TNT贴图高度
+const int kMedicalBoxPictureX      = 32;     // 医疗箱贴图宽度
+const int kMedicalBoxPictureY      = 28;     // 医疗箱贴图高度
+const int kWeaponBoxPictureX       = 32;     // 武器箱贴图宽度
+const int kWeaponBoxPictureY       = 28;     // 武器箱贴图高度
+const int kSkillBoxPictureX        = 32;     // 技能箱贴图宽度
+const int kSkillBoxPictureY        = 28;     // 技能箱贴图高度
+const int kGameStartButtonPictureX = 512;    // 开始游戏按钮宽度
+const int kGameStartButtonPictureY = 512;    // 开始游戏按钮高度
 const int kGameExitButtonPictureX  = 128;    // 开始游戏按钮宽度
 const int kGameExitButtonPictureY  = 122;    // 开始游戏按钮高度
 const int kGameHelpButtonPictureX  = 200;    // 开始游戏按钮宽度
 const int kGameHelpButtonPictureY  = 200;    // 开始游戏按钮高度
-const int kMaxRobotFrameNum      = 16;     // 机器人贴图最大帧数
-const int kRobotStopPictureIndex = 0;      // 机器人静止所在贴图
-const int kTerrainPictureSizeX   = 288;    // 地块贴图大小
-const int kTerrainPictureSizeY   = 270;
-const int kTerrainBlockSizeX     = 16;    // 每个地块的贴图大小
-const int kTerrainBlockSizeY     = 16;
+const int kMaxRobotFrameNum        = 16;     // 机器人贴图最大帧数
+const int kRobotStopPictureIndex   = 0;      // 机器人静止所在贴图
+const int kTerrainPictureSizeX     = 288;    // 地块贴图资源宽度
+const int kTerrainPictureSizeY     = 270;    // 地块贴图资源高度
+const int kTerrainBlockSizeX       = 16;     // 每个地块的贴图宽度
+const int kTerrainBlockSizeY       = 16;     // 每个地块的贴图高度
 
 // 机器人规则
 const int kRobotSizeX               = 32;                                               // 机器人宽度
@@ -76,18 +76,18 @@ const int kRobotVelocityY_startJump = 15;                                       
 const int kRobotEdgeIngnorance      = 3;                                                // 处理碰撞时的机器人边缘忽略
 const int kMaxWeaponNum             = 4;                                                // 机器人携带武器种类数，每次追加武器时更改该值
 const int kMaxSkillNum              = 4;                                                // 最大技能数
-const int kFacingLeft               = 1;
-const int kFacingRight              = 2;
-const int kPickingBoxRange          = 20;
-const int kFrameSwitchFrequency     = 3;
+const int kFacingLeft               = 1;                                                // 机器人面向左边常量
+const int kFacingRight              = 2;                                                // 机器人面向右边常量
+const int kPickingBoxRange          = 20;                                               // 机器人捡起补给箱的范围
+const int kFrameSwitchFrequency     = 3;                                                // 机器人行走动画切帧速度
 
 // 武器规则 / 索引
-const int kAmmoInfinity = -1;
-const int iNoWeapon     = 0;
-const int iMissile      = 1;
-const int iGrenade      = 2;
-const int iStickyBomb   = 3;
-const int iTNT          = 4;
+const int kAmmoInfinity = -1;    // 无限弹药
+const int iNoWeapon     = 0;     // 未选择武器
+const int iMissile      = 1;     // 选择导弹
+const int iGrenade      = 2;     // 选择手雷
+const int iStickyBomb   = 3;     // 选择粘性炸弹'
+const int iTNT          = 4;     // 选择TNT
 // 武器规则 / 导弹
 const int kMissileSizeX          = 34;     // 导弹实体宽度
 const int kMissileSizeY          = 15;     // 导弹实体高度
@@ -97,7 +97,7 @@ const int kMissileHarm           = 300;    // 导弹伤害值
 const int kMissileHarmRange      = 40;     // 导弹伤害范围
 const int kMissileSenseDistance  = 20;     // 导弹被机器人触发范围
 const int kMissileExplosionPower = 6;      // 导弹震波
-const int kMissileDefaultAmmo    = -1;     // 无限，用-1表示
+const int kMissileDefaultAmmo    = -1;     // 开局时分配武器弹药数，无限用-1表示
 // 武器规则 / 手雷
 const int kGrenadeExplodeTime    = 150;    // 手雷爆炸前的时间
 const int kGrenadeSizeX          = 14;     // 手雷实体宽度
@@ -109,7 +109,7 @@ const int kGrenadeHarmRange      = 50;     // 手雷伤害范围
 const int kGrenadeExplosionPower = 12;     // 手雷震波
 const int kGrenadeDefaultAmmo    = -1;     // 无限，用-1表示
 // 武器规则 / 粘性炸弹
-const int kStickyBombExplodeTime    = 150;
+const int kStickyBombExplodeTime    = 150;    // 粘性炸弹爆炸前秒数
 const int kStickyBombSizeX          = 22;     // 粘性炸弹实体宽度
 const int kStickyBombSizeY          = 30;     // 粘性炸弹实体高度
 const int kStickyBombVelocity       = 16;     // 粘性炸弹初始速度
@@ -117,9 +117,9 @@ const int kStickyBombEdgeIngnorance = 3;      // 粘性炸弹碰撞边缘检测
 const int kStickyBombHarm           = 600;    // 粘性炸弹伤害
 const int kStickyBombHarmRange      = 100;    // 粘性炸弹伤害范围
 const int kStickyBombExplosionPower = 15;     // 粘性炸弹震波
-const int kStickyBombDefaultAmmo    = 3;
+const int kStickyBombDefaultAmmo    = 3;      // 开局时分配武器弹药数
 // 武器规则 / 炸药
-const int kTNTExplodeTime    = 200;
+const int kTNTExplodeTime    = 200;    // TNT爆炸前的秒数
 const int kTNTSizeX          = 10;     // 炸药实体宽度
 const int kTNTSizeY          = 32;     // 炸药实体高度
 const int kTNTVelocity       = 0;      // 炸药初始速度
@@ -127,7 +127,7 @@ const int kTNTEdgeIngnorance = 3;      // 炸药碰撞边缘检测
 const int kTNTHarm           = 800;    // 炸药伤害
 const int kTNTHarmRange      = 200;    // 炸药伤害范围
 const int kTNTExplosionPower = 20;     // 炸药震波
-const int kTNTDefaultAmmo    = 1;
+const int kTNTDefaultAmmo    = 1;      // 开局分配弹药数
 
 
 // 技能规则 / 索引
@@ -137,34 +137,34 @@ const int iTransfer     = 2;    // 随机传送技能，无输入，传送到随
 const int iSafeTransfer = 3;    // 安全传送技能，传送到自己阵营的指定对象旁边
 const int iProtect      = 4;    // 护盾技能，打开自己的护盾
 // 技能规则 / 参数
-const int kCureEffect             = 500;
-const int kCureDefaultAmmo        = 2;
-const int kTransferDefaultAmmo    = 2;
-const int kSafeTransferDefaulAmmo = 2;
-const int kProtectDefaultAmmo     = 2;
-const int kProtectiveShellTime    = 10;
+const int kCureEffect             = 500;    // 治疗技能效果
+const int kCureDefaultAmmo        = 2;      // 开局分配技能使用次数
+const int kTransferDefaultAmmo    = 2;      // 开局分配技能使用次数
+const int kSafeTransferDefaulAmmo = 2;      // 开局分配技能使用次数
+const int kProtectDefaultAmmo     = 2;      // 开局分配技能使用次数
+const int kProtectiveShellTime    = 10;     // 护盾技能持续时间数
 
 
 // 补给箱规则 / 索引
-const int kMedicalBoxNumber = 1;
-const int kWeaponBoxNumber  = 2;
-const int kSkillBoxNumber   = 3;
+const int kMedicalBoxNumber = 1;    // 医疗箱索引
+const int kWeaponBoxNumber  = 2;    // 武器箱索引
+const int kSkillBoxNumber   = 3;    // 技能箱索引
 // 补给箱规则 / 医疗箱
-const int kMedicalBoxSizeX          = 32;
-const int kMedicalBoxSizeY          = 28;
-const int kMaxMedicalBoxNum         = 2;
-const int kMedicalBoxEdgeIngnorance = 3;
-const int kMedicalBoxEffect         = 200;
+const int kMedicalBoxSizeX          = 32;     // 医疗箱宽度
+const int kMedicalBoxSizeY          = 28;     // 医疗箱高度
+const int kMaxMedicalBoxNum         = 2;      // 地图上医疗箱数目
+const int kMedicalBoxEdgeIngnorance = 3;      // 医疗箱碰撞边缘忽略
+const int kMedicalBoxEffect         = 200;    // 医疗箱效果
 // 补给箱规则 / 武器箱
-const int kWeaponBoxSizeX          = 32;
-const int kWeaponBoxSizeY          = 28;
-const int kMaxWeaponBoxNum         = 2;
-const int kWeaponBoxEdgeIngnorance = 3;
+const int kWeaponBoxSizeX          = 32;    // 武器箱宽度
+const int kWeaponBoxSizeY          = 28;    // 武器箱高度
+const int kMaxWeaponBoxNum         = 2;     // 地图上最大武器箱数
+const int kWeaponBoxEdgeIngnorance = 3;     // 武器箱碰撞边缘忽略
 // 补给箱规则 / 技能箱
-const int kSkillBoxSizeX          = 32;
-const int kSkillBoxSizeY          = 28;
-const int kMaxSkillBoxNum         = 2;
-const int kSkillBoxEdgeIngnorance = 3;
+const int kSkillBoxSizeX          = 32;    // 技能箱宽度
+const int kSkillBoxSizeY          = 28;    // 技能箱高度
+const int kMaxSkillBoxNum         = 2;     // 最大技能箱数目
+const int kSkillBoxEdgeIngnorance = 3;     // 技能箱碰撞边缘忽略
 
 // 物理规则
 const int    kGravityAcceleration = 1;                     // 重力加速度
@@ -179,13 +179,13 @@ const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地
 const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
 const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
 const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
-const int kMinTerrainHeight = 50;
-const int kMinHoleNumber = 20;
+const int kMinTerrainHeight     = 50;                               // 最小地形高度（防止游戏太快结束）
+const int kMinHoleNumber        = 20;                               // 最少山洞数
 const int kMaxHoleNumber        = 30;                               // 最大山洞数
-const int kMaxHoleRadius        = 16;                                // 最大山洞半径
+const int kMaxHoleRadius        = 16;                               // 最大山洞半径
 // 地块显示规则
 
-const int iTerrainEmpty             = -2;
+const int iTerrainEmpty             = -2;    // 空地形快
 const int iTerrainDefault           = -1;    // 初始化值
 const int iTerrainFull              = 0;     // 满地块
 const int iTerrainHalfRight         = 1;     // 右边缺了一半
@@ -210,33 +210,34 @@ const int kOringinalSeaLevel          = kWorldHeight - 25;    // 初始海洋高
 const int kSeaLevelIncreasingVelocity = 0;                    // 海洋上涨速度
 
 // 风规则
-const int    kWindPowerRange  = 3;
-const double kWindPowerFactor = 1;
+const int    kWindPowerRange  = 3;    // 风向取值范围
+const double kWindPowerFactor = 1;    // 风力影响因子
 
 
 // 用户界面规则
-const int kButtonWidth=100;
-const int kButtonHeight=100;
-const int kHitPointBarWidth       = 30;    // 血条的宽度
-const int kHitPointBarHeigth      = 5;     // 血条的高度
-const int kHitPointBarDistance    = 10;    // 血条距离人物的高度
-const int kAimUIWidth             = 50;    // 准星显示宽度
-const int kAimUIHeight            = 50;    // 准星显示高度
-const int kAimDistance            = 75;    // 准星距离机器人距离
-const int kFactionHPBarWidth      = 360;
-const int kFactionHPBarHeight     = 25;
-const int kFactionHPBarDistance   = 5;
-const int kRobotControlSignHeight = 50;
+const int kButtonWidth            = 100;    // 按钮宽度
+const int kButtonHeight           = 100;    // 按钮高度
+const int kHitPointBarWidth       = 30;     // 血条的宽度
+const int kHitPointBarHeigth      = 5;      // 血条的高度
+const int kHitPointBarDistance    = 10;     // 血条距离人物的高度
+const int kAimUIWidth             = 50;     // 准星显示宽度
+const int kAimUIHeight            = 50;     // 准星显示高度
+const int kAimDistance            = 75;     // 准星距离机器人距离
+const int kFactionHPBarWidth      = 360;    // 阵营血条宽度
+const int kFactionHPBarHeight     = 25;     // 阵营血条高度
+const int kFactionHPBarDistance   = 5;      // 阵营血条间隔
+const int kRobotControlSignHeight = 50;     // 机器人控制标志高度
 
 // 用户操作规则
-const int    kCameraLimitTop        = 0;
-const int    kCameraLimitLeft       = 0;
-const int    kCameraLimitButtom     = kWorldHeight - kWindowHeight;
-const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;
-const int    kCameraVelocity        = 8;      // 摄像机切换速度
-const double kAngelChangingVelocity = 0.2;    // 改变武器发射角度的速率
-const int    kActionTime            = 0;      // 每回合操作时间
-const int    kWithdrawTime          = 0;      // 撤退时间
+const int    kCameraLimitTop        = 0;                               // 摄像机上限
+const int    kCameraLimitLeft       = 0;                               // 摄像机左限
+const int    kCameraLimitButtom     = kWorldHeight - kWindowHeight;    // 摄像机下限
+const int    kCameraLimitRight      = kWorldWidth - kWindowWidth;      // 摄像机右限
+const int    kCameraVelocity        = 8;                               // 摄像机切换速度
+const int    kCameraStartVelocity   = 8;                               // 摄像机平滑切换的时候的启动速度
+const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
+const int    kActionTime            = 0;                               // 每回合操作时间
+const int    kWithdrawTime          = 0;                               // 撤退时间
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);

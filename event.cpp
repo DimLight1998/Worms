@@ -49,9 +49,13 @@ int gFactionNumber;            // 游戏开始时阵营数目
 int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
 int gRobotNumber;              // 这个游戏中的机器人数目
 
-int  gCameraX;    // 摄像机水平位置
-int  gCameraY;    // 摄像机数值位置
-bool gCameraOverride = false;
+int      gCameraX;    // 摄像机水平位置
+int      gCameraY;    // 摄像机数值位置
+bool     gCameraOverride = false;
+VectorXY gCameraOriginalPosition;
+VectorXY gCameraTargetPosition;
+VectorXY gCameraVelocity;
+VectorXY gCameraAcceleration;
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
