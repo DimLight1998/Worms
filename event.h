@@ -42,6 +42,7 @@ void weaponUpdate(void);
 void weaponLaunch(void);
 void weaponDestroied(void);
 bool weaponHit(int weapon);
+void weaponAnimationUpdate(void);
 bool grenadeInTerrain(void);
 bool grenadeLanded(void);
 bool stickyBombInTerrain(void);
@@ -62,5 +63,6 @@ BOOL gameButtonClicked(POINT ptMouse, RECT rectButton);
 void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara);
 void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
+
 
 #endif

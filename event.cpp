@@ -5,33 +5,23 @@ todolist
 
 帮助界面布局
 地图选择界面布局
-制作人物贴图
-不同阵营的人物
 手榴弹的爆炸效果
 
-回合制对战
 多背景图片
 
 帮助界面，地图选择界面
 随机地图生成器，能输入种子
 显示弹药量和技能点
-多种武器支持
 对战AI
 地形贴图
 武器箱，医疗箱，技能箱
 背景音乐
 放弃操作
-
 */
 
-//
-
-//kWindowHeight
 #include "event.h"
 #include "global.h"
 #include "item.h"
-
-
 /*
  ██████  ██       ██████  ██████   █████  ██
 ██       ██      ██    ██ ██   ██ ██   ██ ██
@@ -39,7 +29,6 @@ todolist
 ██    ██ ██      ██    ██ ██   ██ ██   ██ ██
  ██████  ███████  ██████  ██████  ██   ██ ███████
 */
-
 int gFactionNumber;            // 游戏开始时阵营数目
 int gRobotNumberPerFaction;    // 游戏开始时每个阵营人数
 int gRobotNumber;              // 这个游戏中的机器人数目
@@ -84,6 +73,22 @@ bool gRoundWaiting            = false;
 int  gRobotMovingTimeRemain   = kActionTime;
 int  gRobotEscapingTimeRemain = kWithdrawTime;
 int  gRoundWaitingTimeRemain  = kWaitTime;
+
+bool gPlayingMissileAnimation = false;
+bool gPlayingGrenadeAnimation = false;
+bool gPlayingStickyBombAnimation = false;
+bool gPlayingTNTAnimation = false;
+
+int gMissileAnimationTimeRemain = 0;
+int gGrenadeAnimationTimeRemain = 0;
+int gStickyBombAnimationTimeRemain = 0;
+int gTNTAnimationTimeRemain = 0;
+
+VectorXY gMissileAnimationPosition;
+VectorXY gGrenadeAnimationPosition;
+VectorXY gStickyBombAnimationPosition;
+VectorXY gTNTAnimationPosition;
+
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
@@ -124,6 +129,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
     hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
+	hGrenadeExplosionPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -148,7 +154,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     // 初始化阵营
     for (int i = 0; i < gFactionNumber; i++)
     {
-        faction[i] = creatFaction(i);
+        faction[i] = creatFaction(i, false);
         for (int j = 0; j < gRobotNumberPerFaction; j++)
         {
             if (faction[i].robot[j].direction == kFacingLeft)
@@ -199,7 +205,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         VectorXY temp_1, temp_2;
         temp_1.x       = kButtonWidth;
         temp_1.y       = kButtonHeight;
-        temp_2.x       = 1000;
+        temp_2.x       = 500;
         temp_2.y       = 200;
         gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameHelpButtonPicture);
     }
@@ -338,6 +344,7 @@ void creatRandomTerrain(int seed)
         while (terrain[i][prevHeight].isDestoried)
             prevHeight++;
     }
+
     // 随机山洞
     int numOfHole = rand() % (kMaxHoleNumber - kMinHoleNumber + 1) + kMinHoleNumber;
     for (int i = 0; i <= numOfHole; i++)
@@ -605,50 +612,49 @@ void renderGame(HWND hWnd)
             }
         }
 
-	// 绘制机器人的武器
-	if (gRobotWeaponOn)
-	{
-		switch (gWeaponSelected)
-		{
-		case iNoWeapon:
-			break;
-		case iMissile:
-			if (faction[gFactionControlled].robot[gRobotControlled].direction == kFacingLeft)
-			{
-				SelectObject(hdcBmp, hMissilePictureLeft);
-				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y+kRobotSizeY/3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
-			}
-			else
-			{
-				SelectObject(hdcBmp, hMissilePictureRight);
-				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
-			}
-			break;
-		case iGrenade:
-			
-			
-				SelectObject(hdcBmp, hGrenadePicture);
-				TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kGrenadeSizeX, kGrenadeSizeY, hdcBmp, 0, 0, kGrenadePictureX, kGrenadePictureY, RGB(255, 255, 255));
-				break;
-			
-		case iStickyBomb:
-		
-			SelectObject(hdcBmp, hStickyBombPicture);
-			TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kStickyBombSizeX, kStickyBombSizeY, hdcBmp, 0, 0, kStickyBombPictureX, kStickyBombPictureY, RGB(255, 255, 255));
+    // 绘制机器人的武器
+    if (gRobotWeaponOn)
+    {
+        switch (gWeaponSelected)
+        {
+        case iNoWeapon:
+            break;
+        case iMissile:
+            if (faction[gFactionControlled].robot[gRobotControlled].direction == kFacingLeft)
+            {
+                SelectObject(hdcBmp, hMissilePictureLeft);
+                TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
+            }
+            else
+            {
+                SelectObject(hdcBmp, hMissilePictureRight);
+                TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 3, kMissileSizeX, kMissileSizeY, hdcBmp, 0, 0, kMissilePictureX, kMissilePictureY, RGB(255, 255, 255));
+            }
+            break;
+        case iGrenade:
 
-		
-			break;
 
-		case iTNT:
-		
-			SelectObject(hdcBmp, hTNTPicture);
-			TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kTNTSizeX, kTNTSizeY, hdcBmp, 0, 0, kTNTPictureX, kTNTPictureY, RGB(255, 255, 255));
+            SelectObject(hdcBmp, hGrenadePicture);
+            TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kGrenadeSizeX, kGrenadeSizeY, hdcBmp, 0, 0, kGrenadePictureX, kGrenadePictureY, RGB(255, 255, 255));
+            break;
 
-		
-			break;
+        case iStickyBomb:
 
-		}
-	}
+            SelectObject(hdcBmp, hStickyBombPicture);
+            TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kStickyBombSizeX, kStickyBombSizeY, hdcBmp, 0, 0, kStickyBombPictureX, kStickyBombPictureY, RGB(255, 255, 255));
+
+
+            break;
+
+        case iTNT:
+
+            SelectObject(hdcBmp, hTNTPicture);
+            TransparentBlt(hdcBuffer, faction[gFactionControlled].robot[gRobotControlled].position.x, faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2, kTNTSizeX, kTNTSizeY, hdcBmp, 0, 0, kTNTPictureX, kTNTPictureY, RGB(255, 255, 255));
+
+
+            break;
+        }
+    }
 
     // 绘制武器角度和力度的改变
     if (gRobotWeaponOn && gWeaponSelected)
@@ -694,15 +700,15 @@ void renderGame(HWND hWnd)
     // 绘制技能的选择对象界面
     //if (gRobotSkillOn && (gSkillTargetRobot))
 
-    // 绘制海洋
-    /*
-    SelectObject(hdcBuffer, GetStockObject(NULL_PEN));    // 选择笔刷。但是这句话没懂
-    HBRUSH seaBrush;                                      // 建立了一个笔刷的句柄
-    seaBrush = CreateSolidBrush(Color_Sea);               // 指定笔刷的属性和颜色
-    SelectObject(hdcBuffer, seaBrush);                    // 选择笔刷
-    drawClosedRectangle(hdcBuffer, 0, gSeaLevel, kWorldWidth, kWorldHeight);
-    DeleteObject(seaBrush);    // 释放资源
-	*/
+
+
+	// 绘制武器爆炸效果
+	// TODO
+	if (gPlayingGrenadeAnimation)
+	{
+		SelectObject(hdcBmp, hGrenadeExplosionPicture);
+		TransparentBlt(hdcBuffer, gGrenadeAnimationPosition.x, gGrenadeAnimationPosition.y, kGrenadeExplosionAnimationSizeX, kGrenadeExplosionAnimationSizeY, hdcBmp, 0, (4-gGrenadeAnimationTimeRemain/10)*(kGrenadeExplosionPictureSizeY/kGrenadeExplosionAnimationFrame), kGrenadeExplosionPictureSizeX, kGrenadeExplosionPictureSizeY / kGrenadeExplosionAnimationFrame, RGB(0, 0, 255));
+	}
 
 
     // 绘制到屏幕
@@ -754,8 +760,8 @@ void renderGame(HWND hWnd)
     wsprintf(szDist, L"currFac %d   currRob %d   wind %d", gFactionControlled, gRobotControlled, gWindPower);
     TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
 
-	// 绘制info
-	
+    // 绘制info
+
     // 释放资源
     DeleteObject(cptBmp);
     DeleteDC(hdcBuffer);
@@ -860,6 +866,14 @@ void renderPause(HWND hWnd)
     // 结束绘制
     EndPaint(hWnd, &ps);
 }
+/*
+██████  ███████ ███    ██ ██████  ███████ ██████  ██   ██ ███████ ██      ██████
+██   ██ ██      ████   ██ ██   ██ ██      ██   ██ ██   ██ ██      ██      ██   ██
+██████  █████   ██ ██  ██ ██   ██ █████   ██████  ███████ █████   ██      ██████
+██   ██ ██      ██  ██ ██ ██   ██ ██      ██   ██ ██   ██ ██      ██      ██
+██   ██ ███████ ██   ████ ██████  ███████ ██   ██ ██   ██ ███████ ███████ ██
+*/
+
 void renderHelp(HWND hWnd)
 {
     PAINTSTRUCT ps;
@@ -921,6 +935,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         medicalBoxUpdate();
         weaponBoxUpdate();
         skillBoxUpdate();
+		weaponAnimationUpdate();
         if (gRoundWaiting)
         {
             gRoundWaitingTimeRemain--;
@@ -950,6 +965,13 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         KillTimer(hWnd, kTimerID);
     InvalidateRect(hWnd, NULL, FALSE);    // 该函数向指定的窗体更新区域添加一个矩形，然后窗口客户区域的这一部分将被重新绘制。
 }
+/*
+██████   ██████  ██    ██ ███    ██ ██████  ██    ██ ██████  ██████   █████  ████████ ███████
+██   ██ ██    ██ ██    ██ ████   ██ ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+██████  ██    ██ ██    ██ ██ ██  ██ ██   ██ ██    ██ ██████  ██   ██ ███████    ██    █████
+██   ██ ██    ██ ██    ██ ██  ██ ██ ██   ██ ██    ██ ██      ██   ██ ██   ██    ██    ██
+██   ██  ██████   ██████  ██   ████ ██████   ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void roundUpdate(void)
 {
@@ -1082,6 +1104,8 @@ void robotUpdate(void)
                 }
             }
             gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
+			gSkillSelected = faction[gFactionControlled].robot[gRobotControlled].skill;
+
         }
         if ((faction[i].alive) && (faction[i].aliveRobot <= 0))
             faction[i].alive = false;
@@ -1178,7 +1202,7 @@ BOOL robotInTerrain(int factionNum, int robotNum)
     if ((faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
     {
         right = faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance;
-    } 
+    }
     else
     {
         right = ((faction[factionNum].robot[robotNum].position.x + kRobotSizeX - kRobotEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
@@ -1255,6 +1279,13 @@ BOOL robotLanded(int factionNum, int robotNum)
             return true;
     return false;
 }
+/*
+ ██████  █████  ███    ███ ███████ ██████   █████  ██    ██ ██████  ██████   █████  ████████ ███████
+██      ██   ██ ████  ████ ██      ██   ██ ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
+██      ███████ ██ ████ ██ █████   ██████  ███████ ██    ██ ██████  ██   ██ ███████    ██    █████
+██      ██   ██ ██  ██  ██ ██      ██   ██ ██   ██ ██    ██ ██      ██   ██ ██   ██    ██    ██
+ ██████ ██   ██ ██      ██ ███████ ██   ██ ██   ██  ██████  ██      ██████  ██   ██    ██    ███████
+*/
 
 void cameraUpdate(void)
 {
@@ -1293,20 +1324,19 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         else if (gChangingWeaponAngle == -1)
             gLaunchingAngle -= kAngelChangingVelocity / Pi;
 
-		if (gChangingWeaponAngle != 0)
-		{
-			if (cos(gLaunchingAngle) >= 0)
-			{
-				faction[gFactionControlled].robot[gRobotControlled].direction = kFacingRight;
-				faction[gFactionControlled].robot[gRobotControlled].hPicture = hRobotPicture[gFactionControlled + gFactionNumber];
-			}
-			else
-			{
-				faction[gFactionControlled].robot[gRobotControlled].direction = kFacingLeft;
-				faction[gFactionControlled].robot[gRobotControlled].hPicture = hRobotPicture[gFactionControlled];
-
-			}
-		}
+        if (gChangingWeaponAngle != 0)
+        {
+            if (cos(gLaunchingAngle) >= 0)
+            {
+                faction[gFactionControlled].robot[gRobotControlled].direction = kFacingRight;
+                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[gFactionControlled + gFactionNumber];
+            }
+            else
+            {
+                faction[gFactionControlled].robot[gRobotControlled].direction = kFacingLeft;
+                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[gFactionControlled];
+            }
+        }
 
         if (gIncreasingWeaponPower && (gPower <= 100))
             gPower++;
@@ -1766,6 +1796,10 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
+
+			gPlayingGrenadeAnimation = true;
+			gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
+			gGrenadeAnimationPosition = gGrenade.position;
         }
         break;
     }
@@ -1994,6 +2028,19 @@ bool weaponHit(int weapon)    // 检查武器是否满足爆炸条件
         break;
     }
     }
+}
+void weaponAnimationUpdate(void)
+{
+	// TODO
+	if (gPlayingGrenadeAnimation)
+	{
+		gGrenadeAnimationTimeRemain--;
+		if (gGrenadeAnimationTimeRemain <= 0)
+		{
+			gGrenadeAnimationTimeRemain = 0;
+			gPlayingGrenadeAnimation = false;
+		}
+	}
 }
 /*
  ██████  ██████  ███████ ███    ██  █████  ██████  ███████ ██ ███    ██ ████████ ███████ ██████  ██████   █████  ██ ███    ██
@@ -2760,6 +2807,13 @@ void skillBoxUpdate(void)
         }
     }
 }
+/*
+██████   ██████  ██   ██ ██████  ███████ ███████ ██████  ███████ ███████ ██   ██
+██   ██ ██    ██  ██ ██  ██   ██ ██      ██      ██   ██ ██      ██      ██   ██
+██████  ██    ██   ███   ██████  █████   █████   ██████  █████   ███████ ███████
+██   ██ ██    ██  ██ ██  ██   ██ ██      ██      ██   ██ ██           ██ ██   ██
+██████   ██████  ██   ██ ██   ██ ███████ ██      ██   ██ ███████ ███████ ██   ██
+*/
 
 void boxRefresh(void)
 {
@@ -3021,6 +3075,13 @@ void skillUpdate(void)
         }
     }
 }
+/*
+ ██████  ███████ ████████ ███    ██ ███████ ██   ██ ████████ ██████   ██████  ██████   ██████  ████████  ██████  ██████  ███    ██ ████████ ██████   ██████  ██      ██      ███████ ██████
+██       ██         ██    ████   ██ ██       ██ ██     ██    ██   ██ ██    ██ ██   ██ ██    ██    ██    ██      ██    ██ ████   ██    ██    ██   ██ ██    ██ ██      ██      ██      ██   ██
+██   ███ █████      ██    ██ ██  ██ █████     ███      ██    ██████  ██    ██ ██████  ██    ██    ██    ██      ██    ██ ██ ██  ██    ██    ██████  ██    ██ ██      ██      █████   ██   ██
+██    ██ ██         ██    ██  ██ ██ ██       ██ ██     ██    ██   ██ ██    ██ ██   ██ ██    ██    ██    ██      ██    ██ ██  ██ ██    ██    ██   ██ ██    ██ ██      ██      ██      ██   ██
+ ██████  ███████    ██    ██   ████ ███████ ██   ██    ██    ██   ██  ██████  ██████   ██████     ██     ██████  ██████  ██   ████    ██    ██   ██  ██████  ███████ ███████ ███████ ██████
+*/
 
 int getNextRobotControlled(void)
 {
@@ -3034,6 +3095,14 @@ int getNextRobotControlled(void)
     faction[gFactionControlled].robotControlled = res;
     return res;
 }
+/*
+███████ ██     ██ ██ ████████  ██████ ██   ██ ████████  ██████  ███    ██ ███████ ██   ██ ████████ ███████  █████   ██████ ████████ ██  ██████  ███    ██
+██      ██     ██ ██    ██    ██      ██   ██    ██    ██    ██ ████   ██ ██       ██ ██     ██    ██      ██   ██ ██         ██    ██ ██    ██ ████   ██
+███████ ██  █  ██ ██    ██    ██      ███████    ██    ██    ██ ██ ██  ██ █████     ███      ██    █████   ███████ ██         ██    ██ ██    ██ ██ ██  ██
+     ██ ██ ███ ██ ██    ██    ██      ██   ██    ██    ██    ██ ██  ██ ██ ██       ██ ██     ██    ██      ██   ██ ██         ██    ██ ██    ██ ██  ██ ██
+███████  ███ ███  ██    ██     ██████ ██   ██    ██     ██████  ██   ████ ███████ ██   ██    ██    ██      ██   ██  ██████    ██    ██  ██████  ██   ████
+*/
+
 void switchToNextFaction(void)
 {
     gCameraOverride = false;
@@ -3128,7 +3197,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 faction[gFactionControlled].robot[gRobotControlled].acceleration.y = kGravityAcceleration;
                 faction[gFactionControlled].robot[gRobotControlled].isJumping      = true;
                 if (faction[gFactionControlled].robot[gRobotControlled].velocity.x > 0)
-                { 
+                {
                     faction[gFactionControlled].robot[gRobotControlled].velocity.x = kRobotVelocityJumping;
                 }
                 else if (faction[gFactionControlled].robot[gRobotControlled].velocity.x < 0)
@@ -3139,7 +3208,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 'A':
-        if (!gRoundWaiting) 
+        if (!gRoundWaiting)
         {
             if ((!gRobotSkillOn) && (!gRobotWeaponOn))
             {
@@ -3149,12 +3218,12 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 else
                     faction[gFactionControlled].robot[gRobotControlled].velocity.x = -kRobotVelocityJumping;
             }
-        } 
+        }
         break;
     case 'D':
         if (!gRoundWaiting)
         {
-            if ((!gRobotSkillOn) && (!gRobotWeaponOn) )
+            if ((!gRobotSkillOn) && (!gRobotWeaponOn))
             {
                 gCameraOverride = false;
                 if (!faction[gFactionControlled].robot[gRobotControlled].isJumping)
@@ -3197,7 +3266,7 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 13:
-        if (!gRoundWaiting)
+        // if (!gRoundWaiting)
         {
             switchToNextFaction();
         }
@@ -3372,6 +3441,12 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara)
             gIncreasingWeaponPower = false;
             weaponLaunch();
         }
+		else if (gRobotSkillOn)
+		{
+			gSkillTargetSelecting = false;
+			gSkillRangeSelecting = false;
+			skillActivate();
+		}
     default:
         break;
     }
@@ -3427,3 +3502,11 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         InvalidateRect(hWnd, NULL, TRUE);    // 重绘
     }
 }
+/*
+ ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██       █████  ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
+████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
+ ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ███████ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
+████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
+ ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ██   ██ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
+*/
+

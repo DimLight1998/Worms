@@ -62,6 +62,8 @@ const int kTerrainPictureSizeX     = 288;    // 地块贴图资源宽度
 const int kTerrainPictureSizeY     = 270;    // 地块贴图资源高度
 const int kTerrainBlockSizeX       = 16;     // 每个地块的贴图宽度
 const int kTerrainBlockSizeY       = 16;     // 每个地块的贴图高度
+const int kGrenadeExplosionPictureSizeX = 52;
+const int kGrenadeExplosionPictureSizeY = 260;
 
 // 机器人规则
 const int kRobotSizeX               = 32;                                               // 机器人宽度
@@ -108,6 +110,10 @@ const int kGrenadeHarm           = 400;    // 手雷伤害
 const int kGrenadeHarmRange      = 50;     // 手雷伤害范围
 const int kGrenadeExplosionPower = 12;     // 手雷震波
 const int kGrenadeDefaultAmmo    = -1;     // 无限，用-1表示
+const int kGrenadeExplosionAnimationTime = 50;
+const int kGrenadeExplosionAnimationFrame = 5;
+const int kGrenadeExplosionAnimationSizeX = 52;
+const int kGrenadeExplosionAnimationSizeY = 52;
 // 武器规则 / 粘性炸弹
 const int kStickyBombExplodeTime    = 150;    // 粘性炸弹爆炸前秒数
 const int kStickyBombSizeX          = 22;     // 粘性炸弹实体宽度
@@ -301,6 +307,7 @@ struct Robot
 
 struct Faction
 {
+    bool  controlledByAI;
     int   hitPoint;
     bool  alive;
     Robot robot[kMaxRobotNumberPerFaction];
@@ -417,7 +424,7 @@ struct SkillBox
 
 
 Robot creatRobot(int faction, VectorXY position);
-Faction creatFaction(int factionNumber);
+Faction creatFaction(int factionNumber,bool controlledByAI);
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture);
 Terrain creatTerrain(int numberX, int numberY);
 Missile creatMissile(VectorXY position, VectorXY velocity, VectorXY acceleration, HBITMAP hPicture);

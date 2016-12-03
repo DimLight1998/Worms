@@ -23,9 +23,10 @@ Robot creatRobot(int faction, VectorXY position)
     return robot;
 }
 
-Faction creatFaction(int factionNumber)
+Faction creatFaction(int factionNumber,bool controlledByAI)
 {
     Faction faction;
+    faction.controlledByAI=controlledByAI;
     faction.alive    = true;
     faction.hitPoint = kMaxRobotNumberPerFaction * kRobotFullHitPoint;
     for (int i = 0; i < kMaxRobotNumberPerFaction; i++)

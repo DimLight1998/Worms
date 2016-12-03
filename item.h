@@ -24,7 +24,7 @@ HBITMAP hMedicalBoxPicture;
 HBITMAP hWeaponBoxPicture;
 HBITMAP hSkillBoxPicture;
 HBITMAP hTerrainPicture;
-
+HBITMAP hGrenadeExplosionPicture;
 
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
