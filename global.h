@@ -235,6 +235,7 @@ const int kFactionHPBarHeight     = 25;     // 阵营血条高度
 const int kFactionHPBarDistance   = 5;      // 阵营血条间隔
 const int kRobotControlSignLength = 20;
 const int kRobotControlSignHeight = 50;    // 机器人控制标志高度
+const double kCameraSwitchTime = 25;
 
 // 用户操作规则
 const int    kCameraLimitTop        = 0;                               // 摄像机上限

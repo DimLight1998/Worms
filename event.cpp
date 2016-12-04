@@ -37,9 +37,11 @@ int gRobotControlled   = 0;                 // 当前活跃的机器人
 int gFactionControlled = gFactionNumber;    // 当前活跃的阵营
 int gFactionAlive      = -1;                // 最后一个活下的阵营
 
-int  gCameraX;    // 摄像机水平位置
-int  gCameraY;    // 摄像机数值位置
-bool gCameraOverride = false;
+bool     gCameraOverride   = false;
+bool     gCameraAutoMoving = false;
+VectorXY gCameraVelocity;
+VectorXY gCameraTargetPosition;
+VectorXY gCameraPosition;
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
@@ -74,15 +76,15 @@ int  gRobotMovingTimeRemain   = kActionTime;
 int  gRobotEscapingTimeRemain = kWithdrawTime;
 int  gRoundWaitingTimeRemain  = kWaitTime;
 
-bool gPlayingMissileAnimation = false;
-bool gPlayingGrenadeAnimation = false;
+bool gPlayingMissileAnimation    = false;
+bool gPlayingGrenadeAnimation    = false;
 bool gPlayingStickyBombAnimation = false;
-bool gPlayingTNTAnimation = false;
+bool gPlayingTNTAnimation        = false;
 
-int gMissileAnimationTimeRemain = 0;
-int gGrenadeAnimationTimeRemain = 0;
+int gMissileAnimationTimeRemain    = 0;
+int gGrenadeAnimationTimeRemain    = 0;
 int gStickyBombAnimationTimeRemain = 0;
-int gTNTAnimationTimeRemain = 0;
+int gTNTAnimationTimeRemain        = 0;
 
 VectorXY gMissileAnimationPosition;
 VectorXY gGrenadeAnimationPosition;
@@ -129,7 +131,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
     hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
-	hGrenadeExplosionPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
+    hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -701,18 +703,17 @@ void renderGame(HWND hWnd)
     //if (gRobotSkillOn && (gSkillTargetRobot))
 
 
-
-	// 绘制武器爆炸效果
-	// TODO
-	if (gPlayingGrenadeAnimation)
-	{
-		SelectObject(hdcBmp, hGrenadeExplosionPicture);
-		TransparentBlt(hdcBuffer, gGrenadeAnimationPosition.x, gGrenadeAnimationPosition.y, kGrenadeExplosionAnimationSizeX, kGrenadeExplosionAnimationSizeY, hdcBmp, 0, (4-gGrenadeAnimationTimeRemain/10)*(kGrenadeExplosionPictureSizeY/kGrenadeExplosionAnimationFrame), kGrenadeExplosionPictureSizeX, kGrenadeExplosionPictureSizeY / kGrenadeExplosionAnimationFrame, RGB(0, 0, 255));
-	}
+    // 绘制武器爆炸效果
+    // TODO
+    if (gPlayingGrenadeAnimation)
+    {
+        SelectObject(hdcBmp, hGrenadeExplosionPicture);
+        TransparentBlt(hdcBuffer, gGrenadeAnimationPosition.x, gGrenadeAnimationPosition.y, kGrenadeExplosionAnimationSizeX, kGrenadeExplosionAnimationSizeY, hdcBmp, 0, (4 - gGrenadeAnimationTimeRemain / 10) * (kGrenadeExplosionPictureSizeY / kGrenadeExplosionAnimationFrame), kGrenadeExplosionPictureSizeX, kGrenadeExplosionPictureSizeY / kGrenadeExplosionAnimationFrame, RGB(0, 0, 255));
+    }
 
 
     // 绘制到屏幕
-    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraX, gCameraY, SRCCOPY);
+    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, SRCCOPY);
 
     // 阵营血量显示
 
@@ -842,7 +843,7 @@ void renderPause(HWND hWnd)
     // 绘制背景到缓冲区
     SelectObject(hdcBuffer, cptBmp);
     SelectObject(hdcBmp, gameStatus.hPicture);
-    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, gCameraX, gCameraY, SRCCOPY);
+    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, gCameraPosition.x, gCameraPosition.y, SRCCOPY);
 
     RECT       rect;
     TEXTMETRIC tm;
@@ -935,7 +936,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         medicalBoxUpdate();
         weaponBoxUpdate();
         skillBoxUpdate();
-		weaponAnimationUpdate();
+        weaponAnimationUpdate();
         if (gRoundWaiting)
         {
             gRoundWaitingTimeRemain--;
@@ -944,6 +945,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 gRoundWaiting   = false;
                 gRobotMoving    = true;
                 gCameraOverride = false;
+                setCameraOnRobot(gFactionControlled, gRobotControlled);
                 cameraUpdate();
             }
         }
@@ -1104,8 +1106,7 @@ void robotUpdate(void)
                 }
             }
             gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
-			gSkillSelected = faction[gFactionControlled].robot[gRobotControlled].skill;
-
+            gSkillSelected  = faction[gFactionControlled].robot[gRobotControlled].skill;
         }
         if ((faction[i].alive) && (faction[i].aliveRobot <= 0))
             faction[i].alive = false;
@@ -1279,6 +1280,32 @@ BOOL robotLanded(int factionNum, int robotNum)
             return true;
     return false;
 }
+
+void setCameraOnRobot(int factionNum, int robotNum)
+{
+    gCameraTargetPosition.x = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
+    gCameraTargetPosition.y = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
+
+    if (gCameraTargetPosition.x > kCameraLimitRight)
+    {
+        gCameraTargetPosition.x = kCameraLimitRight;
+    }
+    if (gCameraTargetPosition.x < kCameraLimitLeft)
+    {
+        gCameraTargetPosition.x = kCameraLimitLeft;
+    }
+    if (gCameraTargetPosition.y > kCameraLimitButtom)
+    {
+        gCameraTargetPosition.y = kCameraLimitButtom;
+    }
+    if (gCameraTargetPosition.y < kCameraLimitTop)
+    {
+        gCameraTargetPosition.y = kCameraLimitTop;
+    }
+    gCameraVelocity.x = (gCameraTargetPosition.x - gCameraPosition.x) / kCameraSwitchTime;
+    gCameraVelocity.y = (gCameraTargetPosition.y - gCameraPosition.y) / kCameraSwitchTime;
+    gCameraAutoMoving = true;
+}
 /*
  ██████  █████  ███    ███ ███████ ██████   █████  ██    ██ ██████  ██████   █████  ████████ ███████
 ██      ██   ██ ████  ████ ██      ██   ██ ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -1289,19 +1316,52 @@ BOOL robotLanded(int factionNum, int robotNum)
 
 void cameraUpdate(void)
 {
-    if (!gCameraOverride)
+    if (gCameraAutoMoving)
     {
-        // TODO smooth change
-        gCameraX = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
-        gCameraY = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
-        if (gCameraX < kCameraLimitLeft)
-            gCameraX = kCameraLimitLeft;
-        if (gCameraX > kCameraLimitRight)
-            gCameraX = kCameraLimitRight;
-        if (gCameraY < kCameraLimitTop)
-            gCameraY = kCameraLimitTop;
-        if (gCameraY > kCameraLimitButtom)
-            gCameraY = kCameraLimitButtom;
+        if (gCameraPosition.x != gCameraTargetPosition.x)
+        {
+            bool less = (gCameraPosition.x < gCameraTargetPosition.x);
+            gCameraPosition.x += gCameraVelocity.x;
+            if (((gCameraPosition.x < gCameraTargetPosition.x) != less) || (gCameraPosition.x == gCameraTargetPosition.x))
+            {
+                gCameraPosition.x = gCameraTargetPosition.x;
+            }
+        }
+        if (gCameraPosition.y != gCameraTargetPosition.y)
+        {
+            bool less = (gCameraPosition.y < gCameraTargetPosition.y);
+            gCameraPosition.y += gCameraVelocity.y;
+            if (((gCameraPosition.y < gCameraTargetPosition.y) != less) || (gCameraPosition.y == gCameraTargetPosition.y))
+            {
+                gCameraPosition.y = gCameraTargetPosition.y;
+            }
+        }
+
+        if ((gCameraPosition.x == gCameraTargetPosition.x) && (gCameraPosition.y == gCameraTargetPosition.y))
+            gCameraAutoMoving = false;
+    }
+    else if (!gCameraOverride)
+    {
+        // setCameraOnRobot(gFactionControlled, gRobotControlled);
+		gCameraPosition.x = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
+		gCameraPosition.y = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
+
+		if (gCameraPosition.x > kCameraLimitRight)
+		{
+			gCameraPosition.x = kCameraLimitRight;
+		}
+		if (gCameraPosition.x < kCameraLimitLeft)
+		{
+			gCameraPosition.x = kCameraLimitLeft;
+		}
+		if (gCameraPosition.y > kCameraLimitButtom)
+		{
+			gCameraPosition.y = kCameraLimitButtom;
+		}
+		if (gCameraPosition.y < kCameraLimitTop)
+		{
+			gCameraPosition.y = kCameraLimitTop;
+		}
     }
 }
 /*
@@ -1797,9 +1857,9 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     }
                 }
 
-			gPlayingGrenadeAnimation = true;
-			gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
-			gGrenadeAnimationPosition = gGrenade.position;
+            gPlayingGrenadeAnimation    = true;
+            gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
+            gGrenadeAnimationPosition   = gGrenade.position;
         }
         break;
     }
@@ -2031,16 +2091,16 @@ bool weaponHit(int weapon)    // 检查武器是否满足爆炸条件
 }
 void weaponAnimationUpdate(void)
 {
-	// TODO
-	if (gPlayingGrenadeAnimation)
-	{
-		gGrenadeAnimationTimeRemain--;
-		if (gGrenadeAnimationTimeRemain <= 0)
-		{
-			gGrenadeAnimationTimeRemain = 0;
-			gPlayingGrenadeAnimation = false;
-		}
-	}
+    // TODO
+    if (gPlayingGrenadeAnimation)
+    {
+        gGrenadeAnimationTimeRemain--;
+        if (gGrenadeAnimationTimeRemain <= 0)
+        {
+            gGrenadeAnimationTimeRemain = 0;
+            gPlayingGrenadeAnimation    = false;
+        }
+    }
 }
 /*
  ██████  ██████  ███████ ███    ██  █████  ██████  ███████ ██ ███    ██ ████████ ███████ ██████  ██████   █████  ██ ███    ██
@@ -3114,6 +3174,8 @@ void switchToNextFaction(void)
     } while (!faction[gFactionControlled].alive);
     gRobotControlled = getNextRobotControlled();
     roundUpdate();
+
+    setCameraOnRobot(gFactionControlled, gRobotControlled);
 }
 /*
  ██████   █████  ███    ███ ███████ ███████ ████████  █████  ████████ ██    ██ ███████ ██    ██ ██████  ██████   █████  ████████ ███████
@@ -3367,39 +3429,51 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case VK_UP:
-        gCameraOverride = true;
-        if (gCameraY > kCameraLimitTop)
+        if (!gCameraAutoMoving)
         {
-            gCameraY -= kCameraVelocity;
-            if (gCameraY < kCameraLimitTop)
-                gCameraY = kCameraLimitTop;
+            gCameraOverride = true;
+            if (gCameraPosition.y > kCameraLimitTop)
+            {
+                gCameraPosition.y -= kCameraVelocity;
+                if (gCameraPosition.y < kCameraLimitTop)
+                    gCameraPosition.y = kCameraLimitTop;
+            }
         }
         break;
     case VK_DOWN:
-        gCameraOverride = true;
-        if (gCameraY < kCameraLimitButtom)
+        if (!gCameraAutoMoving)
         {
-            gCameraY += kCameraVelocity;
-            if (gCameraY > kCameraLimitButtom)
-                gCameraY = kCameraLimitButtom;
+            gCameraOverride = true;
+            if (gCameraPosition.y < kCameraLimitButtom)
+            {
+                gCameraPosition.y += kCameraVelocity;
+                if (gCameraPosition.y > kCameraLimitButtom)
+                    gCameraPosition.y = kCameraLimitButtom;
+            }
         }
         break;
     case VK_LEFT:
-        gCameraOverride = true;
-        if (gCameraX > kCameraLimitLeft)
+        if (!gCameraAutoMoving)
         {
-            gCameraX -= kCameraVelocity;
-            if (gCameraX < kCameraLimitLeft)
-                gCameraX = kCameraLimitLeft;
+            gCameraOverride = true;
+            if (gCameraPosition.x > kCameraLimitLeft)
+            {
+                gCameraPosition.x -= kCameraVelocity;
+                if (gCameraPosition.x < kCameraLimitLeft)
+                    gCameraPosition.x = kCameraLimitLeft;
+            }
         }
         break;
     case VK_RIGHT:
-        gCameraOverride = true;
-        if (gCameraX < kCameraLimitRight)
+        if (!gCameraAutoMoving)
         {
-            gCameraX += kCameraVelocity;
-            if (gCameraX > kCameraLimitRight)
-                gCameraX = kCameraLimitRight;
+            gCameraOverride = true;
+            if (gCameraPosition.x < kCameraLimitRight)
+            {
+                gCameraPosition.x += kCameraVelocity;
+                if (gCameraPosition.x > kCameraLimitRight)
+                    gCameraPosition.x = kCameraLimitRight;
+            }
         }
         break;
     default:
@@ -3441,12 +3515,12 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara)
             gIncreasingWeaponPower = false;
             weaponLaunch();
         }
-		else if (gRobotSkillOn)
-		{
-			gSkillTargetSelecting = false;
-			gSkillRangeSelecting = false;
-			skillActivate();
-		}
+        else if (gRobotSkillOn)
+        {
+            gSkillTargetSelecting = false;
+            gSkillRangeSelecting  = false;
+            skillActivate();
+        }
     default:
         break;
     }
@@ -3509,4 +3583,3 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ██   ██ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
 */
-

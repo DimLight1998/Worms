@@ -25,6 +25,7 @@ void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);
 void roundUpdate(void);
+void setCameraOnRobot(int ,int);
 
 int  getNextRobotControlled(void);
 void switchToNextFaction(void);
