@@ -1,13 +1,9 @@
 ﻿/*
 todolist
 开始界面布局
-结束界面布局
 
 帮助界面布局
 地图选择界面布局
-手榴弹的爆炸效果
-
-多背景图片
 
 帮助界面，地图选择界面
 随机地图生成器，能输入种子
@@ -17,6 +13,21 @@ todolist
 武器箱，医疗箱，技能箱
 背景音乐
 放弃操作
+==important==
+- 游戏标题和开始按钮
+- 显示胜利方
+- 游戏结束后可以返回开始界面
+- 游戏结束后可以重新开始游戏
+- 至少两张背景图片
+- 帮助界面和地图选择界面
+- 多个可选地图
+- 输入种子来进行随机地形
+- 显示弹药量和技能点
+- 子母手雷和弓箭
+- 攻击技能
+- 与AI进行对战
+- 使用背景音乐
+- 使用背景音效
 */
 
 #include "event.h"
@@ -106,6 +117,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     // 将资源载入到资源句柄中
     hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hWelcomeBackgroundPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WelcomeBackground));
+    hHelpBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_HelpBackground));
     hPauseBackgroundPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hRockPicture              = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Rock_01));
     hRobotPicture[0]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_01_left));
@@ -132,6 +144,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
     hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
     hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
+    hHelpExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitHelp));
+
 
     //
     gFactionNumber         = kMaxFactionNumber;
@@ -198,8 +212,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         VectorXY temp_1, temp_2;
         temp_1.x        = kButtonWidth;     // 开始游戏按钮的横向大小
         temp_1.y        = kButtonHeight;    // 开始游戏按钮的纵向大小
-        temp_2.x        = 200;              // 开始游戏按钮的横坐标
-        temp_2.y        = 200;              // 开始游戏按钮的纵坐标
+        temp_2.x        = 275;              // 开始游戏按钮的横坐标
+        temp_2.y        = 550;              // 开始游戏按钮的纵坐标
         gameStartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
     }
 
@@ -207,8 +221,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         VectorXY temp_1, temp_2;
         temp_1.x       = kButtonWidth;
         temp_1.y       = kButtonHeight;
-        temp_2.x       = 500;
-        temp_2.y       = 200;
+        temp_2.x       = 735;
+        temp_2.y       = 550;
         gameHelpButton = creatGameButton(temp_1, temp_2, false, hGameHelpButtonPicture);
     }
 
@@ -216,9 +230,18 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         VectorXY temp_1, temp_2;
         temp_1.x       = kButtonWidth;
         temp_1.y       = kButtonHeight;
-        temp_2.x       = 800;
-        temp_2.y       = 200;
+        temp_2.x       = 1210;
+        temp_2.y       = 550;
         gameExitButton = creatGameButton(temp_1, temp_2, false, hGameExitButtonPicture);
+    }
+
+    {    // TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x       = kButtonWidth;
+        temp_1.y       = kButtonHeight;
+        temp_2.x       = 1450;
+        temp_2.y       = 750;
+        helpExitButton = creatGameButton(temp_1, temp_2, false, hHelpExitButtonPicture);
     }
 
 
@@ -893,6 +916,13 @@ void renderHelp(HWND hWnd)
     SelectObject(hdcBmp, gameStatus.hPicture);
     BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
 
+
+    // 绘制退出按钮
+    SelectObject(hdcBmp, helpExitButton.hPicture);
+    TransparentBlt(hdcBuffer, helpExitButton.position.x, helpExitButton.position.y, helpExitButton.size.x, helpExitButton.size.y, hdcBmp, 0, 0, hHelpExitButtonPictureX, hHelpExitButtonPictureY, RGB(0, 0, 0));
+
+
+    /*
     RECT       rect;
     TEXTMETRIC tm;
     GetTextMetrics(ps.hdc, &tm);
@@ -903,6 +933,7 @@ void renderHelp(HWND hWnd)
     SetTextColor(hdcBuffer, RGB(255, 255, 255));
     SetBkMode(hdcBuffer, TRANSPARENT);
     DrawTextW(hdcBuffer, L"这是帮助界面", -1, &rect, DT_CENTER);
+    */
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -1343,25 +1374,25 @@ void cameraUpdate(void)
     else if (!gCameraOverride)
     {
         // setCameraOnRobot(gFactionControlled, gRobotControlled);
-		gCameraPosition.x = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
-		gCameraPosition.y = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
+        gCameraPosition.x = faction[gFactionControlled].robot[gRobotControlled].position.x - kWindowWidth / 2;
+        gCameraPosition.y = faction[gFactionControlled].robot[gRobotControlled].position.y - kWindowHeight / 2;
 
-		if (gCameraPosition.x > kCameraLimitRight)
-		{
-			gCameraPosition.x = kCameraLimitRight;
-		}
-		if (gCameraPosition.x < kCameraLimitLeft)
-		{
-			gCameraPosition.x = kCameraLimitLeft;
-		}
-		if (gCameraPosition.y > kCameraLimitButtom)
-		{
-			gCameraPosition.y = kCameraLimitButtom;
-		}
-		if (gCameraPosition.y < kCameraLimitTop)
-		{
-			gCameraPosition.y = kCameraLimitTop;
-		}
+        if (gCameraPosition.x > kCameraLimitRight)
+        {
+            gCameraPosition.x = kCameraLimitRight;
+        }
+        if (gCameraPosition.x < kCameraLimitLeft)
+        {
+            gCameraPosition.x = kCameraLimitLeft;
+        }
+        if (gCameraPosition.y > kCameraLimitButtom)
+        {
+            gCameraPosition.y = kCameraLimitButtom;
+        }
+        if (gCameraPosition.y < kCameraLimitTop)
+        {
+            gCameraPosition.y = kCameraLimitTop;
+        }
     }
 }
 /*
@@ -3217,6 +3248,8 @@ void gameStatusUpdate(void)
         gameStatus.hPicture = hPauseBackgroundPicture;
         break;
     case Game_help:
+        gameStatus.hPicture = hHelpBackgroundPicture;
+        break;
     case Game_end:
     default:
         break;
@@ -3535,45 +3568,70 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara)
 void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
     // 左键按下函数
+
     // 获取鼠标点击的位置
     POINT ptMouse;
     ptMouse.x = LOWORD(lParam);
     ptMouse.y = HIWORD(lParam);
-
-    // 针对开始游戏按钮
-    RECT startButtonRECT;
-    startButtonRECT.left   = gameStartButton.position.x;
-    startButtonRECT.right  = gameStartButton.position.x + gameStartButton.size.x;
-    startButtonRECT.top    = gameStartButton.position.y;
-    startButtonRECT.bottom = gameStartButton.position.y + gameStartButton.size.y;
-    if (gameStatus.status == 0 && gameButtonClicked(ptMouse, startButtonRECT))
+    switch (gameStatus.status)
     {
-        SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
-        gameStatus.status = Game_running;
-        InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+    case Game_start:
+    {
+        // 针对开始游戏按钮
+        RECT startButtonRECT;
+        startButtonRECT.left   = gameStartButton.position.x;
+        startButtonRECT.right  = gameStartButton.position.x + gameStartButton.size.x;
+        startButtonRECT.top    = gameStartButton.position.y;
+        startButtonRECT.bottom = gameStartButton.position.y + gameStartButton.size.y;
+        if (gameStatus.status == 0 && gameButtonClicked(ptMouse, startButtonRECT))
+        {
+            SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
+            gameStatus.status = Game_running;
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
+
+        // 针对退出游戏按钮
+        RECT exitButtonRECT;
+        exitButtonRECT.left   = gameExitButton.position.x;
+        exitButtonRECT.right  = gameExitButton.position.x + gameExitButton.size.x;
+        exitButtonRECT.top    = gameExitButton.position.y;
+        exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
+        if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
+        {
+            PostQuitMessage(0);
+        }
+
+        // 针对帮助按钮
+        RECT helpButtonRECT;
+        helpButtonRECT.left   = gameHelpButton.position.x;
+        helpButtonRECT.right  = gameHelpButton.position.x + gameHelpButton.size.x;
+        helpButtonRECT.top    = gameHelpButton.position.y;
+        helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
+        if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
+        {
+            gameStatus.status = Game_help;
+            gameStatusUpdate();
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
     }
-
-    // 针对退出游戏按钮
-    RECT exitButtonRECT;
-    exitButtonRECT.left   = gameExitButton.position.x;
-    exitButtonRECT.right  = gameExitButton.position.x + gameExitButton.size.x;
-    exitButtonRECT.top    = gameExitButton.position.y;
-    exitButtonRECT.bottom = gameExitButton.position.y + gameExitButton.size.y;
-    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, exitButtonRECT))
+    break;
+    case Game_help:
     {
-        PostQuitMessage(0);
+        RECT exitButtonRECT;
+        exitButtonRECT.left   = helpExitButton.position.x;
+        exitButtonRECT.right  = helpExitButton.position.x + helpExitButton.size.x;
+        exitButtonRECT.top    = helpExitButton.position.y;
+        exitButtonRECT.bottom = helpExitButton.position.y + helpExitButton.size.y;
+        if (gameStatus.status == Game_help && gameButtonClicked(ptMouse, exitButtonRECT))
+        {
+            gameStatus.status = Game_start;
+            gameStatusUpdate();
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
     }
-
-    // 针对帮助按钮
-    RECT helpButtonRECT;
-    helpButtonRECT.left   = gameHelpButton.position.x;
-    helpButtonRECT.right  = gameHelpButton.position.x + gameHelpButton.size.x;
-    helpButtonRECT.top    = gameHelpButton.position.y;
-    helpButtonRECT.bottom = gameHelpButton.position.y + gameHelpButton.size.y;
-    if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, helpButtonRECT))
-    {
-        gameStatus.status = Game_help;
-        InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+    break;
+    default:
+        break;
     }
 }
 /*

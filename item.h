@@ -6,12 +6,14 @@
 
 HBITMAP hGameBackgroundPicture;
 HBITMAP hWelcomeBackgroundPicture;
+HBITMAP hHelpBackgroundPicture;
 HBITMAP hRockPicture;
 HBITMAP hPauseBackgroundPicture;
 HBITMAP hRobotPicture[kMaxFactionNumber * 2];
 HBITMAP hGameStartButtonPicture;
 HBITMAP hGameExitButtonPicture;
 HBITMAP hGameHelpButtonPicture;
+HBITMAP hHelpExitButtonPicture;
 HBITMAP hMissilePictureRight;
 HBITMAP hMissilePictureLeft;
 HBITMAP hMissilePictureUp;
@@ -26,11 +28,13 @@ HBITMAP hSkillBoxPicture;
 HBITMAP hTerrainPicture;
 HBITMAP hGrenadeExplosionPicture;
 
+
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
 GameButton gameStartButton;
 GameButton gameHelpButton;
 GameButton gameExitButton;
+GameButton helpExitButton;
 
 Missile    gMissile;
 Grenade    gGrenade;
