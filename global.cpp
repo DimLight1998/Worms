@@ -38,6 +38,7 @@ Faction creatFaction(int factionNumber,bool controlledByAI)
     }
     faction.robotControlled  = 0;
     faction.aliveRobot       = kMaxRobotNumberPerFaction;
+	faction.ammoBuildingBlock = kBuildingBlockDefautAmmo;
     faction.ammoMissile      = kMissileDefaultAmmo;
     faction.ammoGrenade      = kGrenadeDefaultAmmo;
     faction.ammoStickyBomb   = kStickyBombDefaultAmmo;

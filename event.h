@@ -65,5 +65,8 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara);
 void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 
+void AI_sense(void);
+void AI_decide(void);
+void AI_act(void);
 
 #endif
