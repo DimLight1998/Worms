@@ -2408,10 +2408,10 @@ void terrainUpdate(void)
 
 void terrainShapeUpdate(int left, int top, int right, int bottom)
 {
-	left = max(0, left);
-	right = min(kTerrainNumberX - 1, right);
-	top = max(0, top);
-	bottom = min(kTerrainNumberY - 1, bottom);
+    left               = max(0, left);
+    right              = min(kTerrainNumberX - 1, right);
+    top                = max(0, top);
+    bottom             = min(kTerrainNumberY - 1, bottom);
     gTerrainNeedUpdate = true;
     int terrainExist   = 0;
     for (int i = left; i <= right; i++)
@@ -2530,41 +2530,50 @@ void terrainShapeUpdate(int x, int y)
 
 void terrainShapeUpdate(void)
 {
-	terrainShapeUpdate(0, 0, kTerrainNumberX, kTerrainNumberY);
+    terrainShapeUpdate(0, 0, kTerrainNumberX, kTerrainNumberY);
 }
 
 void buildTerrain(VectorXY position)
 {
-	if (terrain[position.x][position.y].isDestoried && faction[gFactionControlled].ammoBuildingBlock > 0)
-	{
-		VectorXY terrainPositionCenter;
-		terrainPositionCenter.x = (terrain[position.x][position.y].position.left + terrain[position.x][position.y].position.right) / 2;
-		terrainPositionCenter.y = (terrain[position.x][position.y].position.top + terrain[position.x][position.y].position.bottom) / 2;
-		VectorXY robotPositionCenter;
-		robotPositionCenter.x = faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2;
-		robotPositionCenter.y = faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2;
+    if (terrain[position.x][position.y].isDestoried && faction[gFactionControlled].ammoBuildingBlock > 0)    // 检查是否有剩余的建筑材料
+    {
+        VectorXY terrainPositionCenter;    // 计算目标地块的中心位置
+        terrainPositionCenter.x = (terrain[position.x][position.y].position.left + terrain[position.x][position.y].position.right) / 2;
+        terrainPositionCenter.y = (terrain[position.x][position.y].position.top + terrain[position.x][position.y].position.bottom) / 2;
+        VectorXY robotPositionCenter;    // 计算人物的中心位置
+        robotPositionCenter.x = faction[gFactionControlled].robot[gRobotControlled].position.x + kRobotSizeX / 2;
+        robotPositionCenter.y = faction[gFactionControlled].robot[gRobotControlled].position.y + kRobotSizeY / 2;
 
-		if (pointPointDistanceSquare(terrainPositionCenter.x, terrainPositionCenter.y, robotPositionCenter.x, robotPositionCenter.y) <= kBuildingRange*kBuildingRange)
-		{
-			terrain[position.x][position.y].isDestoried = false;
-			bool ableToBuild = true;
-			for (int i = 0; i < gFactionNumber; i++)
-				for (int j = 0; j < gRobotNumberPerFaction; j++)
-					if (robotInTerrain(i, j))
-					{
-						ableToBuild = false;
-					}
-			if (ableToBuild)
-			{
-				faction[gFactionControlled].ammoBuildingBlock--;
-				terrainShapeUpdate(position.x - 1, position.y - 1, position.x + 1, position.y + 1);
-			}
-			else
-			{
-				terrain[position.x][position.y].isDestoried = true;
-			}
-		}
-	}
+        if (pointPointDistanceSquare(terrainPositionCenter.x, terrainPositionCenter.y, robotPositionCenter.x, robotPositionCenter.y) <= kBuildingRange * kBuildingRange)    // 比较摆放距离
+        {
+            terrain[position.x][position.y].isDestoried = false;    // 假定可摆放
+            bool ableToBuild                            = true;
+            for (int i = 0; i < gFactionNumber; i++)
+                for (int j = 0; j < gRobotNumberPerFaction; j++)
+                    if (robotInTerrain(i, j))
+                    {
+                        ableToBuild = false;    // 如果摆放后发生碰撞则无法摆放
+                    }
+            if (position.x == 0 || position.x == kTerrainNumberX - 1 || position.y == 0 || position.y == kTerrainNumberY - 1)
+                ableToBuild = ableToBuild;
+            else
+            {
+                if ((terrain[position.x - 1][position.y - 1].isDestoried) && (terrain[position.x + 1][position.y - 1].isDestoried) && (terrain[position.x - 1][position.y + 1].isDestoried) && (terrain[position.x + 1][position.y + 1].isDestoried))
+                {
+                    ableToBuild = false;    // 如果四周无连接则无法摆放
+                }
+            }
+            if (ableToBuild)
+            {
+                faction[gFactionControlled].ammoBuildingBlock--;
+                terrainShapeUpdate(position.x - 1, position.y - 1, position.x + 1, position.y + 1);
+            }
+            else
+            {
+                terrain[position.x][position.y].isDestoried = true;
+            }
+        }
+    }
 }
 
 /*
@@ -3606,17 +3615,20 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
-	case Game_running:
-	{
-			VectorXY mousePosition;
-			mousePosition.x = ptMouse.x + gCameraPosition.x;
-			mousePosition.y = ptMouse.y + gCameraPosition.y;
-			VectorXY terrainClicked;
-			terrainClicked.x = mousePosition.x / kTerrainBlockSizeX;
-			terrainClicked.y = mousePosition.y / kTerrainBlockSizeY;
-			buildTerrain(terrainClicked);
-	}
-	break;
+    case Game_running:
+    {
+        if (gRobotMoving)
+        {
+            VectorXY mousePosition;
+            mousePosition.x = ptMouse.x + gCameraPosition.x;
+            mousePosition.y = ptMouse.y + gCameraPosition.y;
+            VectorXY terrainClicked;
+            terrainClicked.x = mousePosition.x / kTerrainBlockSizeX;
+            terrainClicked.y = mousePosition.y / kTerrainBlockSizeY;
+            buildTerrain(terrainClicked);
+        }
+    }
+    break;
     default:
         break;
     }
