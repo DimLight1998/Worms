@@ -37,10 +37,19 @@ GameButton gameExitButton;
 GameButton helpExitButton;
 
 // AI
-Robot gVirtualRobot;
-int   gAIMovingRangeLeft  = 0;
-int   gAIMovingRangeRight = 0;
-VectorXY gAIAviliablePosition[kWindowWidth / kTerrainWidth] = {};
+Robot      gVirtualRobot;
+int        gAIMovingRangeLeft                                 = 0;
+int        gAIMovingRangeRight                                = 0;
+VectorXY   gAIAviliablePosition[kWindowWidth / kTerrainWidth] = {};
+int        gAIAviliablePositionLength                         = 0;
+Missile    gVirtualMissile;
+Grenade    gVirtualGrenade;
+StickyBomb gVirtualStickyBomb;
+TNT        gVirtualTNT;
+Faction    gVirtualFaction[kMaxFactionNumber];
+double     gBestLauchingAngle;
+int        gBestLauchingPower;
+VectorXY   gBestLauchingLocation;
 
 Missile    gMissile;
 Grenade    gGrenade;

@@ -3736,30 +3736,33 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 void AI_sense()
 {
-	for (int i = 0; i < kWindowWidth / kTerrainWidth; i++)
-	{
-		gAIAviliablePosition[i].x = 0;
-		gAIAviliablePosition[i].y = 0;
-	}
+    for (int i = 0; i < kWindowWidth / kTerrainWidth; i++)
+    {
+        gAIAviliablePosition[i].x = 0;
+        gAIAviliablePosition[i].y = 0;
+    }
+    gAIAviliablePositionLength = 0;
     // 感知系统
-    gAIMovingRangeLeft  = (faction[gFactionControlled].robot[gRobotControlled].position.x / kTerrainWidth) * kTerrainWidth;
-    gAIMovingRangeRight = gAIMovingRangeLeft;
-	VectorXY currentPosition = faction[gFactionControlled].robot[gRobotControlled].position;
-	int aviliablePositionPointer = 0;
+    gAIMovingRangeLeft                = (faction[gFactionControlled].robot[gRobotControlled].position.x / kTerrainWidth) * kTerrainWidth;
+    gAIMovingRangeRight               = gAIMovingRangeLeft;
+    VectorXY currentPosition          = faction[gFactionControlled].robot[gRobotControlled].position;
+    int      aviliablePositionPointer = 0;
     // 可用行动范围向左扩展
-	while (AI_NextMovingAvailable(currentPosition, true))
-	{
-		gAIMovingRangeLeft--;
-		gAIAviliablePosition[aviliablePositionPointer++]=AI_positionUpdate(currentPosition,true);
-	}
-	// 当前位置复位
-	currentPosition = faction[gFactionControlled].robot[gRobotControlled].position;
-	// 可用行动范围向右扩展
-	while (AI_NextMovingAvailable(currentPosition, false))
-	{
-		gAIMovingRangeRight++;
-		gAIAviliablePosition[aviliablePositionPointer++]=AI_positionUpdate(currentPosition, false);
-	}
+    while (AI_NextMovingAvailable(currentPosition, true))
+    {
+        gAIMovingRangeLeft--;
+        gAIAviliablePosition[aviliablePositionPointer++] = AI_positionUpdate(currentPosition, true);
+        gAIAviliablePositionLength++;
+    }
+    // 当前位置复位
+    currentPosition = faction[gFactionControlled].robot[gRobotControlled].position;
+    // 可用行动范围向右扩展
+    while (AI_NextMovingAvailable(currentPosition, false))
+    {
+        gAIMovingRangeRight++;
+        gAIAviliablePosition[aviliablePositionPointer++] = AI_positionUpdate(currentPosition, false);
+        gAIAviliablePositionLength++;
+    }
     // 现在我们得到了机器人的可用行动范围
     // TODO UPGRADE 在行动范围内，查找所有的敌对人物
     // 剩下的事情转交决策系统
@@ -3769,25 +3772,68 @@ void AI_decide()
 {
     // 决策系统
     // 现在我们知道可用行动范围
-	int numOfTryingLocation = min(kMinTryTime, (gAIMovingRangeRight - gAIMovingRangeLeft) / kTryTimeFactor);// 最坏情况为25
-	for (int i = 0; i < numOfTryingLocation; i++)
-	{
-		// 选择位置（随机的）
+    int numOfTryingLocation = min(kMinTryTime, (gAIMovingRangeRight - gAIMovingRangeLeft) / kTryTimeFactor);    // 最坏情况为25
+    int bestSolutionScore   = INT_MIN;
+    for (int i = 0; i < numOfTryingLocation; i++)
+    {
+        // 选择位置（随机的）
+        int j                  = rand() % gAIAviliablePositionLength;
+        gVirtualRobot.position = gAIAviliablePosition[j];
+        // 遍历角度力度
+        for (double angle = 0; angle <= 3 * Pi; angle += kChangingAngleDelta)
+        {
+            for (int power = 0; power <= 100; power += kChangingPowerDelta)
+            {
+                // 遍历所有的武器
+                VectorXY velocity, acceleration;
+                int      tempScore;
 
-		// 遍历所有的武器
-		// TODO UPGRADE 对于每一种武器，每一个敌对势力都进行虚拟打击实验，用一个函数来评估效果，然后选取最优解
-		// 对于每种武器的射程，计算敌对人物的血量密度，减去自己的血量密度，得到最优打击部位
-		// 利用最优打击部位、目前风向以及自己的位置和可用位置计算发射部位、发射角度、发射力度
-		// 其中角度和力度直接模拟算了
-	}
+                // 对于每一种武器，每一个敌对势力都进行虚拟打击实验，用一个函数来评估效果，然后选取最优解
+                // use missile
+                virtualFactionReset();
+                velocity.x      = int(kMissileVelocity * power * cos(angle) / 100);
+                velocity.y      = int(-kMissileVelocity * power * sin(angle) / 100);
+                acceleration.x  = 0;
+                acceleration.y  = kGravityAcceleration;
+                gVirtualMissile = creatMissile(gVirtualRobot.position, velocity, acceleration, hMissilePictureUp);
+                int tempScore   = AI_simulate(iMissile);
+                if (tempScore > bestSolutionScore)
+                {
+                    bestSolutionScore     = tempScore;
+                    gBestLauchingAngle    = angle;
+                    gBestLauchingPower    = power;
+                    gBestLauchingLocation = gVirtualRobot.position;
+                    gBestWeapon           = iMissile;
+                }
+
+                // use grenade
+                virtualFactionReset();
+                velocity.x      = int(kGrenadeVelocity * power * cos(angle) / 100);
+                velocity.y      = int(-kGrenadeVelocity * power * sin(angle) / 100);
+                acceleration.x  = 0;
+                acceleration.y  = kGravityAcceleration;
+                gVirtualGrenade = creatGrenade(gVirtualRobot.position, velocity, acceleration, hGrenadePicture);
+                int tempScore   = AI_simulate(iGrenade);
+                if (tempScore > bestSolutionScore)
+                {
+                    bestSolutionScore     = tempScore;
+                    gBestLauchingAngle    = angle;
+                    gBestLauchingPower    = power;
+                    gBestLauchingLocation = gVirtualRobot.position;
+                    gBestWeapon           = iGrenade;
+                }
+
+                // TODO 补全
+            }
+        }
+    }
     // 现在我们知道了要移动到哪里，然后如何发射武器
-    // TODO UPGRADE　计算撤离位置
-
     // 剩下的事情转交执行系统
 }
 
 void AI_act()
 {
+    // TODO UPGRADE　计算撤离位置
     // 模拟按键，移动到指定的位置，然后发射，然后撤离
 }
 
@@ -3851,5 +3897,12 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
 
 VectorXY AI_positionUpdate(VectorXY position, bool movingLeft)
 {
+}
 
+void virtualFactionReset(void)
+{
+}
+
+int AI_simulate(int weapon)
+{
 }
