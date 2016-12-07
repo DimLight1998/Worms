@@ -50,6 +50,7 @@ Faction    gVirtualFaction[kMaxFactionNumber];
 double     gBestLauchingAngle;
 int        gBestLauchingPower;
 VectorXY   gBestLauchingLocation;
+int gBestWeapon;
 
 Missile    gMissile;
 Grenade    gGrenade;

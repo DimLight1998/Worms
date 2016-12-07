@@ -3833,6 +3833,62 @@ void AI_decide()
 
 void AI_act()
 {
+    // TODO 拉到正确的地方
+    if (gBestLauchingLocation.x < faction[gFactionControlled].robot[gRobotControlled].position.x)
+    {
+        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.position.x)
+        {
+            AI_moving(true);
+        }
+    }
+    else if (gBestLauchingLocation.x > faction[gFactionControlled].robot[gRobotControlled].position.x)
+    {
+        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.position.x)
+        {
+            AI_moving(true);
+        }
+    }
+    else
+    {
+        // 开始攻击
+        switch (gBestWeapon)
+        {
+        case iMissile:
+            if (faction[gFactionControlled].ammoMissile == kAmmoInfinity || faction[gFactionControlled].ammoMissile > 0)
+            {
+                gMissileActivated = true;
+                if (faction[gFactionControlled].ammoMissile > 0)
+                {
+                    faction[gFactionControlled].ammoMissile--;
+                }
+                gMissile        = gVirtualMissile;
+                gRobotMoving    = false;
+                gRobotEscaping  = true;
+                gRobotWeaponOn  = false;
+                gWeaponSelected = iNoWeapon;
+                gCameraOverride = false;
+            }
+            gPower = 0;
+            break;
+        case iGrenade:
+            if (faction[gFactionControlled].ammoGrenade == kAmmoInfinity || faction[gFactionControlled].ammoGrenade > 0)
+            {
+                gGrenadeActivated = true;
+                if (faction[gFactionControlled].ammoGrenade > 0)
+                {
+                    faction[gFactionControlled].ammoGrenade--;
+                }
+                gGrenade        = gVirtualGrenade;
+                gRobotMoving    = false;
+                gRobotEscaping  = true;
+                gRobotWeaponOn  = false;
+                gWeaponSelected = iNoWeapon;
+                gCameraOverride = false;
+            }
+            gPower = 0;
+            break;
+        }
+    }
     // TODO UPGRADE　计算撤离位置
     // 模拟按键，移动到指定的位置，然后发射，然后撤离
 }
@@ -3904,5 +3960,9 @@ void virtualFactionReset(void)
 }
 
 int AI_simulate(int weapon)
+{
+}
+
+void AI_moving(bool movingLeft)
 {
 }
