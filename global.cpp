@@ -312,3 +312,20 @@ VectorXY getTerrainBlockPicture(int type)
     }
     }
 }
+
+int getRobotPicture(int faction, int direction)
+{
+	switch (direction)
+	{
+	case kFacingLeft:
+		return faction * 2;
+		break;
+		case kFacingRight
+			:
+			
+				return faction * 2 + 1;
+				break;
+	default:
+		break;
+	}
+}

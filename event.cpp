@@ -54,12 +54,12 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hPauseBackgroundPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
     hRockPicture              = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Rock_01));
     hRobotPicture[0]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_01_left));
-    hRobotPicture[1]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_left));
-    hRobotPicture[2]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_left));
-    hRobotPicture[3]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_04_left));
-    hRobotPicture[4]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_01_right));
-    hRobotPicture[5]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_right));
-    hRobotPicture[6]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_right));
+    hRobotPicture[2]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_left));
+    hRobotPicture[4]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_left));
+    hRobotPicture[6]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_04_left));
+    hRobotPicture[1]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_01_right));
+    hRobotPicture[3]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_right));
+    hRobotPicture[5]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_03_right));
     hRobotPicture[7]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_04_right));
     hGameStartButtonPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_StartGame));
     hGameExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitGame));
@@ -81,8 +81,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 
     //
-    gFactionNumber         = kMaxFactionNumber;
-    gRobotNumberPerFaction = kMaxRobotNumberPerFaction;
+    gFactionNumber         = 2;    //kMaxFactionNumber;
+    gRobotNumberPerFaction = 2;    // kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
     //
 
@@ -108,11 +108,11 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         {
             if (faction[i].robot[j].direction == kFacingLeft)
             {
-                faction[i].robot[j].hPicture = hRobotPicture[i];
+                faction[i].robot[j].hPicture = hRobotPicture[getRobotPicture(i, kFacingLeft)];
             }
             if (faction[i].robot[j].direction == kFacingRight)
             {
-                faction[i].robot[j].hPicture = hRobotPicture[i + gFactionNumber];
+                faction[i].robot[j].hPicture = hRobotPicture[getRobotPicture(i, kFacingRight)];
             }
         }
     }
@@ -996,12 +996,12 @@ void robotUpdate(void)
 
                 if ((faction[i].robot[j].direction == kFacingLeft) && (faction[i].robot[j].velocity.x > 0))
                 {
-                    faction[i].robot[j].hPicture  = hRobotPicture[i + gFactionNumber];
+                    faction[i].robot[j].hPicture  = hRobotPicture[getRobotPicture(i, kFacingRight)];
                     faction[i].robot[j].direction = kFacingRight;
                 }
                 else if ((faction[i].robot[j].direction == kFacingRight) && (faction[i].robot[j].velocity.x < 0))
                 {
-                    faction[i].robot[j].hPicture  = hRobotPicture[i];
+                    faction[i].robot[j].hPicture  = hRobotPicture[getRobotPicture(i, kFacingLeft)];
                     faction[i].robot[j].direction = kFacingLeft;
                 }
 
@@ -1096,6 +1096,7 @@ void robotUpdate(void)
                 gRobotControlled++;
                 if (gRobotControlled >= gRobotNumberPerFaction)
                     gRobotControlled = 0;
+                gameStatusUpdate();
             } while (!faction[gFactionControlled].robot[gRobotControlled].alive);
             gRobotWeaponOn = false;
         }
@@ -1353,12 +1354,12 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             if (cos(gLaunchingAngle) >= 0)
             {
                 faction[gFactionControlled].robot[gRobotControlled].direction = kFacingRight;
-                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[gFactionControlled + gFactionNumber];
+                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[getRobotPicture(gFactionControlled, kFacingRight)];
             }
             else
             {
                 faction[gFactionControlled].robot[gRobotControlled].direction = kFacingLeft;
-                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[gFactionControlled];
+                faction[gFactionControlled].robot[gRobotControlled].hPicture  = hRobotPicture[getRobotPicture(gFactionControlled, kFacingLeft)];
             }
         }
 
@@ -1524,10 +1525,10 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gTNTActivated)
         {
             if (!gTNT.locked)
-                gTNT.acceleration.x = gWindPower * kWindPowerFactor;
+                // gTNT.acceleration.x = gWindPower * kWindPowerFactor; //TODO
 
-            // 更新速度
-            gTNT.velocity.x += gTNT.acceleration.x;
+                // 更新速度
+                gTNT.velocity.x += gTNT.acceleration.x;
             gTNT.velocity.y += gTNT.acceleration.y;
 
             // 计算预计位置值
