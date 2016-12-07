@@ -322,7 +322,6 @@ int getRobotPicture(int faction, int direction)
 		break;
 		case kFacingRight
 			:
-			
 				return faction * 2 + 1;
 				break;
 	default:

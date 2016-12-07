@@ -66,6 +66,8 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara);
 void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 
 void AI_sense(void);
+bool AI_NextMovingAvailable(VectorXY currPos, bool movingLeft);
+
 void AI_decide(void);
 void AI_act(void);
 

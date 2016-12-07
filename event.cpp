@@ -28,6 +28,7 @@ todolist
 - 与AI进行对战
 - 使用背景音乐
 - 使用背景音效
+= 坠落伤害
 */
 
 #include "event.h"
@@ -115,6 +116,13 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 faction[i].robot[j].hPicture = hRobotPicture[getRobotPicture(i, kFacingRight)];
             }
         }
+    }
+
+    {
+        VectorXY temp;
+        temp.x        = 0;
+        temp.y        = 0;
+        gVirtualRobot = creatRobot(-1, temp);
     }
 
 
@@ -1196,6 +1204,46 @@ BOOL robotInTerrain(int factionNum, int robotNum)
                 return true;
     return false;
 }
+
+bool robotInTerrainVirtual(VectorXY position)    // TODO merge code
+{
+    // 计算覆盖的terrain所占区域
+    int left = ((position.x + kRobotEdgeIngnorance) / kTerrainWidth) * kTerrainWidth + 1;
+    int top  = ((position.y + kRobotEdgeIngnorance) / kTerrainHeight) * kTerrainHeight + 1;
+
+    int right, bottom;
+
+    if ((position.x + kRobotSizeX - kRobotEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    {
+        right = position.x + kRobotSizeX - kRobotEdgeIngnorance;
+    }
+    else
+    {
+        right = ((position.x + kRobotSizeX - kRobotEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+    }
+
+    if ((position.y + kRobotSizeY - kRobotEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = position.y + kRobotSizeY - kRobotEdgeIngnorance;
+    }
+    else
+    {
+        bottom = ((position.y + kRobotSizeY - kRobotEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    // 计算terrain坐标
+    int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
+    int rightTerrainCoordinate  = right / kTerrainWidth - 1;
+    int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+    // 检查这些terrain中是否有未被摧毁的
+    for (int i = leftTerrainCoordinate; i <= rightTerrainCoordinate; i++)
+        for (int j = topTerrainCoordinate; j <= bottomTerrainCoordinate; j++)
+            if (!terrain[i][j].isDestoried)
+                return true;
+    return false;
+}
 /*
 ██████   ██████  ██████   ██████  ████████ ██       █████  ███    ██ ██████  ███████ ██████
 ██   ██ ██    ██ ██   ██ ██    ██    ██    ██      ██   ██ ████   ██ ██   ██ ██      ██   ██
@@ -1245,6 +1293,49 @@ BOOL robotLanded(int factionNum, int robotNum)
             return true;
     return false;
 }
+
+BOOL robotLandedVirtual(VectorXY position)    // TODO merge code
+{
+    // return true;
+    // 假定robot是不在地形里面的
+    // 脚不在地上
+    if ((position.y + kRobotSizeY - kRobotEdgeIngnorance) % kTerrainHeight != 0)
+        return false;
+
+    // 仿照上面的函数，这次判定人物下面有没有未被摧毁的地块
+    int left = ((position.x + kRobotEdgeIngnorance) / kTerrainWidth) * kTerrainWidth + 1;
+
+    int right, bottom;
+
+    if ((position.x + kRobotSizeX - kRobotEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    {
+        right = position.x + kRobotSizeX - kRobotEdgeIngnorance;
+    }
+    else
+    {
+        right = ((position.x + kRobotSizeX - kRobotEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+    }
+
+    if ((position.y + kRobotSizeY - kRobotEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = position.y + kRobotSizeY - kRobotEdgeIngnorance;
+    }
+    else
+    {
+        bottom = ((position.y + kRobotSizeY - kRobotEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
+    int rightTerrainCoordinate  = right / kTerrainWidth - 1;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+
+    for (int i = leftTerrainCoordinate; i <= rightTerrainCoordinate; i++)
+        if (!terrain[i][bottomTerrainCoordinate + 1].isDestoried)
+            return true;
+    return false;
+}
+
 
 void setCameraOnRobot(int factionNum, int robotNum)
 {
@@ -3641,3 +3732,94 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ██   ██ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
 */
+
+void AI_sense()
+{
+    // 感知系统
+    gAIMovingRangeLeft  = (faction[gFactionControlled].robot[gRobotControlled].position.x / kTerrainWidth) * kTerrainWidth;
+    gAIMovingRangeRight = gAIMovingRangeLeft;
+    // 可用行动范围向左扩展
+    // 可用行动范围向右扩展
+    // 现在我们得到了机器人的可用行动范围
+    // 在行动范围内，查找所有的敌对人物
+
+    // 剩下的事情转交决策系统
+}
+
+void AI_decide()
+{
+    // 决策系统
+    // 现在我们知道可用行动范围以及敌人分布情况
+    // 遍历所有的武器
+    // TODO UPGRADE 对于每一种武器，每一个敌对势力都进行虚拟打击实验，用一个函数来评估效果，然后选取最优解
+    // 对于每种武器的射程，计算敌对人物的血量密度，减去自己的血量密度，得到最优打击部位
+    // 利用最优打击部位、目前风向以及自己的位置和可用位置计算发射部位、发射角度、发射力度
+    // 其中角度和力度直接模拟算了😂😂😂
+    // 现在我们知道了要移动到哪里，然后如何发射武器
+    // TODO UPGRADE　计算撤离位置
+
+    // 剩下的事情转交执行系统
+}
+
+void AI_act()
+{
+    // 模拟按键，移动到指定的位置，然后发射，然后撤离
+}
+
+
+bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOTE 人物的宽度恰好是两倍的地块宽！
+{
+    // 将机器人拉到正确的地方
+    int      left         = (currrentPosition.x / kTerrainWidth) * kTerrainWidth;
+    VectorXY nextPosition = currentPosition;
+    nextPosition.x        = left;
+    switch (movingLeft)
+    {
+    case true:
+    {
+        nextPosition.x -= kTerrainWidth;
+        if (robotInTerrainVirtual(nextPositionosition))
+        {
+            // 前方有阻碍，检查能否跳上去
+            // 检查方法为看高度差
+            // TODO 当头上有阻碍时，AI依然正确工作
+        }
+        else if (!robotLandedVirtual(nextPositionosition))
+        {
+            // 前方会掉下去，检查会不会掉到水里
+            // 检查方法为看下一格的情况
+            // TODO 估计下去的损失
+            // TODO 如果有沟的话就跳过去
+        }
+        else
+        {
+            // 此时机器人没有被卡住，而且还在地上，是可行的
+            return true;
+        }
+    }
+    break;
+    case false:
+    {
+        nextPositionosition.x += kTerrainWidth;
+        if (robotInTerrainVirtual(nextPositionosition))
+        {
+            // 前方有阻碍，检查能否跳上去
+            // 检查方法为看高度差
+            // TODO 当头上有阻碍时，AI依然正确工作
+        }
+        else if (!robotLandedVirtual(nextPositionosition))
+        {
+            // 前方会掉下去，检查会不会掉到水里
+            // 检查方法为看下一格的情况
+            // TODO 估计下去的损失
+            // TODO 如果有沟的话就跳过去
+        }
+        else
+        {
+            // 此时机器人没有被卡住，而且还在地上，是可行的
+            return true;
+        }
+    }
+    break;
+    }
+}

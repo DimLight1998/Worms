@@ -1,4 +1,4 @@
-#ifndef ITEM_H
+ï»¿#ifndef ITEM_H
 #define ITEM_H
 
 #include "global.h"
@@ -36,6 +36,11 @@ GameButton gameHelpButton;
 GameButton gameExitButton;
 GameButton helpExitButton;
 
+// AI
+Robot gVirtualRobot;
+int gAIMovingRangeLeft=0;
+int gAIMovingRangeRight=0;
+
 Missile    gMissile;
 Grenade    gGrenade;
 StickyBomb gStickyBomb;
@@ -47,62 +52,62 @@ SkillBox   gSkillBox[kMaxSkillBoxNum];
 
 GameStatus gameStatus;
 
-int gFactionNumber;            // ÓÎÏ·¿ªÊ¼Ê±ÕóÓªÊıÄ¿
-int gRobotNumberPerFaction;    // ÓÎÏ·¿ªÊ¼Ê±Ã¿¸öÕóÓªÈËÊı
-int gRobotNumber;              // Õâ¸öÓÎÏ·ÖĞµÄ»úÆ÷ÈËÊıÄ¿
+int gFactionNumber;            // æ¸¸æˆå¼€å§‹æ—¶é˜µè¥æ•°ç›®
+int gRobotNumberPerFaction;    // æ¸¸æˆå¼€å§‹æ—¶æ¯ä¸ªé˜µè¥äººæ•°
+int gRobotNumber;              // è¿™ä¸ªæ¸¸æˆä¸­çš„æœºå™¨äººæ•°ç›®
 
-int gRobotControlled = 0;                 // µ±Ç°»îÔ¾µÄ»úÆ÷ÈË
-int gFactionControlled = gFactionNumber;    // µ±Ç°»îÔ¾µÄÕóÓª
-int gFactionAlive = -1;                // ×îºóÒ»¸ö»îÏÂµÄÕóÓª
+int gRobotControlled   = 0;                 // å½“å‰æ´»è·ƒçš„æœºå™¨äºº
+int gFactionControlled = gFactionNumber;    // å½“å‰æ´»è·ƒçš„é˜µè¥
+int gFactionAlive      = -1;                // æœ€åä¸€ä¸ªæ´»ä¸‹çš„é˜µè¥
 
-bool     gCameraOverride = false;
+bool     gCameraOverride   = false;
 bool     gCameraAutoMoving = false;
 VectorXY gCameraVelocity;
 VectorXY gCameraTargetPosition;
 VectorXY gCameraPosition;
 
-bool gRobotWeaponOn = false;    // ÓÃÒÔÖ¸¶¨»úÆ÷ÈËÊÇ·ñ³ÖÓĞÎäÆ÷£¬ÈôÎªÕæ£¬Ôò»úÆ÷ÈËÎŞ·¨ÒÆ¶¯
-int  gWeaponSelected = 0;        // ÓÃÀ´Ö¸¶¨»úÆ÷ÈËËùÑ¡ÔñµÄÎäÆ÷
-bool gMissileActivated = false;    // 1
-bool gGrenadeActivated = false;    // 2
+bool gRobotWeaponOn       = false;    // ç”¨ä»¥æŒ‡å®šæœºå™¨äººæ˜¯å¦æŒæœ‰æ­¦å™¨ï¼Œè‹¥ä¸ºçœŸï¼Œåˆ™æœºå™¨äººæ— æ³•ç§»åŠ¨
+int  gWeaponSelected      = 0;        // ç”¨æ¥æŒ‡å®šæœºå™¨äººæ‰€é€‰æ‹©çš„æ­¦å™¨
+bool gMissileActivated    = false;    // 1
+bool gGrenadeActivated    = false;    // 2
 bool gStickyBombActivated = false;    // 3
-bool gTNTActivated = false;    // 4
+bool gTNTActivated        = false;    // 4
 
-bool gRobotSkillOn = false;
-int  gSkillSelected = 0;
-bool gSkillRangeSelecting = false;
+bool gRobotSkillOn         = false;
+int  gSkillSelected        = 0;
+bool gSkillRangeSelecting  = false;
 bool gSkillTargetSelecting = false;
-int  gSkillTargetFaction = -1;
-int  gSkillTargetRobot = -1;
+int  gSkillTargetFaction   = -1;
+int  gSkillTargetRobot     = -1;
 
-int    gChangingWeaponAngle = 0;        // ÓÃÒÔÖ¸¶¨ÎäÆ÷Ğı×ª×´Ì¬£¬ÖµÎª1ÎªÄæÊ±ÕëĞı×ª£¬-1ÎªË³Ê±Õë£¬0Îª²»Ğı×ª
-bool   gIncreasingWeaponPower = false;    // ÓÃÒÔÖ¸¶¨ÊÇ·ñÔÚ¼Ó´óÎäÆ÷Á¦Á¿£¬0ÎªÔÚ¼Ó´ó£¬1ÎªÎ´¼Ó´ó
-double gLaunchingAngle = 0;        // ÎäÆ÷·¢ÉäµÄ½Ç¶È
-int    gPower = 0;        // ÎäÆ÷·¢ÉäµÄÁ¦¶È
+int    gChangingWeaponAngle   = 0;        // ç”¨ä»¥æŒ‡å®šæ­¦å™¨æ—‹è½¬çŠ¶æ€ï¼Œå€¼ä¸º1ä¸ºé€†æ—¶é’ˆæ—‹è½¬ï¼Œ-1ä¸ºé¡ºæ—¶é’ˆï¼Œ0ä¸ºä¸æ—‹è½¬
+bool   gIncreasingWeaponPower = false;    // ç”¨ä»¥æŒ‡å®šæ˜¯å¦åœ¨åŠ å¤§æ­¦å™¨åŠ›é‡ï¼Œ0ä¸ºåœ¨åŠ å¤§ï¼Œ1ä¸ºæœªåŠ å¤§
+double gLaunchingAngle        = 0;        // æ­¦å™¨å‘å°„çš„è§’åº¦
+int    gPower                 = 0;        // æ­¦å™¨å‘å°„çš„åŠ›åº¦
 
-int gSeaLevel = 95;    // È«¾Ö¼ÇÂ¼º£Æ½Ãæ¸ß¶È
+int gSeaLevel  = kOringinalSeaLevel;    // å…¨å±€è®°å½•æµ·å¹³é¢é«˜åº¦
 int gWindPower = 0;
 
 bool    gTerrainNeedUpdate = true;
-bool    gRenderOnce = false;
+bool    gRenderOnce        = false;
 HBITMAP hTerrainBmp;
 
-bool gRobotMoving = false;
-bool gRobotEscaping = false;
-bool gRoundWaiting = false;
-int  gRobotMovingTimeRemain = kActionTime;
+bool gRobotMoving             = false;
+bool gRobotEscaping           = false;
+bool gRoundWaiting            = false;
+int  gRobotMovingTimeRemain   = kActionTime;
 int  gRobotEscapingTimeRemain = kWithdrawTime;
-int  gRoundWaitingTimeRemain = kWaitTime;
+int  gRoundWaitingTimeRemain  = kWaitTime;
 
-bool gPlayingMissileAnimation = false;
-bool gPlayingGrenadeAnimation = false;
+bool gPlayingMissileAnimation    = false;
+bool gPlayingGrenadeAnimation    = false;
 bool gPlayingStickyBombAnimation = false;
-bool gPlayingTNTAnimation = false;
+bool gPlayingTNTAnimation        = false;
 
-int gMissileAnimationTimeRemain = 0;
-int gGrenadeAnimationTimeRemain = 0;
+int gMissileAnimationTimeRemain    = 0;
+int gGrenadeAnimationTimeRemain    = 0;
 int gStickyBombAnimationTimeRemain = 0;
-int gTNTAnimationTimeRemain = 0;
+int gTNTAnimationTimeRemain        = 0;
 
 VectorXY gMissileAnimationPosition;
 VectorXY gGrenadeAnimationPosition;
