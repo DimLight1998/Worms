@@ -23,12 +23,12 @@ Robot creatRobot(int faction, VectorXY position)
     return robot;
 }
 
-Faction creatFaction(int factionNumber,bool controlledByAI)
+Faction creatFaction(int factionNumber, bool controlledByAI)
 {
     Faction faction;
-    faction.controlledByAI=controlledByAI;
-    faction.alive    = true;
-    faction.hitPoint = kMaxRobotNumberPerFaction * kRobotFullHitPoint;
+    faction.controlledByAI = controlledByAI;
+    faction.alive          = true;
+    faction.hitPoint       = kMaxRobotNumberPerFaction * kRobotFullHitPoint;
     for (int i = 0; i < kMaxRobotNumberPerFaction; i++)
     {
         VectorXY temp;
@@ -36,17 +36,17 @@ Faction creatFaction(int factionNumber,bool controlledByAI)
         temp.y           = kWorldHeight / 2;
         faction.robot[i] = creatRobot(factionNumber, temp);
     }
-    faction.robotControlled  = 0;
-    faction.aliveRobot       = kMaxRobotNumberPerFaction;
-	faction.ammoBuildingBlock = kBuildingBlockDefautAmmo;
-    faction.ammoMissile      = kMissileDefaultAmmo;
-    faction.ammoGrenade      = kGrenadeDefaultAmmo;
-    faction.ammoStickyBomb   = kStickyBombDefaultAmmo;
-    faction.ammoTNT          = kTNTDefaultAmmo;
-    faction.ammoCure         = kCureDefaultAmmo;
-    faction.ammoTransfer     = kTransferDefaultAmmo;
-    faction.ammoSafeTransfer = kSafeTransferDefaulAmmo;
-    faction.ammoProtect      = kProtectDefaultAmmo;
+    faction.robotControlled   = 0;
+    faction.aliveRobot        = kMaxRobotNumberPerFaction;
+    faction.ammoBuildingBlock = kBuildingBlockDefautAmmo;
+    faction.ammoMissile       = kMissileDefaultAmmo;
+    faction.ammoGrenade       = kGrenadeDefaultAmmo;
+    faction.ammoStickyBomb    = kStickyBombDefaultAmmo;
+    faction.ammoTNT           = kTNTDefaultAmmo;
+    faction.ammoCure          = kCureDefaultAmmo;
+    faction.ammoTransfer      = kTransferDefaultAmmo;
+    faction.ammoSafeTransfer  = kSafeTransferDefaulAmmo;
+    faction.ammoProtect       = kProtectDefaultAmmo;
     return faction;
 }
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture)
@@ -315,16 +315,15 @@ VectorXY getTerrainBlockPicture(int type)
 
 int getRobotPicture(int faction, int direction)
 {
-	switch (direction)
-	{
-	case kFacingLeft:
-		return faction * 2;
-		break;
-		case kFacingRight
-			:
-				return faction * 2 + 1;
-				break;
-	default:
-		break;
-	}
+    switch (direction)
+    {
+    case kFacingLeft:
+        return faction * 2;
+        break;
+    case kFacingRight:
+        return faction * 2 + 1;
+        break;
+    default:
+        break;
+    }
 }

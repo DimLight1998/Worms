@@ -38,8 +38,9 @@ GameButton helpExitButton;
 
 // AI
 Robot gVirtualRobot;
-int gAIMovingRangeLeft=0;
-int gAIMovingRangeRight=0;
+int   gAIMovingRangeLeft  = 0;
+int   gAIMovingRangeRight = 0;
+VectorXY gAIAviliablePosition[kWindowWidth / kTerrainWidth] = {};
 
 Missile    gMissile;
 Grenade    gGrenade;

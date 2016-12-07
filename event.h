@@ -25,7 +25,7 @@ void gameStatusUpdate(void);
 void factionUpdate(void);
 void windUpdate(void);
 void roundUpdate(void);
-void setCameraOnRobot(int ,int);
+void setCameraOnRobot(int, int);
 
 int  getNextRobotControlled(void);
 void switchToNextFaction(void);
@@ -66,7 +66,7 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara);
 void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam);
 
 void AI_sense(void);
-bool AI_NextMovingAvailable(VectorXY currPos, bool movingLeft);
+//bool AI_NextMovingAvailable(VectorXY currPos, bool movingLeft);
 
 void AI_decide(void);
 void AI_act(void);

@@ -181,6 +181,10 @@ const int kSkillBoxEdgeIngnorance = 3;     // 技能箱碰撞边缘忽略
 const int    kGravityAcceleration = 1;                     // 重力加速度
 const double Pi                   = 3.1415926535897932;    // 圆周率
 
+// AI规则
+const int kMinTryTime = 25;
+const int kTryTimeFactor = 8;
+
 // 地块规则
 const int kWorldWidth           = 4000;                             // 世界的宽度
 const int kWorldHeight          = 1600;                             // 世界的高度
@@ -431,8 +435,8 @@ struct SkillBox
 
 
 Robot creatRobot(int faction, VectorXY position);                                                             // 初始化一个机器人
-Faction creatFaction(int factionNumber, bool controlledByAI);                                                // 初始化一个阵营;
-GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture);              // 创建一个按钮
+Faction creatFaction(int factionNumber, bool controlledByAI);                                                 // 初始化一个阵营;
+GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture);                  // 创建一个按钮
 Terrain creatTerrain(int numberX, int numberY);                                                               // 创建地形块
 Missile creatMissile(VectorXY position, VectorXY velocity, VectorXY acceleration, HBITMAP hPicture);          // 创建导弹
 Grenade creatGrenade(VectorXY position, VectorXY velocity, VectorXY acceleration, HBITMAP hPicture);          // 创建手雷

@@ -678,6 +678,7 @@ void renderGame(HWND hWnd)
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, SRCCOPY);
+    // TransparentBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, 1.5*kWindowWidth, 1.5*kWindowHeight, RGB(254, 254, 254));
 
     // 阵营血量显示
 
@@ -3735,26 +3736,50 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
 void AI_sense()
 {
+	for (int i = 0; i < kWindowWidth / kTerrainWidth; i++)
+	{
+		gAIAviliablePosition[i].x = 0;
+		gAIAviliablePosition[i].y = 0;
+	}
     // 感知系统
     gAIMovingRangeLeft  = (faction[gFactionControlled].robot[gRobotControlled].position.x / kTerrainWidth) * kTerrainWidth;
     gAIMovingRangeRight = gAIMovingRangeLeft;
+	VectorXY currentPosition = faction[gFactionControlled].robot[gRobotControlled].position;
+	int aviliablePositionPointer = 0;
     // 可用行动范围向左扩展
-    // 可用行动范围向右扩展
+	while (AI_NextMovingAvailable(currentPosition, true))
+	{
+		gAIMovingRangeLeft--;
+		gAIAviliablePosition[aviliablePositionPointer++]=AI_positionUpdate(currentPosition,true);
+	}
+	// 当前位置复位
+	currentPosition = faction[gFactionControlled].robot[gRobotControlled].position;
+	// 可用行动范围向右扩展
+	while (AI_NextMovingAvailable(currentPosition, false))
+	{
+		gAIMovingRangeRight++;
+		gAIAviliablePosition[aviliablePositionPointer++]=AI_positionUpdate(currentPosition, false);
+	}
     // 现在我们得到了机器人的可用行动范围
-    // 在行动范围内，查找所有的敌对人物
-
+    // TODO UPGRADE 在行动范围内，查找所有的敌对人物
     // 剩下的事情转交决策系统
 }
 
 void AI_decide()
 {
     // 决策系统
-    // 现在我们知道可用行动范围以及敌人分布情况
-    // 遍历所有的武器
-    // TODO UPGRADE 对于每一种武器，每一个敌对势力都进行虚拟打击实验，用一个函数来评估效果，然后选取最优解
-    // 对于每种武器的射程，计算敌对人物的血量密度，减去自己的血量密度，得到最优打击部位
-    // 利用最优打击部位、目前风向以及自己的位置和可用位置计算发射部位、发射角度、发射力度
-    // 其中角度和力度直接模拟算了😂😂😂
+    // 现在我们知道可用行动范围
+	int numOfTryingLocation = min(kMinTryTime, (gAIMovingRangeRight - gAIMovingRangeLeft) / kTryTimeFactor);// 最坏情况为25
+	for (int i = 0; i < numOfTryingLocation; i++)
+	{
+		// 选择位置（随机的）
+
+		// 遍历所有的武器
+		// TODO UPGRADE 对于每一种武器，每一个敌对势力都进行虚拟打击实验，用一个函数来评估效果，然后选取最优解
+		// 对于每种武器的射程，计算敌对人物的血量密度，减去自己的血量密度，得到最优打击部位
+		// 利用最优打击部位、目前风向以及自己的位置和可用位置计算发射部位、发射角度、发射力度
+		// 其中角度和力度直接模拟算了
+	}
     // 现在我们知道了要移动到哪里，然后如何发射武器
     // TODO UPGRADE　计算撤离位置
 
@@ -3770,7 +3795,7 @@ void AI_act()
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOTE 人物的宽度恰好是两倍的地块宽！
 {
     // 将机器人拉到正确的地方
-    int      left         = (currrentPosition.x / kTerrainWidth) * kTerrainWidth;
+    int      left         = (currentPosition.x / kTerrainWidth) * kTerrainWidth;
     VectorXY nextPosition = currentPosition;
     nextPosition.x        = left;
     switch (movingLeft)
@@ -3778,13 +3803,13 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
     case true:
     {
         nextPosition.x -= kTerrainWidth;
-        if (robotInTerrainVirtual(nextPositionosition))
+        if (robotInTerrainVirtual(nextPosition))
         {
             // 前方有阻碍，检查能否跳上去
             // 检查方法为看高度差
             // TODO 当头上有阻碍时，AI依然正确工作
         }
-        else if (!robotLandedVirtual(nextPositionosition))
+        else if (!robotLandedVirtual(nextPosition))
         {
             // 前方会掉下去，检查会不会掉到水里
             // 检查方法为看下一格的情况
@@ -3800,14 +3825,14 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
     break;
     case false:
     {
-        nextPositionosition.x += kTerrainWidth;
-        if (robotInTerrainVirtual(nextPositionosition))
+        nextPosition.x += kTerrainWidth;
+        if (robotInTerrainVirtual(nextPosition))
         {
             // 前方有阻碍，检查能否跳上去
             // 检查方法为看高度差
             // TODO 当头上有阻碍时，AI依然正确工作
         }
-        else if (!robotLandedVirtual(nextPositionosition))
+        else if (!robotLandedVirtual(nextPosition))
         {
             // 前方会掉下去，检查会不会掉到水里
             // 检查方法为看下一格的情况
@@ -3822,4 +3847,9 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
     }
     break;
     }
+}
+
+VectorXY AI_positionUpdate(VectorXY position, bool movingLeft)
+{
+
 }
