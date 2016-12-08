@@ -2558,7 +2558,7 @@ void buildTerrain(VectorXY position)
                 ableToBuild = ableToBuild;
             else
             {
-                if ((terrain[position.x - 1][position.y - 1].isDestoried) && (terrain[position.x + 1][position.y - 1].isDestoried) && (terrain[position.x - 1][position.y + 1].isDestoried) && (terrain[position.x + 1][position.y + 1].isDestoried))
+                if ((terrain[position.x - 1][position.y ].isDestoried) && (terrain[position.x + 1][position.y ].isDestoried) && (terrain[position.x ][position.y - 1].isDestoried) && (terrain[position.x ][position.y + 1].isDestoried))
                 {
                     ableToBuild = false;    // 如果四周无连接则无法摆放
                 }
