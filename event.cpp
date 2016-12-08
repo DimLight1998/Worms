@@ -14,7 +14,7 @@ todolist
 背景音乐
 放弃操作
 ==important==
-- 游戏标题和开始按钮
+x 游戏标题和开始按钮
 - 显示胜利方
 - 游戏结束后可以返回开始界面
 - 游戏结束后可以重新开始游戏
@@ -39,9 +39,12 @@ VectorXY AI_positionUpdate(VectorXY position, bool movingLeft);
 void virtualFactionReset(void);
 int AI_simulate(int weapon);
 void AI_moving(bool movingLeft);
+<<<<<<< Updated upstream
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 
 
+=======
+>>>>>>> Stashed changes
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
@@ -3914,6 +3917,12 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
         if (robotInTerrainVirtual(nextPosition))
         {
             // 前方有阻碍，检查能否跳上去
+            int heightDelta = 0;
+            while (robotInTerrainVirtual(nextPosition)&& heightDelta<=6)
+            {
+                nextPosition.y += kTerrainHeight;
+                heightDelta++;
+            }
             // 检查方法为看高度差
             // TODO 当头上有阻碍时，AI依然正确工作
         }
@@ -3937,6 +3946,7 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
         if (robotInTerrainVirtual(nextPosition))
         {
             // 前方有阻碍，检查能否跳上去
+
             // 检查方法为看高度差
             // TODO 当头上有阻碍时，AI依然正确工作
         }
@@ -3957,7 +3967,7 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
     }
 }
 
-VectorXY AI_positionUpdate(VectorXY position, bool movingLeft)
+VectorXY AI_positionUpdate(VectorXY position, bool movingLeft)    // 虚拟地走一步然后更新位置
 {
 }
 
