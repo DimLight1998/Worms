@@ -35,6 +35,12 @@ todolist
 #include "global.h"
 #include "item.h"
 
+VectorXY AI_positionUpdate(VectorXY position, bool movingLeft);
+void virtualFactionReset(void);
+int AI_simulate(int weapon);
+void AI_moving(bool movingLeft);
+bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
+
 
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
@@ -3796,7 +3802,7 @@ void AI_decide()
                 acceleration.x  = 0;
                 acceleration.y  = kGravityAcceleration;
                 gVirtualMissile = creatMissile(gVirtualRobot.position, velocity, acceleration, hMissilePictureUp);
-                int tempScore   = AI_simulate(iMissile);
+                tempScore   = AI_simulate(iMissile);
                 if (tempScore > bestSolutionScore)
                 {
                     bestSolutionScore     = tempScore;
@@ -3813,7 +3819,7 @@ void AI_decide()
                 acceleration.x  = 0;
                 acceleration.y  = kGravityAcceleration;
                 gVirtualGrenade = creatGrenade(gVirtualRobot.position, velocity, acceleration, hGrenadePicture);
-                int tempScore   = AI_simulate(iGrenade);
+                tempScore   = AI_simulate(iGrenade);
                 if (tempScore > bestSolutionScore)
                 {
                     bestSolutionScore     = tempScore;
@@ -3836,14 +3842,14 @@ void AI_act()
     // TODO 拉到正确的地方
     if (gBestLauchingLocation.x < faction[gFactionControlled].robot[gRobotControlled].position.x)
     {
-        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.position.x)
+        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.x)
         {
             AI_moving(true);
         }
     }
     else if (gBestLauchingLocation.x > faction[gFactionControlled].robot[gRobotControlled].position.x)
     {
-        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.position.x)
+        while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.x)
         {
             AI_moving(true);
         }
