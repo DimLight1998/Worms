@@ -39,8 +39,8 @@ VectorXY AI_positionUpdate(VectorXY position, bool movingLeft);
 void virtualFactionReset(void);
 int AI_simulate(int weapon);
 void AI_moving(bool movingLeft);
-<<<<<<< Updated upstream
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
+bool virtualMissileInTerrain(void);
 
 
 /*
@@ -1113,6 +1113,8 @@ void robotUpdate(void)
                 if (gRobotControlled >= gRobotNumberPerFaction)
                     gRobotControlled = 0;
                 gameStatusUpdate();
+				factionUpdate();
+				robotUpdate();
             } while (!faction[gFactionControlled].robot[gRobotControlled].alive);
             gRobotWeaponOn = false;
         }
@@ -3316,7 +3318,7 @@ void gameStatusUpdate(void)
     }
     if (factionAlive <= 1)
     {
-        Sleep(3000);
+        Sleep(2000);
         gameStatus.status = Game_end;
     }
 
@@ -4041,7 +4043,7 @@ void virtualFactionReset(void)
 {
     for (int i = 0; i < kMaxFactionNumber; i++)
     {
-        gVirtualFaction[i] = gfaction[i];
+        gVirtualFaction[i] = faction[i];
     }
 }
 
@@ -4071,7 +4073,7 @@ int AI_simulate(int weapon)
                     int robotPositionCenterY = gVirtualFaction[i].robot[j].position.y + kRobotSizeY / 2;
                     if (pointPointDistanceSquare(missilePositionCenterX, missilePositionCenterY, robotPositionCenterX, robotPositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
                     {
-                        gVirtualFactionfaction[i].robot[j].hitPoint -= kMissileHarm;
+                        gVirtualFaction[i].robot[j].hitPoint -= kMissileHarm;
 
                         if (i == gFactionControlled)
                         {
@@ -4084,26 +4086,26 @@ int AI_simulate(int weapon)
 
                         if (missilePositionCenterX == robotPositionCenterX)
                         {
-                            gVirtualFactionfaction[i].robot[j].velocity.y = -2 * kMissileExplosionPower;
-                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+                            gVirtualFaction[i].robot[j].velocity.y = -2 * kMissileExplosionPower;
+							gVirtualFaction[i].robot[j].isJumping  = true;
                         }
                         else if (missilePositionCenterX < robotPositionCenterX)
                         {
-                            gVirtualFactionfaction[i].robot[j].velocity.y = -kMissileExplosionPower;
-                            gVirtualFactionfaction[i].robot[j].velocity.x = kMissileExplosionPower;
-                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+							gVirtualFaction[i].robot[j].velocity.y = -kMissileExplosionPower;
+							gVirtualFaction[i].robot[j].velocity.x = kMissileExplosionPower;
+							gVirtualFaction[i].robot[j].isJumping  = true;
                         }
                         else if (missilePositionCenterX > robotPositionCenterX)
                         {
-                            gVirtualFactionfaction[i].robot[j].velocity.y = -kMissileExplosionPower;
-                            gVirtualFactionfaction[i].robot[j].velocity.x = -kMissileExplosionPower;
-                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+							gVirtualFaction[i].robot[j].velocity.y = -kMissileExplosionPower;
+							gVirtualFaction[i].robot[j].velocity.x = -kMissileExplosionPower;
+							gVirtualFaction[i].robot[j].isJumping  = true;
                         }
                     }
                 }
             }
         break;
-    case iGrenade:
+    //case iGrenade:
 
         //TODO
         break;
@@ -4200,17 +4202,6 @@ bool virtualGrenadeInTerrain(void)
             if (!terrain[i][j].isDestoried)
                 return true;
 
-    // 再检查导弹有没有打到机器人，这里以后要判断机器人是否死亡
-    int grenadePositionCenterX = gVirtualGrenade.position.x + kGrenadeSizeX / 2;
-    int grenadePositionCenterY = gVirtualGrenade.position.y + kGrenadeSizeY / 2;
-    for (int i = 0; i < gFactionNumber; i++)
-        for (int j = 0; j < gRobotNumberPerFaction; j++)
-        {
-            int robotPositionCenterX = faction[i].robot[j].position.x + kRobotSizeX / 2;
-            int robotPositionCenterY = faction[i].robot[j].position.y + kRobotSizeY / 2;
-            if (pointPointDistanceSquare(grenadePositionCenterX, grenadePositionCenterY, robotPositionCenterX, robotPositionCenterY) <= kGrenadeSenseDistance * kGrenadeSenseDistance)
-                return true;
-        }
     return false;
 }
 
@@ -4221,22 +4212,22 @@ bool virtualGrenadeLanded(void)
 
     int right, bottom;
 
-    if ((gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    if ((gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
     {
-        right = gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance;
+        right = gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance;
     }
     else
     {
-        right = ((gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+        right = ((gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
     }
 
-    if ((gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    if ((gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
     {
-        bottom = gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance;
+        bottom = gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance;
     }
     else
     {
-        bottom = ((gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+        bottom = ((gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
     }
 
     int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
@@ -4263,6 +4254,6 @@ void AI_moving(bool movingLeft)
             faction[gFactionControlled].robot[gRobotControlled].position.x++;
             
         }
-        case false:
+        //case false:
     }
 }
