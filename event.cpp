@@ -15,15 +15,15 @@ todolist
 放弃操作
 ==important==
 x 游戏标题和开始按钮
-- 显示胜利方
-- 游戏结束后可以返回开始界面
-- 游戏结束后可以重新开始游戏
+x 显示胜利方
+x 游戏结束后可以返回开始界面
+x 游戏结束后可以重新开始游戏
 - 至少两张背景图片
 - 帮助界面和地图选择界面
 - 多个可选地图
 - 输入种子来进行随机地形
 - 显示弹药量和技能点
-- 子母手雷和弓箭
+x 子母手雷和弓箭
 - 攻击技能
 - 与AI进行对战
 - 使用背景音乐
@@ -153,6 +153,15 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 faction[i].robot[j].position.y--;
             while (!robotLanded(i, j))
                 faction[i].robot[j].position.y++;
+            while (faction[i].robot[j].position.y <= 1)
+            {
+                faction[i].robot[j].position.x = rand() % (kWorldWidth + 1);
+                faction[i].robot[j].position.y = kWorldHeight / 2;
+                while (robotInTerrain(i, j))
+                    faction[i].robot[j].position.y--;
+                while (!robotLanded(i, j))
+                    faction[i].robot[j].position.y++;
+            }
         }
     }
 
