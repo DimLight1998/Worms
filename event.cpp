@@ -90,7 +90,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     //
     gFactionNumber         = 2;    //kMaxFactionNumber;
-    gRobotNumberPerFaction = 2;    // kMaxRobotNumberPerFaction;
+    gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
     //
 
@@ -774,10 +774,11 @@ void renderEnd(HWND hWnd)
     TCHAR szDist[1000] = L"";
     SetTextColor(hdcBuffer, RGB(255, 255, 255));
     SetBkMode(hdcBuffer, TRANSPARENT);
+
     wsprintf(szDist, L"Game over !");
     TextOut(hdcBuffer, kWindowWidth / 2, kWindowHeight / 3, szDist, _tcslen(szDist));
-    wsprintf(szDist, L"The winner is Team %d .", gFactionAlive);
-    TextOut(hdcBuffer, kWindowWidth / 2, 2 * kWindowWidth / 3, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"The winner is Team %d !", gFactionAlive+1);
+    TextOut(hdcBuffer, kWindowWidth / 2-20, 2 * kWindowHeight / 3, szDist, _tcslen(szDist));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
