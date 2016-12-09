@@ -43,9 +43,9 @@ void AI_moving(bool movingLeft);
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 
 
-=======
+== == == =
 >>>>>>> Stashed changes
-/*
+             /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
 ██ ██ ██  ██ ██    ██    ██ ███████ ██      ██   ███   █████
@@ -53,7 +53,7 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 ██ ██   ████ ██    ██    ██ ██   ██ ███████ ██ ███████ ███████
 */
 
-void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+    void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
     srand(unsigned((time(0))));
 
@@ -2660,7 +2660,7 @@ void buildTerrain(VectorXY position)
                 ableToBuild = ableToBuild;
             else
             {
-                if ((terrain[position.x - 1][position.y ].isDestoried) && (terrain[position.x + 1][position.y ].isDestoried) && (terrain[position.x ][position.y - 1].isDestoried) && (terrain[position.x ][position.y + 1].isDestoried))
+                if ((terrain[position.x - 1][position.y].isDestoried) && (terrain[position.x + 1][position.y].isDestoried) && (terrain[position.x][position.y - 1].isDestoried) && (terrain[position.x][position.y + 1].isDestoried))
                 {
                     ableToBuild = false;    // 如果四周无连接则无法摆放
                 }
@@ -3805,7 +3805,7 @@ void AI_decide()
                 acceleration.x  = 0;
                 acceleration.y  = kGravityAcceleration;
                 gVirtualMissile = creatMissile(gVirtualRobot.position, velocity, acceleration, hMissilePictureUp);
-                tempScore   = AI_simulate(iMissile);
+                tempScore       = AI_simulate(iMissile);
                 if (tempScore > bestSolutionScore)
                 {
                     bestSolutionScore     = tempScore;
@@ -3822,7 +3822,7 @@ void AI_decide()
                 acceleration.x  = 0;
                 acceleration.y  = kGravityAcceleration;
                 gVirtualGrenade = creatGrenade(gVirtualRobot.position, velocity, acceleration, hGrenadePicture);
-                tempScore   = AI_simulate(iGrenade);
+                tempScore       = AI_simulate(iGrenade);
                 if (tempScore > bestSolutionScore)
                 {
                     bestSolutionScore     = tempScore;
@@ -3916,20 +3916,38 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
         nextPosition.x -= kTerrainWidth;
         if (robotInTerrainVirtual(nextPosition))
         {
-            // 前方有阻碍，检查能否跳上去
+            // 前方有阻碍，检查能否跳上去，检查方法为看高度差
             int heightDelta = 0;
-            while (robotInTerrainVirtual(nextPosition)&& heightDelta<=6)
+            while (robotInTerrainVirtual(nextPosition) && heightDelta <= kJumpingLimit)
             {
                 nextPosition.y += kTerrainHeight;
                 heightDelta++;
             }
-            // 检查方法为看高度差
+            if (heightDelta == kJumpingLimit + 1)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
             // TODO 当头上有阻碍时，AI依然正确工作
         }
         else if (!robotLandedVirtual(nextPosition))
         {
-            // 前方会掉下去，检查会不会掉到水里
-            // 检查方法为看下一格的情况
+            // 前方会掉下去，检查会不会掉到水里，检查方法为看下一格的情况
+            while (!robotLandedVirtual(nextPosition) && nextPosition.y <= gSeaLevel)
+            {
+                nextPosition.y++;
+            }
+            if (robotLandedVirtual(nextPosition))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
             // TODO 估计下去的损失
             // TODO 如果有沟的话就跳过去
         }
@@ -3945,15 +3963,38 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
         nextPosition.x += kTerrainWidth;
         if (robotInTerrainVirtual(nextPosition))
         {
-            // 前方有阻碍，检查能否跳上去
-
-            // 检查方法为看高度差
+            // 前方有阻碍，检查能否跳上去，检查方法为看高度差
+            int heightDelta = 0;
+            while (robotInTerrainVirtual(nextPosition) && heightDelta <= kJumpingLimit)
+            {
+                nextPosition.y += kTerrainHeight;
+                heightDelta++;
+            }
+            if (heightDelta == kJumpingLimit + 1)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
             // TODO 当头上有阻碍时，AI依然正确工作
         }
         else if (!robotLandedVirtual(nextPosition))
         {
-            // 前方会掉下去，检查会不会掉到水里
-            // 检查方法为看下一格的情况
+            // 前方会掉下去，检查会不会掉到水里，检查方法为看下一格的情况
+            while (!robotLandedVirtual(nextPosition) && nextPosition.y <= gSeaLevel)
+            {
+                nextPosition.y++;
+            }
+            if (robotLandedVirtual(nextPosition))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
             // TODO 估计下去的损失
             // TODO 如果有沟的话就跳过去
         }

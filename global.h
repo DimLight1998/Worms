@@ -182,10 +182,11 @@ const int    kGravityAcceleration = 1;                     // 重力加速度
 const double Pi                   = 3.1415926535897932;    // 圆周率
 
 // AI规则
-const int kMinTryTime = 25;
-const int kTryTimeFactor = 8;
+const int    kMinTryTime         = 25;
+const int    kTryTimeFactor      = 8;
 const double kChangingAngleDelta = Pi / 10;
-const int kChangingPowerDelta = 5;
+const int    kChangingPowerDelta = 5;
+const int    kJumpingLimit       = 6;
 
 // 地块规则
 const int kWorldWidth           = 4000;                             // 世界的宽度
