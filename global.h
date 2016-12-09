@@ -259,7 +259,7 @@ const int    kCameraStartVelocity   = 8;                               // 摄像
 const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
 const int    kActionTime            = 1500;                            // 每回合操作时间<ms>
 const int    kWithdrawTime          = 250;                             // 撤退时间<ms>
-const int    kWaitTime = 1;// 250;                             // 回合间等待时间
+const int    kWaitTime              = 1;                               // 250;                             // 回合间等待时间
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);

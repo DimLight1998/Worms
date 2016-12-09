@@ -203,6 +203,17 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         gameRestartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
     }
 
+
+    {    // TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x         = kButtonWidth;
+        temp_1.y         = kButtonHeight;
+        temp_2.x         = 1450;
+        temp_2.y         = 750;
+        backToMenuButton = creatGameButton(temp_1, temp_2, false, hGameExitButtonPicture);
+    }
+
+
     // 设置游戏状态
     gameStatus.status   = Game_start;
     gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
@@ -211,7 +222,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     switchToNextFaction();
 }
 
-void restart()
+void restart(int targetStatus)
 {
     gFactionNumber         = 2;    //kMaxFactionNumber;
     gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
@@ -276,9 +287,8 @@ void restart()
         }
     }
 
-    gameStatus.status   = Game_running;
+    gameStatus.status   = targetStatus;
     gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
-
 
     switchToNextFaction();
 }
@@ -866,6 +876,11 @@ void renderEnd(HWND hWnd)
     // 绘制退出按钮
     SelectObject(hdcBmp, gameRestartButton.hPicture);
     TransparentBlt(hdcBuffer, gameRestartButton.position.x, gameRestartButton.position.y, gameRestartButton.size.x, gameRestartButton.size.y, hdcBmp, 0, 0, kGameStartButtonPictureX, kGameStartButtonPictureY, RGB(0, 0, 0));
+
+    //
+    SelectObject(hdcBmp, backToMenuButton.hPicture);
+    TransparentBlt(hdcBuffer, backToMenuButton.position.x, backToMenuButton.position.y, backToMenuButton.size.x, backToMenuButton.size.y, hdcBmp, 0, 0, kGameExitButtonPictureX, kGameExitButtonPictureY, RGB(0, 0, 0));
+
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -3826,14 +3841,28 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         startButtonRECT.right  = gameRestartButton.position.x + gameRestartButton.size.x;
         startButtonRECT.top    = gameRestartButton.position.y;
         startButtonRECT.bottom = gameRestartButton.position.y + gameRestartButton.size.y;
+
+        RECT exitButtonRECT;
+        exitButtonRECT.left   = backToMenuButton.position.x;
+        exitButtonRECT.right  = backToMenuButton.position.x + backToMenuButton.size.x;
+        exitButtonRECT.top    = backToMenuButton.position.y;
+        exitButtonRECT.bottom = backToMenuButton.position.y + backToMenuButton.size.y;
+
+        if (gameStatus.status == Game_end && gameButtonClicked(ptMouse, exitButtonRECT))
+        {
+            SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
+            restart(Game_start);
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
+
         if (gameStatus.status == Game_end && gameButtonClicked(ptMouse, startButtonRECT))
         {
             SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
-            gameStatus.status = Game_running;
-            restart();
+            restart(Game_running);
             InvalidateRect(hWnd, NULL, TRUE);    // 重绘
         }
     }
+    break;
     default:
         break;
     }

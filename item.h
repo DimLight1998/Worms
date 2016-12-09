@@ -35,6 +35,8 @@ GameButton gameHelpButton;
 GameButton gameExitButton;
 GameButton helpExitButton;
 GameButton gameRestartButton;
+GameButton backToMenuButton;
+
 
 // AI
 Robot      gVirtualRobot;
@@ -50,7 +52,7 @@ Faction    gVirtualFaction[kMaxFactionNumber];
 double     gBestLauchingAngle;
 int        gBestLauchingPower;
 VectorXY   gBestLauchingLocation;
-int gBestWeapon;
+int        gBestWeapon;
 
 Missile    gMissile;
 Grenade    gGrenade;
