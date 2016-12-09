@@ -43,9 +43,7 @@ void AI_moving(bool movingLeft);
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 
 
-== == == =
->>>>>>> Stashed changes
-             /*
+/*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
 ██ ██ ██  ██ ██    ██    ██ ███████ ██      ██   ███   █████
@@ -53,7 +51,7 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 ██ ██   ████ ██    ██    ██ ██   ██ ███████ ██ ███████ ███████
 */
 
-    void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
+void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
     srand(unsigned((time(0))));
 
@@ -3854,7 +3852,7 @@ void AI_act()
     {
         while (faction[gFactionControlled].robot[gRobotControlled].position.x != gBestLauchingLocation.x)
         {
-            AI_moving(true);
+            AI_moving(false);
         }
     }
     else
@@ -4010,16 +4008,261 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft)    // NOT
 
 VectorXY AI_positionUpdate(VectorXY position, bool movingLeft)    // 虚拟地走一步然后更新位置
 {
+    VectorXY nextPosition = position;
+    switch (movingLeft)
+    {
+    case true:
+        nextPosition.x--;
+        while (robotInTerrainVirtual(nextPosition))
+        {
+            nextPosition.y--;
+        }
+        while (!robotLandedVirtual(nextPosition))
+        {
+            nextPosition.y++;
+        }
+        break;
+    case false:
+        nextPosition.x++;
+        while (robotInTerrainVirtual(nextPosition))
+        {
+            nextPosition.y--;
+        }
+        while (!robotLandedVirtual(nextPosition))
+        {
+            nextPosition.y++;
+        }
+        break;
+    }
+    return nextPosition;
 }
 
 void virtualFactionReset(void)
 {
+    for (int i = 0; i < kMaxFactionNumber; i++)
+    {
+        gVirtualFaction[i] = gfaction[i];
+    }
 }
 
 int AI_simulate(int weapon)
 {
+    int score = 0;
+
+    switch (weapon)
+    {
+    case iMissile:
+        while (!virtualMissileInTerrain())
+        {
+            gVirtualMissile.velocity.x += gVirtualMissile.acceleration.x;
+            gVirtualMissile.velocity.y += gVirtualMissile.acceleration.y;
+
+            gVirtualMissile.position.x += gVirtualMissile.velocity.x;
+            gVirtualMissile.position.y += gVirtualMissile.velocity.y;
+        }
+        int missilePositionCenterX = gVirtualMissile.position.x + kMissileSizeX / 2;
+        int missilePositionCenterY = gVirtualMissile.position.y + kMissileSizeY / 2;
+        for (int i = 0; i < gFactionNumber; i++)
+            for (int j = 0; j < gRobotNumberPerFaction; j++)
+            {
+                if (gVirtualFaction[i].robot[j].alive)
+                {
+                    int robotPositionCenterX = gVirtualFaction[i].robot[j].position.x + kRobotSizeX / 2;
+                    int robotPositionCenterY = gVirtualFaction[i].robot[j].position.y + kRobotSizeY / 2;
+                    if (pointPointDistanceSquare(missilePositionCenterX, missilePositionCenterY, robotPositionCenterX, robotPositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
+                    {
+                        gVirtualFactionfaction[i].robot[j].hitPoint -= kMissileHarm;
+
+                        if (i == gFactionControlled)
+                        {
+                            score -= kMissileHarm;
+                        }
+                        else
+                        {
+                            score += kMissileHarm;
+                        }
+
+                        if (missilePositionCenterX == robotPositionCenterX)
+                        {
+                            gVirtualFactionfaction[i].robot[j].velocity.y = -2 * kMissileExplosionPower;
+                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+                        }
+                        else if (missilePositionCenterX < robotPositionCenterX)
+                        {
+                            gVirtualFactionfaction[i].robot[j].velocity.y = -kMissileExplosionPower;
+                            gVirtualFactionfaction[i].robot[j].velocity.x = kMissileExplosionPower;
+                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+                        }
+                        else if (missilePositionCenterX > robotPositionCenterX)
+                        {
+                            gVirtualFactionfaction[i].robot[j].velocity.y = -kMissileExplosionPower;
+                            gVirtualFactionfaction[i].robot[j].velocity.x = -kMissileExplosionPower;
+                            gVirtualFactionfaction[i].robot[j].isJumping  = true;
+                        }
+                    }
+                }
+            }
+        break;
+    case iGrenade:
+
+        //TODO
+        break;
+    }
+    // 武器处理
+
+    // 伤害计算
+    return score;
+}
+
+bool virtualMissileInTerrain(void)
+{
+    int left = ((gVirtualMissile.position.x + kMissileEdgeIngnorance) / kTerrainWidth) * kTerrainWidth + 1;
+    int top  = ((gVirtualMissile.position.y + kMissileEdgeIngnorance) / kTerrainHeight) * kTerrainHeight + 1;
+
+    int right, bottom;
+
+    if ((gVirtualMissile.position.x + kMissileSizeX - kMissileEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    {
+        right = gVirtualMissile.position.x + kMissileSizeX - kMissileEdgeIngnorance;
+    }
+    else
+    {
+        right = ((gVirtualMissile.position.x + kMissileSizeX - kMissileEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+    }
+
+    if ((gVirtualMissile.position.y + kMissileSizeY - kMissileEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = gVirtualMissile.position.y + kMissileSizeY - kMissileEdgeIngnorance;
+    }
+    else
+    {
+        bottom = ((gVirtualMissile.position.y + kMissileSizeY - kMissileEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
+    int rightTerrainCoordinate  = right / kTerrainWidth - 1;
+    int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+    // 检查这些terrain中是否有未被摧毁的
+    for (int i = leftTerrainCoordinate; i <= rightTerrainCoordinate; i++)
+        for (int j = topTerrainCoordinate; j <= bottomTerrainCoordinate; j++)
+            if (!terrain[i][j].isDestoried)
+                return true;
+
+    // 再检查导弹有没有打到机器人，这里以后要判断机器人是否死亡
+    int missilePositionCenterX = gVirtualMissile.position.x + kMissileSizeX / 2;
+    int missilePositionCenterY = gVirtualMissile.position.y + kMissileSizeY / 2;
+    for (int i = 0; i < gFactionNumber; i++)
+        for (int j = 0; j < gRobotNumberPerFaction; j++)
+        {
+            int robotPositionCenterX = faction[i].robot[j].position.x + kRobotSizeX / 2;
+            int robotPositionCenterY = faction[i].robot[j].position.y + kRobotSizeY / 2;
+            if (pointPointDistanceSquare(missilePositionCenterX, missilePositionCenterY, robotPositionCenterX, robotPositionCenterY) <= kMissileSenseDistance * kMissileSenseDistance)
+                return true;
+        }
+    return false;
+}
+
+bool virtualGrenadeInTerrain(void)
+{
+    int left = ((gVirtualGrenade.position.x + kGrenadeEdgeIngnorance) / kTerrainWidth) * kTerrainWidth + 1;
+    int top  = ((gVirtualGrenade.position.y + kGrenadeEdgeIngnorance) / kTerrainHeight) * kTerrainHeight + 1;
+
+    int right, bottom;
+
+    if ((gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    {
+        right = gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance;
+    }
+    else
+    {
+        right = ((gVirtualGrenade.position.x + kGrenadeSizeX - kGrenadeEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+    }
+
+    if ((gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance;
+    }
+    else
+    {
+        bottom = ((gVirtualGrenade.position.y + kGrenadeSizeY - kGrenadeEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
+    int rightTerrainCoordinate  = right / kTerrainWidth - 1;
+    int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+    // 检查这些terrain中是否有未被摧毁的
+    for (int i = leftTerrainCoordinate; i <= rightTerrainCoordinate; i++)
+        for (int j = topTerrainCoordinate; j <= bottomTerrainCoordinate; j++)
+            if (!terrain[i][j].isDestoried)
+                return true;
+
+    // 再检查导弹有没有打到机器人，这里以后要判断机器人是否死亡
+    int grenadePositionCenterX = gVirtualGrenade.position.x + kGrenadeSizeX / 2;
+    int grenadePositionCenterY = gVirtualGrenade.position.y + kGrenadeSizeY / 2;
+    for (int i = 0; i < gFactionNumber; i++)
+        for (int j = 0; j < gRobotNumberPerFaction; j++)
+        {
+            int robotPositionCenterX = faction[i].robot[j].position.x + kRobotSizeX / 2;
+            int robotPositionCenterY = faction[i].robot[j].position.y + kRobotSizeY / 2;
+            if (pointPointDistanceSquare(grenadePositionCenterX, grenadePositionCenterY, robotPositionCenterX, robotPositionCenterY) <= kGrenadeSenseDistance * kGrenadeSenseDistance)
+                return true;
+        }
+    return false;
+}
+
+bool virtualGrenadeLanded(void)
+{
+    int left = ((gVirtualGrenade.position.x + kGrenadeEdgeIngnorance) / kTerrainWidth) * kTerrainWidth + 1;
+    int top  = ((gVirtualGrenade.position.y + kGrenadeEdgeIngnorance) / kTerrainHeight) * kTerrainHeight + 1;
+
+    int right, bottom;
+
+    if ((gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance) % kTerrainWidth == 0)    // 恰好在边上
+    {
+        right = gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance;
+    }
+    else
+    {
+        right = ((gVirtualGrenade.position.x + kVirtualGrenadeSizeX - kGrenadeEdgeIngnorance) / kTerrainWidth + 1) * kTerrainWidth;
+    }
+
+    if ((gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance;
+    }
+    else
+    {
+        bottom = ((gVirtualGrenade.position.y + kVirtualGrenadeSizeY - kGrenadeEdgeIngnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    int leftTerrainCoordinate   = (left - 1) / kTerrainWidth;
+    int rightTerrainCoordinate  = right / kTerrainWidth - 1;
+    int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+    // 检查这些terrain中是否有未被摧毁的
+    for (int i = leftTerrainCoordinate; i <= rightTerrainCoordinate; i++)
+        for (int j = topTerrainCoordinate; j <= bottomTerrainCoordinate; j++)
+            if (!terrain[i][j].isDestoried)
+                return true;
+    return false;
 }
 
 void AI_moving(bool movingLeft)
 {
+    switch(movingLeft)
+    {
+        case true:
+        int prevPositionX=faction[gFactionControlled].robot[gRobotControlled].position.x--;
+        if(robotInTerrain(gFactionControlled,gRobotControlled))
+        {
+            faction[gFactionControlled].robot[gRobotControlled].position.x++;
+            
+        }
+        case false:
+    }
 }
