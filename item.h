@@ -28,13 +28,13 @@ HBITMAP hSkillBoxPicture;
 HBITMAP hTerrainPicture;
 HBITMAP hGrenadeExplosionPicture;
 
-
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
 GameButton gameStartButton;
 GameButton gameHelpButton;
 GameButton gameExitButton;
 GameButton helpExitButton;
+GameButton gameRestartButton;
 
 // AI
 Robot      gVirtualRobot;

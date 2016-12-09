@@ -35,13 +35,14 @@ x 游戏标题和开始按钮
 #include "global.h"
 #include "item.h"
 
+/*
 VectorXY AI_positionUpdate(VectorXY position, bool movingLeft);
 void virtualFactionReset(void);
 int AI_simulate(int weapon);
 void AI_moving(bool movingLeft);
 bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 bool virtualMissileInTerrain(void);
-
+*/
 
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
@@ -192,6 +193,15 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         helpExitButton = creatGameButton(temp_1, temp_2, false, hHelpExitButtonPicture);
     }
 
+    {
+        // TODO
+        VectorXY temp_1, temp_2;
+        temp_1.x          = kButtonWidth;
+        temp_1.y          = kButtonHeight;
+        temp_2.x          = 780;
+        temp_2.y          = 500;
+        gameRestartButton = creatGameButton(temp_1, temp_2, false, hGameStartButtonPicture);
+    }
 
     // 设置游戏状态
     gameStatus.status   = Game_start;
@@ -200,6 +210,79 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     switchToNextFaction();
 }
+
+void restart()
+{
+    gFactionNumber         = 2;    //kMaxFactionNumber;
+    gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
+    gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
+
+    for (int i = 0; i < kMaxMedicalBoxNum; i++)
+    {
+        gMedicalBox[i].picked = true;
+    }
+    for (int i = 0; i < kMaxWeaponBoxNum; i++)
+    {
+        gWeaponBox[i].picked = true;
+    }
+    for (int i = 0; i < kMaxSkillBoxNum; i++)
+    {
+        gSkillBox[i].picked = true;
+    }
+
+    // 初始化阵营
+    for (int i = 0; i < gFactionNumber; i++)
+    {
+        faction[i] = creatFaction(i, false);
+        for (int j = 0; j < gRobotNumberPerFaction; j++)
+        {
+            if (faction[i].robot[j].direction == kFacingLeft)
+            {
+                faction[i].robot[j].hPicture = hRobotPicture[getRobotPicture(i, kFacingLeft)];
+            }
+            if (faction[i].robot[j].direction == kFacingRight)
+            {
+                faction[i].robot[j].hPicture = hRobotPicture[getRobotPicture(i, kFacingRight)];
+            }
+        }
+    }
+
+    {
+        VectorXY temp;
+        temp.x        = 0;
+        temp.y        = 0;
+        gVirtualRobot = creatRobot(-1, temp);
+    }
+
+    // 初始化地形数组
+    for (int i = 0; i < kTerrainNumberX; i++)
+        for (int j = 0; j < kTerrainNumberY; j++)
+        {
+            terrain[i][j] = creatTerrain(i, j);
+        }
+
+    creatRandomTerrain(clock());
+    terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
+
+    // 将机器人放到地面上
+    for (int i = 0; i < gFactionNumber; i++)
+    {
+        for (int j = 0; j < gRobotNumberPerFaction; j++)
+        {
+            while (robotInTerrain(i, j))
+                faction[i].robot[j].position.y--;
+            while (!robotLanded(i, j))
+                faction[i].robot[j].position.y++;
+        }
+    }
+
+    gameStatus.status   = Game_running;
+    gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
+
+
+    switchToNextFaction();
+}
+
 /*
  ██████ ██████  ███████  █████  ████████ ██████   █████  ███    ██ ██████   ██████  ███    ███ ████████ ███████ ██████  ██████   █████  ██ ███    ██
 ██      ██   ██ ██      ██   ██    ██    ██   ██ ██   ██ ████   ██ ██   ██ ██    ██ ████  ████    ██    ██      ██   ██ ██   ██ ██   ██ ██ ████   ██
@@ -777,8 +860,12 @@ void renderEnd(HWND hWnd)
 
     wsprintf(szDist, L"Game over !");
     TextOut(hdcBuffer, kWindowWidth / 2, kWindowHeight / 3, szDist, _tcslen(szDist));
-    wsprintf(szDist, L"The winner is Team %d !", gFactionAlive+1);
-    TextOut(hdcBuffer, kWindowWidth / 2-20, 2 * kWindowHeight / 3, szDist, _tcslen(szDist));
+    wsprintf(szDist, L"The winner is Team %d !", gFactionAlive + 1);
+    TextOut(hdcBuffer, kWindowWidth / 2 - 20, 2 * kWindowHeight / 3, szDist, _tcslen(szDist));
+
+    // 绘制退出按钮
+    SelectObject(hdcBmp, gameRestartButton.hPicture);
+    TransparentBlt(hdcBuffer, gameRestartButton.position.x, gameRestartButton.position.y, gameRestartButton.size.x, gameRestartButton.size.y, hdcBmp, 0, 0, kGameStartButtonPictureX, kGameStartButtonPictureY, RGB(0, 0, 0));
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
@@ -1114,8 +1201,8 @@ void robotUpdate(void)
                 if (gRobotControlled >= gRobotNumberPerFaction)
                     gRobotControlled = 0;
                 gameStatusUpdate();
-				factionUpdate();
-				robotUpdate();
+                factionUpdate();
+                robotUpdate();
             } while (!faction[gFactionControlled].robot[gRobotControlled].alive);
             gRobotWeaponOn = false;
         }
@@ -3732,6 +3819,21 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
+    case Game_end:
+    {
+        RECT startButtonRECT;
+        startButtonRECT.left   = gameRestartButton.position.x;
+        startButtonRECT.right  = gameRestartButton.position.x + gameRestartButton.size.x;
+        startButtonRECT.top    = gameRestartButton.position.y;
+        startButtonRECT.bottom = gameRestartButton.position.y + gameRestartButton.size.y;
+        if (gameStatus.status == Game_end && gameButtonClicked(ptMouse, startButtonRECT))
+        {
+            SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
+            gameStatus.status = Game_running;
+            restart();
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
+    }
     default:
         break;
     }
@@ -3742,7 +3844,7 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ███████ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
 ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ██   ██ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
-*/
+
 
 void AI_sense()
 {
@@ -4258,3 +4360,5 @@ void AI_moving(bool movingLeft)
         //case false:
     }
 }
+
+*/
