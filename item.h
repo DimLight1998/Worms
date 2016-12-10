@@ -4,9 +4,13 @@
 #include "global.h"
 
 
-HBITMAP hGameBackgroundPicture;
+HBITMAP hGameBackgroundPicture_01;
+HBITMAP hGameBackgroundPicture_02;
+HBITMAP hGameBackgroundPicture_03;
+HBITMAP hGameBackgroundPic;
 HBITMAP hWelcomeBackgroundPicture;
 HBITMAP hHelpBackgroundPicture;
+HBITMAP hSettingPicture;
 HBITMAP hRockPicture;
 HBITMAP hPauseBackgroundPicture;
 HBITMAP hRobotPicture[kMaxFactionNumber * 2];
@@ -25,8 +29,12 @@ HBITMAP hTNTPicture;
 HBITMAP hMedicalBoxPicture;
 HBITMAP hWeaponBoxPicture;
 HBITMAP hSkillBoxPicture;
-HBITMAP hTerrainPicture;
+HBITMAP hTerrainPicture_01;
+HBITMAP hTerrainPicture_02;
+HBITMAP hTerrainPicture_03;
+HBITMAP hTerrainPic;
 HBITMAP hGrenadeExplosionPicture;
+
 
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];

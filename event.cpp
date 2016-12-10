@@ -11,15 +11,15 @@ x 游戏标题和开始按钮
 x 显示胜利方
 x 游戏结束后可以返回开始界面
 x 游戏结束后可以重新开始游戏
-- 至少两张背景图片
-- 帮助界面和地图选择界面
-- 多个可选地图
+x 至少两张背景图片
+x 帮助界面和地图选择界面
+x 多个可选地图
 - 输入种子来进行随机地形
 - 显示弹药量和技能点
 x 子母手雷和弓箭
 - 攻击技能
 - 与AI进行对战
-- 使用背景音乐
+x 使用背景音乐
 - 使用背景音效
 = 坠落伤害
 */
@@ -48,14 +48,16 @@ bool virtualMissileInTerrain(void);
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
     srand(unsigned((time(0))));
-	
 
 
     // 将资源载入到资源句柄中
-    hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
+    hGameBackgroundPicture_01 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
+    hGameBackgroundPicture_02 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_02));
+    hGameBackgroundPicture_03 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_03));
     hWelcomeBackgroundPicture = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WelcomeBackground));
     hHelpBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_HelpBackground));
     hPauseBackgroundPicture   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
+    hSettingPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Setting));
     hRockPicture              = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_Rock_01));
     hRobotPicture[0]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_01_left));
     hRobotPicture[2]          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(Robot_02_left));
@@ -79,13 +81,16 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hMedicalBoxPicture        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_MedicalBox));
     hWeaponBoxPicture         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_WeaponBox));
     hSkillBoxPicture          = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SkillBox));
-    hTerrainPicture           = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
+    hTerrainPicture_01        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_TerrainRes));
+    hTerrainPicture_02        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_RockRes));
+    hTerrainPicture_03        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SandRes));
     hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
     hHelpExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitHelp));
 
-
-	mciSendString(L"open Resource\\blackheart.mp3 alias song", NULL, 0, NULL);
-	mciSendString(L"play song repeat", NULL, 0, NULL);
+    hGameBackgroundPic = hGameBackgroundPicture_01;
+    hTerrainPic        = hTerrainPicture_01;
+    mciSendString(L"open Resource\\blackheart.mp3 alias song", NULL, 0, NULL);
+    mciSendString(L"play song repeat", NULL, 0, NULL);
 
     //
     gFactionNumber         = 2;    //kMaxFactionNumber;
@@ -225,15 +230,14 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     gameStatus.status   = Game_start;
     gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
 
-
     switchToNextFaction();
 }
 
 void restart(int targetStatus)
 {
-    gFactionNumber         = 2;    //kMaxFactionNumber;
-    gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
-    gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
+    // gFactionNumber         = 2;    //kMaxFactionNumber;
+    // gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
+    // gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
 
     for (int i = 0; i < kMaxMedicalBoxNum; i++)
     {
@@ -291,11 +295,46 @@ void restart(int targetStatus)
                 faction[i].robot[j].position.y--;
             while (!robotLanded(i, j))
                 faction[i].robot[j].position.y++;
+            while (faction[i].robot[j].position.y <= 1)
+            {
+                faction[i].robot[j].position.x = rand() % (kWorldWidth + 1);
+                faction[i].robot[j].position.y = kWorldHeight / 2;
+                while (robotInTerrain(i, j))
+                    faction[i].robot[j].position.y--;
+                while (!robotLanded(i, j))
+                    faction[i].robot[j].position.y++;
+            }
         }
     }
 
-    gameStatus.status   = targetStatus;
-    gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
+    gRobotControlled            = 0;
+    gFactionControlled          = gFactionNumber;
+    gFactionAlive               = -1;
+    gCameraOverride             = false;
+    gCameraAutoMoving           = false;
+    gRobotWeaponOn              = false;
+    gWeaponSelected             = 0;
+    gMissileActivated           = false;
+    gGrenadeActivated           = false;
+    gStickyBombActivated        = false;
+    gTNTActivated               = false;
+    gChangingWeaponAngle        = 0;
+    gIncreasingWeaponPower      = false;
+    gLaunchingAngle             = 0;
+    gPower                      = 0;
+    gSeaLevel                   = kOringinalSeaLevel;
+    gWindPower                  = 0;
+    gTerrainNeedUpdate          = true;
+    gRenderOnce                 = false;
+    gRobotMoving                = false;
+    gRobotEscaping              = false;
+    gRoundWaiting               = false;
+    gPlayingMissileAnimation    = false;
+    gPlayingGrenadeAnimation    = false;
+    gPlayingStickyBombAnimation = false;
+    gPlayingTNTAnimation        = false;
+    gameStatus.status           = targetStatus;
+    // gameStatus.hPicture = hWelcomeBackgroundPicture;    // 设置背景图片
 
     switchToNextFaction();
 }
@@ -458,6 +497,9 @@ void render(HWND hWnd)
     case Game_help:
         renderHelp(hWnd);
         break;
+    case Game_setting:
+        renderSetting(hWnd);
+        break;
     default:
         break;
     }
@@ -543,13 +585,13 @@ void renderGame(HWND hWnd)
     // 如果需要重绘则重绘并保存为Bmp，否则直接读取Bmp
     if (gTerrainNeedUpdate)
     {
-        gameStatus.hPicture = hGameBackgroundPicture;
+        gameStatus.hPicture = hGameBackgroundPic;
         // 绘制背景图片至hdc
         SelectObject(hdcBmp, gameStatus.hPicture);
         //TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
         BitBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, SRCCOPY);
         // 绘制地块
-        SelectObject(hdcBmp, hTerrainPicture);
+        SelectObject(hdcBmp, hTerrainPic);
         for (int i = 0; i < kTerrainNumberX; i++)
             for (int j = 0; j < kTerrainNumberY; j++)
             {
@@ -929,7 +971,7 @@ void renderPause(HWND hWnd)
     RECT       rect;
     TEXTMETRIC tm;
     GetTextMetrics(ps.hdc, &tm);
-	rect.top = long( kWindowHeight / 2 - 1.5 * tm.tmHeight);
+    rect.top    = long(kWindowHeight / 2 - 1.5 * tm.tmHeight);
     rect.left   = 0;
     rect.right  = kWindowWidth;
     rect.bottom = rect.top + 3 * tm.tmHeight;
@@ -1004,6 +1046,37 @@ void renderHelp(HWND hWnd)
     // 结束绘制
     EndPaint(hWnd, &ps);
 }
+
+void renderSetting(HWND hWnd)
+{
+    PAINTSTRUCT ps;
+    HDC         hdc;
+
+    // 开始绘制
+    hdc = BeginPaint(hWnd, &ps);
+    HDC     hdcBmp, hdcBuffer;
+    HBITMAP cptBmp;
+    cptBmp    = CreateCompatibleBitmap(hdc, kWindowWidth, kWindowHeight);
+    hdcBmp    = CreateCompatibleDC(hdc);
+    hdcBuffer = CreateCompatibleDC(hdc);
+
+    // 绘制背景到缓冲区
+    SelectObject(hdcBuffer, cptBmp);
+    SelectObject(hdcBmp, gameStatus.hPicture);
+    BitBlt(hdcBuffer, 0, 0, kWindowWidth, kWindowHeight, hdcBmp, 0, 0, SRCCOPY);
+
+    // 绘制到屏幕
+    BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, 0, 0, SRCCOPY);
+
+    // 释放资源
+    DeleteObject(cptBmp);
+    DeleteDC(hdcBuffer);
+    DeleteDC(hdcBmp);
+
+    // 结束绘制
+    EndPaint(hWnd, &ps);
+}
+
 /*
 ████████ ██ ███    ███ ███████ ██████  ██    ██ ██████  ██████   █████  ████████ ███████
    ██    ██ ████  ████ ██      ██   ██ ██    ██ ██   ██ ██   ██ ██   ██    ██    ██
@@ -2263,7 +2336,7 @@ bool weaponHit(int weapon)    // 检查武器是否满足爆炸条件
         break;
     }
     }
-	return false;
+    return false;
 }
 void weaponAnimationUpdate(void)
 {
@@ -3434,12 +3507,17 @@ void gameStatusUpdate(void)
 
     switch (gameStatus.status)
     {
+    case Game_end:
+        gameStatus.hPicture = hPauseBackgroundPicture;
+        break;
+    case Game_setting:
+        gameStatus.hPicture = hSettingPicture;
+        break;
     case Game_start:
         gameStatus.hPicture = hWelcomeBackgroundPicture;
         break;
-    case Game_setting:
     case Game_running:
-        gameStatus.hPicture = hGameBackgroundPicture;
+        gameStatus.hPicture = hGameBackgroundPic;
         break;
     case Game_pause:
         gameStatus.hPicture = hPauseBackgroundPicture;
@@ -3447,7 +3525,6 @@ void gameStatusUpdate(void)
     case Game_help:
         gameStatus.hPicture = hHelpBackgroundPicture;
         break;
-    case Game_end:
     default:
         break;
     }
@@ -3780,10 +3857,10 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         startButtonRECT.right  = gameStartButton.position.x + gameStartButton.size.x;
         startButtonRECT.top    = gameStartButton.position.y;
         startButtonRECT.bottom = gameStartButton.position.y + gameStartButton.size.y;
-        if (gameStatus.status == 0 && gameButtonClicked(ptMouse, startButtonRECT))
+        if (gameStatus.status == Game_start && gameButtonClicked(ptMouse, startButtonRECT))
         {
             SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
-            gameStatus.status = Game_running;
+            gameStatus.status = Game_setting;
             InvalidateRect(hWnd, NULL, TRUE);    // 重绘
         }
 
@@ -3865,6 +3942,80 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         if (gameStatus.status == Game_end && gameButtonClicked(ptMouse, startButtonRECT))
         {
             SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
+            restart(Game_running);
+            InvalidateRect(hWnd, NULL, TRUE);    // 重绘
+        }
+    }
+    break;
+    case Game_setting:
+    {
+        RECT map_1, map_2, map_3;
+        RECT factionNum_2, factionNum_3, factionNum_4;
+        RECT robotNum_2, robotNum_3, robotNum_4;
+        RECT startRect;
+
+        map_1.left = map_2.left = map_3.left = 254;
+        map_1.right = map_2.right = map_3.right = 754;
+
+        map_1.bottom = 360;
+        map_1.top    = 160;
+        map_2.bottom = 593;
+        map_2.top    = 393;
+        map_3.bottom = 825;
+        map_3.top    = 625;
+
+        factionNum_2.bottom = factionNum_3.bottom = factionNum_4.bottom = 204;
+        factionNum_2.top = factionNum_3.top = factionNum_4.top = 135;
+        robotNum_2.bottom = robotNum_3.bottom = robotNum_4.bottom = 440;
+        robotNum_2.top = robotNum_3.top = robotNum_4.top = 375;
+
+        factionNum_2.left = robotNum_2.left = 934;
+        factionNum_2.right = robotNum_2.right = 991;
+        factionNum_3.left = robotNum_3.left = 1056;
+        factionNum_3.right = robotNum_3.right = 1108;
+        factionNum_4.left = robotNum_4.left = 1179;
+        factionNum_4.right = robotNum_4.right = 1233;
+
+        startRect.left   = 1029;
+        startRect.right  = 1131;
+        startRect.bottom = 768;
+        startRect.top    = 683;
+
+        //======================================================================//
+        if (gameButtonClicked(ptMouse, map_1))
+        {
+            hTerrainPic        = hTerrainPicture_01;
+            hGameBackgroundPic = hGameBackgroundPicture_01;
+            hPauseBackgroundPicture=hGameBackgroundPicture_01;
+        }
+        if (gameButtonClicked(ptMouse, map_2))
+        {
+            hTerrainPic        = hTerrainPicture_02;
+            hGameBackgroundPic = hGameBackgroundPicture_02;
+            hPauseBackgroundPicture=hGameBackgroundPicture_02;
+        }
+        if (gameButtonClicked(ptMouse, map_3))
+        {
+            hTerrainPic        = hTerrainPicture_03;
+            hGameBackgroundPic = hGameBackgroundPicture_03;
+            hPauseBackgroundPicture=hGameBackgroundPicture_03;
+        }
+        if (gameButtonClicked(ptMouse, factionNum_2))
+            gFactionNumber = 2;
+        if (gameButtonClicked(ptMouse, factionNum_3))
+            gFactionNumber = 3;
+        if (gameButtonClicked(ptMouse, factionNum_4))
+            gFactionNumber = 4;
+        if (gameButtonClicked(ptMouse, robotNum_2))
+            gRobotNumberPerFaction = 2;
+        if (gameButtonClicked(ptMouse, robotNum_3))
+            gRobotNumberPerFaction = 3;
+        if (gameButtonClicked(ptMouse, robotNum_4))
+            gRobotNumberPerFaction = 4;
+        if (gameButtonClicked(ptMouse, startRect))
+        {
+            SetTimer(hWnd, kTimerID, kTimerElapse, NULL);
+            gameStatus.status = Game_running;
             restart(Game_running);
             InvalidateRect(hWnd, NULL, TRUE);    // 重绘
         }
