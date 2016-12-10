@@ -1,18 +1,11 @@
 ﻿/*
 todolist
-开始界面布局
 
-帮助界面布局
 地图选择界面布局
-
-帮助界面，地图选择界面
+地图选择界面
 随机地图生成器，能输入种子
 显示弹药量和技能点
 对战AI
-地形贴图
-武器箱，医疗箱，技能箱
-背景音乐
-放弃操作
 ==important==
 x 游戏标题和开始按钮
 x 显示胜利方
@@ -55,6 +48,8 @@ bool virtualMissileInTerrain(void);
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
     srand(unsigned((time(0))));
+	
+
 
     // 将资源载入到资源句柄中
     hGameBackgroundPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GameBackground_01));
@@ -88,6 +83,9 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
     hHelpExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitHelp));
 
+
+	mciSendString(L"open Resource\\blackheart.mp3 alias song", NULL, 0, NULL);
+	mciSendString(L"play song repeat", NULL, 0, NULL);
 
     //
     gFactionNumber         = 2;    //kMaxFactionNumber;
@@ -546,7 +544,6 @@ void renderGame(HWND hWnd)
     if (gTerrainNeedUpdate)
     {
         gameStatus.hPicture = hGameBackgroundPicture;
-    RENDER_INIT:
         // 绘制背景图片至hdc
         SelectObject(hdcBmp, gameStatus.hPicture);
         //TransparentBlt(hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, hdcBmp, 0, 0, kWindowWidth, kWindowHeight, RGB(255, 0, 0));
@@ -932,7 +929,7 @@ void renderPause(HWND hWnd)
     RECT       rect;
     TEXTMETRIC tm;
     GetTextMetrics(ps.hdc, &tm);
-    rect.top    = kWindowHeight / 2 - 1.5 * tm.tmHeight;
+	rect.top = long( kWindowHeight / 2 - 1.5 * tm.tmHeight);
     rect.left   = 0;
     rect.right  = kWindowWidth;
     rect.bottom = rect.top + 3 * tm.tmHeight;
@@ -1480,8 +1477,8 @@ void setCameraOnRobot(int factionNum, int robotNum)
     {
         gCameraTargetPosition.y = kCameraLimitTop;
     }
-    gCameraVelocity.x = (gCameraTargetPosition.x - gCameraPosition.x) / kCameraSwitchTime;
-    gCameraVelocity.y = (gCameraTargetPosition.y - gCameraPosition.y) / kCameraSwitchTime;
+    gCameraVelocity.x = int((gCameraTargetPosition.x - gCameraPosition.x) / kCameraSwitchTime);
+    gCameraVelocity.y = int((gCameraTargetPosition.y - gCameraPosition.y) / kCameraSwitchTime);
     gCameraAutoMoving = true;
 }
 /*
@@ -1588,7 +1585,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
     case iMissile:
         if (gMissileActivated)
         {
-            gMissile.acceleration.x = gWindPower * kWindPowerFactor;
+            gMissile.acceleration.x = int(gWindPower * kWindPowerFactor);
 
             gMissile.velocity.x += gMissile.acceleration.x;
             gMissile.velocity.y += gMissile.acceleration.y;
@@ -1624,7 +1621,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gGrenadeActivated)
         {
             if (!gGrenade.locked)
-                gGrenade.acceleration.x = gWindPower * kWindPowerFactor;
+                gGrenade.acceleration.x = int(gWindPower * kWindPowerFactor);
 
             // 更新速度
             gGrenade.velocity.x += gGrenade.acceleration.x;
@@ -1683,7 +1680,7 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gStickyBombActivated)
         {
             if (!gStickyBomb.locked)
-                gStickyBomb.acceleration.x = gWindPower * kWindPowerFactor;
+                gStickyBomb.acceleration.x = int(gWindPower * kWindPowerFactor);
 
             // 更新速度
             gStickyBomb.velocity.x += gStickyBomb.acceleration.x;
@@ -2266,6 +2263,7 @@ bool weaponHit(int weapon)    // 检查武器是否满足爆炸条件
         break;
     }
     }
+	return false;
 }
 void weaponAnimationUpdate(void)
 {

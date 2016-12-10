@@ -15,6 +15,8 @@
 #include <tchar.h>
 #include <time.h>
 #include <windows.h>
+#include <mmsystem.h>
+
 /*
  ██████  ██████  ███    ██ ███████ ████████
 ██      ██    ██ ████   ██ ██         ██
