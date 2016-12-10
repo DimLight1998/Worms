@@ -8,10 +8,11 @@ todolist
 对战AI
 ==important==
 = 显示胜利方
-- 输入种子来进行随机地形
 - 显示弹药量和技能点
 - 攻击技能
 - 与AI进行对战
+- UI布置
+- 建筑系统完善！
 = 坠落伤害
 */
 
@@ -134,8 +135,8 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
         {
             terrain[i][j] = creatTerrain(i, j);
         }
-
-    creatRandomTerrain(clock());
+    gMapKind = 1;
+    creatRandomTerrain(clock(), gMapKind);
     terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
 
     // 将机器人放到地面上
@@ -274,7 +275,7 @@ void restart(int targetStatus)
             terrain[i][j] = creatTerrain(i, j);
         }
 
-    creatRandomTerrain(clock());
+    creatRandomTerrain(clock(), gMapKind);
     terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
 
     // 将机器人放到地面上
@@ -338,127 +339,180 @@ void restart(int targetStatus)
  ██████ ██   ██ ███████ ██   ██    ██    ██   ██ ██   ██ ██   ████ ██████   ██████  ██      ██    ██    ███████ ██   ██ ██   ██ ██   ██ ██ ██   ████
 */
 
-void creatRandomTerrain(int seed)
+void creatRandomTerrain(int seed, int kind)
 {
-    srand(seed);
-    // 从最左边开始，最左边距离天空的高度为10到20地块
-    // 每次向右加载一个地块，0.3概率高度不变，0.25概率高度变化为1，0.2概率高度变化为2，0.1概率高度变化为3，0.05分别概率高度变化为4,5,6
-
-    // 确定最左边的高度
-    int heightLeftMost = kTerrainHeightBase + rand() % (kLeftMostTerrainDelta + 1);
-    for (int i                    = 0; i < heightLeftMost; i++)
-        terrain[0][i].isDestoried = true;
-    int prevHeight                = heightLeftMost;
-    for (int i = 1; i < kTerrainNumberX; i++)
+    switch (kind)
     {
-        int decider = rand() % 1000;
-        if (decider < 300)
+    case 1:
+    {
+        srand(seed);
+        // 从最左边开始，最左边距离天空的高度为10到20地块
+        // 每次向右加载一个地块，0.3概率高度不变，0.25概率高度变化为1，0.2概率高度变化为2，0.1概率高度变化为3，0.05分别概率高度变化为4,5,6
+
+        // 确定最左边的高度
+        int heightLeftMost = kTerrainHeightBase + rand() % (kLeftMostTerrainDelta + 1);
+        for (int i                    = 0; i < heightLeftMost; i++)
+            terrain[0][i].isDestoried = true;
+        int prevHeight                = heightLeftMost;
+        for (int i = 1; i < kTerrainNumberX; i++)
         {
-            for (int j = 0; j < prevHeight; j++)
+            int decider = rand() % 1000;
+            if (decider < 300)
             {
-                terrain[i][j].isDestoried = true;
+                for (int j = 0; j < prevHeight; j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
             }
+            else if (decider < 425)
+            {
+                for (int j = 0; j < min(prevHeight + 1, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 550)
+            {
+                for (int j = 0; j < max(prevHeight - 1, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 650)
+            {
+                for (int j = 0; j < min(prevHeight + 2, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 750)
+            {
+                for (int j = 0; j < max(prevHeight - 2, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 800)
+            {
+                for (int j = 0; j < min(prevHeight + 3, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 850)
+            {
+                for (int j = 0; j < max(prevHeight - 3, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 875)
+            {
+                for (int j = 0; j < min(prevHeight + 4, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 900)
+            {
+                for (int j = 0; j < max(prevHeight - 4, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 925)
+            {
+                for (int j = 0; j < min(prevHeight + 5, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 950)
+            {
+                for (int j = 0; j < max(prevHeight - 5, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 975)
+            {
+                for (int j = 0; j < min(prevHeight + 6, kMinTerrainHeight); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            else if (decider < 1000)
+            {
+                for (int j = 0; j < max(prevHeight - 6, 1); j++)
+                {
+                    terrain[i][j].isDestoried = true;
+                }
+            }
+            prevHeight = 0;
+            while (terrain[i][prevHeight].isDestoried)
+                prevHeight++;
         }
-        else if (decider < 425)
+
+        // 随机山洞
+        int numOfHole = rand() % (kMaxHoleNumber - kMinHoleNumber + 1) + kMinHoleNumber;
+        for (int i = 0; i <= numOfHole; i++)
         {
-            for (int j = 0; j < min(prevHeight + 1, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
+            int radius      = rand() % (kMaxHoleRadius) + 2;
+            int holeCenterX = rand() % kTerrainNumberX;
+            int holeCenterY = rand() % kTerrainNumberY;
+            for (int j = 0; j < kTerrainNumberX; j++)
+                for (int k = 0; k < kTerrainNumberY; k++)
+                    if ((j - holeCenterX) * (j - holeCenterX) + (k - holeCenterY) * (k - holeCenterY) <= radius * radius)
+                        terrain[j][k].isDestoried = true;
         }
-        else if (decider < 550)
-        {
-            for (int j = 0; j < max(prevHeight - 1, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 650)
-        {
-            for (int j = 0; j < min(prevHeight + 2, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 750)
-        {
-            for (int j = 0; j < max(prevHeight - 2, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 800)
-        {
-            for (int j = 0; j < min(prevHeight + 3, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 850)
-        {
-            for (int j = 0; j < max(prevHeight - 3, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 875)
-        {
-            for (int j = 0; j < min(prevHeight + 4, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 900)
-        {
-            for (int j = 0; j < max(prevHeight - 4, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 925)
-        {
-            for (int j = 0; j < min(prevHeight + 5, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 950)
-        {
-            for (int j = 0; j < max(prevHeight - 5, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 975)
-        {
-            for (int j = 0; j < min(prevHeight + 6, kMinTerrainHeight); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        else if (decider < 1000)
-        {
-            for (int j = 0; j < max(prevHeight - 6, 1); j++)
-            {
-                terrain[i][j].isDestoried = true;
-            }
-        }
-        prevHeight = 0;
-        while (terrain[i][prevHeight].isDestoried)
-            prevHeight++;
     }
-
-    // 随机山洞
-    int numOfHole = rand() % (kMaxHoleNumber - kMinHoleNumber + 1) + kMinHoleNumber;
-    for (int i = 0; i <= numOfHole; i++)
+    break;
+    case 2:
     {
-        int radius      = rand() % (kMaxHoleRadius) + 2;
-        int holeCenterX = rand() % kTerrainNumberX;
-        int holeCenterY = rand() % kTerrainNumberY;
-        for (int j = 0; j < kTerrainNumberX; j++)
-            for (int k = 0; k < kTerrainNumberY; k++)
-                if ((j - holeCenterX) * (j - holeCenterX) + (k - holeCenterY) * (k - holeCenterY) <= radius * radius)
-                    terrain[j][k].isDestoried = true;
+        int blockWidth       = 5 + rand() % 4;
+        int blockHeigthDelta = 2 + rand() % 4;
+        int initHeight       = 15 + rand() % (kLeftMostTerrainDelta + 1);
+        for (int i = 0; i < kTerrainNumberX; i++)
+        {
+            for (int j = 0; j < kTerrainNumberY; j++)
+            {
+                terrain[i][j].isDestoried = false;
+                if (j < initHeight)
+                    terrain[i][j].isDestoried = true;
+            }
+
+            if ((i / (blockWidth)) % 2 == 0)
+            {
+                for (int k                    = initHeight; k < initHeight + blockHeigthDelta; k++)
+                    terrain[i][k].isDestoried = true;
+            }
+        }
+
+        for (int i = 0; i < kTerrainNumberX; i++)
+            for (int j                                          = 0; j <= 10 + rand() % 10; j++)
+                terrain[i][kTerrainNumberY - 1 - j].isDestoried = true;
+
+        for (int i = 0; i < kTerrainNumberX; i++)
+            for (int j                                               = -10 + rand() % 10; j <= 10 + rand() % 10; j++)
+                terrain[i][kTerrainNumberY - 1 - j - 40].isDestoried = true;
+    }
+    break;
+    case 3:
+    {
+        int    initHeight  = 20 + rand() % (kLeftMostTerrainDelta + 1);
+        int    heightDelta = 5 + rand() % 6;
+        double phrase      = 1.0 / (3 + rand() % 12);
+        for (int i = 0; i < kTerrainNumberX; i++)
+        {
+            for (int j = 0; j < kTerrainNumberY; j++)
+            {
+                terrain[i][j].isDestoried = false;
+                if (j < initHeight + heightDelta * sin(double(i * phrase)))
+                    terrain[i][j].isDestoried = true;
+            }
+        }
+    }
+    break;
     }
 }
 /*
@@ -910,7 +964,7 @@ void renderEnd(HWND hWnd)
     wsprintf(szDist, L"Game over !");
     TextOut(hdcBuffer, kWindowWidth / 2, kWindowHeight / 3, szDist, _tcslen(szDist));
     wsprintf(szDist, L"The winner is Team %d !", gFactionAlive + 1);
-    TextOut(hdcBuffer, kWindowWidth / 2 - 20, 2 * kWindowHeight / 3, szDist, _tcslen(szDist));
+    TextOut(hdcBuffer, kWindowWidth / 2 - 35, kWindowHeight / 3 + 20, szDist, _tcslen(szDist));
 
     // 绘制退出按钮
     SelectObject(hdcBmp, gameRestartButton.hPicture);
@@ -3991,18 +4045,21 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         //======================================================================//
         if (gameButtonClicked(ptMouse, map_1))
         {
+            gMapKind                = 1;
             hTerrainPic             = hTerrainPicture_01;
             hGameBackgroundPic      = hGameBackgroundPicture_01;
             hPauseBackgroundPicture = hGameBackgroundPicture_01;
         }
         if (gameButtonClicked(ptMouse, map_2))
         {
+            gMapKind                = 2;
             hTerrainPic             = hTerrainPicture_02;
             hGameBackgroundPic      = hGameBackgroundPicture_02;
             hPauseBackgroundPicture = hGameBackgroundPicture_02;
         }
         if (gameButtonClicked(ptMouse, map_3))
         {
+            gMapKind                = 3;
             hTerrainPic             = hTerrainPicture_03;
             hGameBackgroundPic      = hGameBackgroundPicture_03;
             hPauseBackgroundPicture = hGameBackgroundPicture_03;

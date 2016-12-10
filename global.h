@@ -7,15 +7,16 @@
 ██ ██  ██ ██ ██      ██      ██    ██ ██   ██ ██
 ██ ██   ████  ██████ ███████  ██████  ██████  ███████
 */
+// make sure mmsystem is the last one !
 #include "resource.h"
 #include <math.h>
-#include <mmsystem.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
 #include <time.h>
 #include <windows.h>
+#include <mmsystem.h>
 
 /*
  ██████  ██████  ███    ██ ███████ ████████

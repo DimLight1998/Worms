@@ -7,7 +7,7 @@
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam);
-void creatRandomTerrain(int seed);
+void creatRandomTerrain(int seed, int kind);
 
 void render(HWND hWnd);
 void renderStart(HWND hWnd);

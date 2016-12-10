@@ -33,7 +33,7 @@ Faction creatFaction(int factionNumber, bool controlledByAI)
     {
         VectorXY temp;
         temp.x           = rand() % (kWorldWidth + 1);
-        temp.y           = kWorldHeight / 2;
+        temp.y           = kWorldHeight / 4 + rand() % (kWorldHeight / 4);
         faction.robot[i] = creatRobot(factionNumber, temp);
     }
     faction.robotControlled   = 0;
