@@ -7,20 +7,11 @@ todolist
 显示弹药量和技能点
 对战AI
 ==important==
-x 游戏标题和开始按钮
-x 显示胜利方
-x 游戏结束后可以返回开始界面
-x 游戏结束后可以重新开始游戏
-x 至少两张背景图片
-x 帮助界面和地图选择界面
-x 多个可选地图
+= 显示胜利方
 - 输入种子来进行随机地形
 - 显示弹药量和技能点
-x 子母手雷和弓箭
 - 攻击技能
 - 与AI进行对战
-x 使用背景音乐
-- 使用背景音效
 = 坠落伤害
 */
 
@@ -2048,6 +2039,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
+
+            gPlayingGrenadeAnimation = true;
+            mciSendString(TEXT("play Resource\\sound201.mp3"), NULL, 0, NULL);
+            gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
+            gGrenadeAnimationPosition   = gMissile.position;
         }
         break;
     }
@@ -2105,7 +2101,8 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     }
                 }
 
-            gPlayingGrenadeAnimation    = true;
+            gPlayingGrenadeAnimation = true;
+            mciSendString(TEXT("play Resource\\sound201.mp3"), NULL, 0, NULL);
             gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
             gGrenadeAnimationPosition   = gGrenade.position;
         }
@@ -2164,6 +2161,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
+
+            gPlayingGrenadeAnimation = true;
+            mciSendString(TEXT("play Resource\\sound201.mp3"), NULL, 0, NULL);
+            gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
+            gGrenadeAnimationPosition   = gStickyBomb.position;
         }
     }
     break;
@@ -2220,6 +2222,11 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
+
+            gPlayingGrenadeAnimation = true;
+            mciSendString(TEXT("play Resource\\sound201.mp3"), NULL, 0, NULL);
+            gGrenadeAnimationTimeRemain = kGrenadeExplosionAnimationTime;
+            gGrenadeAnimationPosition   = gTNT.position;
         }
         break;
     }
@@ -3984,21 +3991,21 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         //======================================================================//
         if (gameButtonClicked(ptMouse, map_1))
         {
-            hTerrainPic        = hTerrainPicture_01;
-            hGameBackgroundPic = hGameBackgroundPicture_01;
-            hPauseBackgroundPicture=hGameBackgroundPicture_01;
+            hTerrainPic             = hTerrainPicture_01;
+            hGameBackgroundPic      = hGameBackgroundPicture_01;
+            hPauseBackgroundPicture = hGameBackgroundPicture_01;
         }
         if (gameButtonClicked(ptMouse, map_2))
         {
-            hTerrainPic        = hTerrainPicture_02;
-            hGameBackgroundPic = hGameBackgroundPicture_02;
-            hPauseBackgroundPicture=hGameBackgroundPicture_02;
+            hTerrainPic             = hTerrainPicture_02;
+            hGameBackgroundPic      = hGameBackgroundPicture_02;
+            hPauseBackgroundPicture = hGameBackgroundPicture_02;
         }
         if (gameButtonClicked(ptMouse, map_3))
         {
-            hTerrainPic        = hTerrainPicture_03;
-            hGameBackgroundPic = hGameBackgroundPicture_03;
-            hPauseBackgroundPicture=hGameBackgroundPicture_03;
+            hTerrainPic             = hTerrainPicture_03;
+            hGameBackgroundPic      = hGameBackgroundPicture_03;
+            hPauseBackgroundPicture = hGameBackgroundPicture_03;
         }
         if (gameButtonClicked(ptMouse, factionNum_2))
             gFactionNumber = 2;
