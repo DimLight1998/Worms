@@ -233,7 +233,7 @@ const int kOringinalSeaLevel          = kTerrainNumberY - 5;    // 初始海洋�
 const int kSeaLevelIncreasingVelocity = 1;                      // 海洋上涨速度
 
 // 风规则
-const int    kWindPowerRange  = 3;    // 风向取值范围
+const int    kWindPowerRange  = 4;    // 风向取值范围
 const double kWindPowerFactor = 1;    // 风力影响因子
 
 

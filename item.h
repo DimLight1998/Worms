@@ -34,6 +34,16 @@ HBITMAP hTerrainPicture_02;
 HBITMAP hTerrainPicture_03;
 HBITMAP hTerrainPic;
 HBITMAP hGrenadeExplosionPicture;
+HBITMAP hWindLeft4;
+HBITMAP hWindLeft3;
+HBITMAP hWindLeft2;
+HBITMAP hWindLeft1;
+HBITMAP hWindRight4;
+HBITMAP hWindRight3;
+HBITMAP hWindRight2;
+HBITMAP hWindRight1;
+HBITMAP hWindNone;
+HBITMAP hWindPowerUI;
 
 
 Faction    faction[kMaxFactionNumber];

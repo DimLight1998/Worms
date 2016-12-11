@@ -1,15 +1,14 @@
 ﻿/*
 ==important==
 
-- 显示弹药量和技能点
-
-- 攻击技能
+ - 显示当前武器
+ - 显示当前弹药量（GUI）
+ - 显示当前状态
+ - 显示剩余时间
+ - 显示小地图
+ - 显示风速
 
 - 与AI进行对战
-
-- UI布置
-
-- 建筑系统完善！
 
 */
 
@@ -75,6 +74,15 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hTerrainPicture_03        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SandRes));
     hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
     hHelpExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitHelp));
+     hWindLeft4        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L4));
+     hWindLeft3        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L3));
+     hWindLeft2        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L2));
+     hWindLeft1        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L1));
+     hWindRight4       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R4));
+     hWindRight3       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R3));
+     hWindRight2       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R2));
+     hWindRight1       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R1));
+     hWindNone         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_W0));
 
     hGameBackgroundPic = hGameBackgroundPicture_01;
     hTerrainPic        = hTerrainPicture_01;
@@ -932,7 +940,16 @@ void renderGame(HWND hWnd)
     wsprintf(szDist, L"currFac %d   currRob %d   wind %d", gFactionControlled, gRobotControlled, gWindPower);
     TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
 
-    // 绘制info
+    // GUI
+    /*
+ - 显示当前武器
+ - 显示当前弹药量（GUI）
+ - 显示剩余时间（用时间条，蓝色为等待，绿色为行动，黄色为撤退）
+ - 显示小地图
+ - 显示风速
+ */
+    SelectObject(hdcBmp, hWindPowerUI);
+    TransparentBlt(hdc, 0, 40, 768/4, 128/4, hdcBmp, 0, 0, 768, 128, RGB(0, 0, 0));
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -1406,6 +1423,38 @@ void factionUpdate(void)
 void windUpdate(void)
 {
     gWindPower = rand() % (2 * kWindPowerRange + 1) - kWindPowerRange;
+
+    switch(gWindPower)
+    {
+    case -4:
+        hWindPowerUI=hWindLeft4;
+        break;
+    case -3:
+        hWindPowerUI=hWindLeft3;
+        break;
+    case -2:
+        hWindPowerUI=hWindLeft2;
+        break;
+    case -1:
+        hWindPowerUI=hWindLeft1;
+        break;
+    case 0:
+        hWindPowerUI=hWindNone;
+        break;
+    case 1:
+        hWindPowerUI=hWindRight4;
+        break;
+    case 2:
+        hWindPowerUI=hWindRight3;
+        break;
+    case 3:
+        hWindPowerUI=hWindRight2;
+        break;
+    case 4:
+        hWindPowerUI=hWindRight1;
+        break;
+    }
+
 }
 
 /*
@@ -2994,7 +3043,7 @@ bool buildingBlockLanded(int id)
     }
 
     // 计算terrain坐标
-	int middleCoordinate = id % kTerrainNumberX;
+    int middleCoordinate        = id % kTerrainNumberX;
     int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
     int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
 
@@ -3011,9 +3060,9 @@ void buildingBlockUpdate(void)
     {
         if (buildingBlock[i].collected == false)
         {
-            while (!buildingBlockLanded(i))
+            if (!buildingBlockLanded(i))
             {
-                buildingBlock[i].position.y++;
+                buildingBlock[i].position.y += 5;
             }
 
             int buildingBlockCenterX = buildingBlock[i].position.x + kTerrainWidth / 2;
@@ -3024,11 +3073,11 @@ void buildingBlockUpdate(void)
                 {
                     int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
                     int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
-                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, buildingBlockCenterX, buildingBlockCenterY) <= 3*kPickingBoxRange * kPickingBoxRange)
+                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, buildingBlockCenterX, buildingBlockCenterY) <= 3 * kPickingBoxRange * kPickingBoxRange)
                     {
                         buildingBlock[i].collected = true;
-						if (rand() % 5 < 3)
-                        faction[j].ammoBuildingBlock++;
+                        if (rand() % 5 < 3)
+                            faction[j].ammoBuildingBlock++;
                         goto BBU_exit;
                     }
                 }
@@ -3843,6 +3892,8 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
         break;
     case 'S':
+        // 放弃技能系统的制作
+        break;
         if (!gRoundWaiting)
         {
             if (gRobotMoving)
@@ -4126,6 +4177,7 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
     break;
     case Game_setting:
     {
+        // 赶DDL的代码，TODO 把代码弄好看
         RECT map_1, map_2, map_3;
         RECT factionNum_2, factionNum_3, factionNum_4;
         RECT robotNum_2, robotNum_3, robotNum_4;
