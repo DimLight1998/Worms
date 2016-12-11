@@ -141,7 +141,7 @@ const int kTNTHarmRange      = 200;    // 炸药伤害范围
 const int kTNTExplosionPower = 20;     // 炸药震波
 const int kTNTDefaultAmmo    = 1;      // 开局分配弹药数
 
-const int kBuildingBlockDefautAmmo = 500;    // 开局建筑块数
+const int kBuildingBlockDefautAmmo = 10;    // 开局建筑块数
 
 
 // 技能规则 / 索引
@@ -204,6 +204,7 @@ const int kMinTerrainHeight     = 50;                               // 最小地
 const int kMinHoleNumber        = 20;                               // 最少山洞数
 const int kMaxHoleNumber        = 30;                               // 最大山洞数
 const int kMaxHoleRadius        = 16;                               // 最大山洞半径
+const int kBuildingBlockEdgeIgnorance = 3;
 // 地块显示规则
 const int iWaterSurface             = -4;    // 水面
 const int iWaterDeep                = -3;    // 水下
@@ -349,6 +350,12 @@ struct Terrain
     VectorXY picturePosition;
 };
 
+struct BuildingBlock
+{
+	VectorXY position;
+	bool collected;
+};
+
 struct GameButton
 {
     VectorXY size;
@@ -442,6 +449,7 @@ struct SkillBox
 
 Robot creatRobot(int faction, VectorXY position);                                                             // 初始化一个机器人
 Faction creatFaction(int factionNumber, bool controlledByAI);                                                 // 初始化一个阵营;
+BuildingBlock creatBuildingBlock(VectorXY position);
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture);                  // 创建一个按钮
 Terrain creatTerrain(int numberX, int numberY);                                                               // 创建地形块
 Missile creatMissile(VectorXY position, VectorXY velocity, VectorXY acceleration, HBITMAP hPicture);          // 创建导弹
@@ -461,4 +469,6 @@ VectorXY randomSelectTerrainBlockPicture(int num, ...);    // 随机选择地形
 VectorXY getTerrainBlockPicture(int type);                 // 获取地形块图片
 
 int getRobotPicture(int faction, int direction);
+int convertToID(int, int);
+VectorXY convertToPair(int);
 #endif

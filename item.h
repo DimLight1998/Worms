@@ -38,6 +38,7 @@ HBITMAP hGrenadeExplosionPicture;
 
 Faction    faction[kMaxFactionNumber];
 Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
+BuildingBlock buildingBlock[kTerrainNumberX*kTerrainNumberY];
 GameButton gameStartButton;
 GameButton gameHelpButton;
 GameButton gameExitButton;

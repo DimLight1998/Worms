@@ -49,6 +49,14 @@ Faction creatFaction(int factionNumber, bool controlledByAI)
     faction.ammoProtect       = kProtectDefaultAmmo;
     return faction;
 }
+
+BuildingBlock creatBuildingBlock(VectorXY position)
+{
+	BuildingBlock buildingBlock;
+	buildingBlock.position = position;
+	buildingBlock.collected = false;
+	return buildingBlock;
+}
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture)
 {
     GameButton gameButton;
@@ -326,4 +334,17 @@ int getRobotPicture(int faction, int direction)
     default:
         break;
     }
+}
+
+int convertToID(int x, int y)
+{
+	return y*kTerrainNumberX + x;
+}
+
+VectorXY convertToPair(int id)
+{
+	VectorXY temp;
+	temp.x = id%kTerrainNumberX;
+	temp.y = id / kTerrainNumberY;
+	return temp;
 }

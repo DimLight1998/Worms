@@ -33,6 +33,9 @@ void switchToNextFaction(void);
 void terrainUpdate(void);
 void terrainShapeUpdate(int, int, int, int);
 void terrainShapeUpdate(int, int);
+bool buildingBlockLanded(int BuildingBlockID);
+void buildingBlockUpdate(void);
+
 
 BOOL robotInTerrain(int factionNum, int robotNum);
 BOOL robotLanded(int factionNum, int robotNum);

@@ -1,19 +1,16 @@
 ﻿/*
-todolist
-
-地图选择界面布局
-地图选择界面
-随机地图生成器，能输入种子
-显示弹药量和技能点
-对战AI
 ==important==
-= 显示胜利方
+
 - 显示弹药量和技能点
+
 - 攻击技能
+
 - 与AI进行对战
+
 - UI布置
+
 - 建筑系统完善！
-= 坠落伤害
+
 */
 
 #include "event.h"
@@ -277,6 +274,11 @@ void restart(int targetStatus)
 
     creatRandomTerrain(clock(), gMapKind);
     terrainShapeUpdate(0, 0, kTerrainNumberX - 1, kTerrainNumberY - 1);
+
+    for (int i = 0; i < kTerrainNumberX * kTerrainNumberY; i++)
+    {
+        buildingBlock[i].collected = true;
+    }
 
     // 将机器人放到地面上
     for (int i = 0; i < gFactionNumber; i++)
@@ -696,6 +698,17 @@ void renderGame(HWND hWnd)
         }
     }
 
+
+    SelectObject(hdcBmp, hTerrainPic);
+    for (int i = 0; i < kTerrainNumberX * kTerrainNumberY; i++)
+    {
+        if (!buildingBlock[i].collected)
+        {
+            TransparentBlt(hdcBuffer, buildingBlock[i].position.x, buildingBlock[i].position.y, kTerrainWidth, kTerrainHeight, hdcBmp, 18 * (10 - 1), 18 * (4 - 1), 16, 16, RGB(255, 255, 255));
+        }
+    }
+
+
     // 绘制血条
     for (int i = 0; i < gFactionNumber; i++)
         for (int j = 0; j < gRobotNumberPerFaction; j++)
@@ -910,7 +923,7 @@ void renderGame(HWND hWnd)
     TCHAR szDist[1000] = L"";
     SetTextColor(hdc, RGB(255, 0, 0));    // 设置颜色
     SetBkMode(hdc, TRANSPARENT);
-    wsprintf(szDist, L"ammo %d %d %d %d", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT);
+    wsprintf(szDist, L"ammo %d %d %d %d [%d]", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT, faction[gFactionControlled].ammoBuildingBlock);
     TextOut(hdc, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
     wsprintf(szDist, L"weaponOn %d   skillOn %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
     TextOut(hdc, kWindowWidth - 500, 35, szDist, _tcslen(szDist));
@@ -1140,6 +1153,7 @@ void timerUpdate(HWND hWnd, WPARAM wParam, LPARAM lParam)
         cameraUpdate();
         weaponUpdate();
         terrainUpdate();    // 更新所有地块状态
+        buildingBlockUpdate();
         medicalBoxUpdate();
         weaponBoxUpdate();
         skillBoxUpdate();
@@ -2089,7 +2103,17 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, missilePositionCenterX, missilePositionCenterY) <= kMissileHarmRange * kMissileHarmRange)
                     {
+                        if (terrain[i][j].isDestoried == false)
+                        {
+                            VectorXY temp;
+                            temp.x = terrain[i][j].position.left;
+                            temp.y = terrain[i][j].position.top;
+                            buildingBlock[convertToID(i, j)] = creatBuildingBlock(temp);
+                            buildingBlockUpdate();
+                        }
                         terrain[i][j].isDestoried = true;
+
+                        //faction[gFactionControlled].ammoBuildingBlock += (rand() % 5 > 3) ? 1 : 0;
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
@@ -2150,7 +2174,18 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, grenadePositionCenterX, grenadePositionCenterY) <= kGrenadeHarmRange * kGrenadeHarmRange)
                     {
+                        if (terrain[i][j].isDestoried == false)
+                        {
+                            VectorXY temp;
+                            temp.x = terrain[i][j].position.left;
+                            temp.y = terrain[i][j].position.top;
+                            buildingBlock[convertToID(i, j)] = creatBuildingBlock(temp);
+                            buildingBlockUpdate();
+                        }
                         terrain[i][j].isDestoried = true;
+
+                        //faction[gFactionControlled].ammoBuildingBlock += (rand() % 5 > 3) ? 1 : 0;
+
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
@@ -2211,7 +2246,18 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, StickyBombPositionCenterX, StickyBombPositionCenterY) <= kStickyBombHarmRange * kStickyBombHarmRange)
                     {
+                        if (terrain[i][j].isDestoried == false)
+                        {
+                            VectorXY temp;
+                            temp.x = terrain[i][j].position.left;
+                            temp.y = terrain[i][j].position.top;
+                            buildingBlock[convertToID(i, j)] = creatBuildingBlock(temp);
+                            buildingBlockUpdate();
+                        }
                         terrain[i][j].isDestoried = true;
+
+                        //faction[gFactionControlled].ammoBuildingBlock += (rand() % 5 > 3) ? 1 : 0;
+
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
@@ -2272,7 +2318,18 @@ void weaponDestroied(void)    // 函数用来搞定武器爆炸之后的处理
                     int terrainPositionCenterY = (terrain[i][j].position.bottom + terrain[i][j].position.top) / 2;
                     if (pointPointDistanceSquare(terrainPositionCenterX, terrainPositionCenterY, TNTPositionCenterX, TNTPositionCenterY) <= kTNTHarmRange * kTNTHarmRange)
                     {
+                        if (terrain[i][j].isDestoried == false)
+                        {
+                            VectorXY temp;
+                            temp.x = terrain[i][j].position.left;
+                            temp.y = terrain[i][j].position.top;
+                            buildingBlock[convertToID(i, j)] = creatBuildingBlock(temp);
+                            buildingBlockUpdate();
+                        }
                         terrain[i][j].isDestoried = true;
+
+
+                        //faction[gFactionControlled].ammoBuildingBlock += (rand() % 5 > 3) ? 1 : 0;
                         terrainShapeUpdate(i - 1, j - 1, i + 1, j + 1);
                     }
                 }
@@ -2919,6 +2976,65 @@ void buildTerrain(VectorXY position)
                 terrain[position.x][position.y].isDestoried = true;
             }
         }
+    }
+}
+
+
+bool buildingBlockLanded(int id)
+{
+    int top = ((buildingBlock[id].position.y + kBuildingBlockEdgeIgnorance) / kTerrainHeight) * kTerrainHeight + 1;
+    int bottom;
+    if ((buildingBlock[id].position.y + kTerrainHeight - kBuildingBlockEdgeIgnorance) % kTerrainHeight == 0)    // 恰好在边上
+    {
+        bottom = buildingBlock[id].position.y + kTerrainHeight - kBuildingBlockEdgeIgnorance;
+    }
+    else
+    {
+        bottom = ((buildingBlock[id].position.y + kTerrainHeight - kBuildingBlockEdgeIgnorance) / kTerrainHeight + 1) * kTerrainHeight;
+    }
+
+    // 计算terrain坐标
+	int middleCoordinate = id % kTerrainNumberX;
+    int topTerrainCoordinate    = (top - 1) / kTerrainHeight;
+    int bottomTerrainCoordinate = bottom / kTerrainHeight - 1;
+
+    // 检查这些terrain中是否有未被摧毁的
+    for (int j = topTerrainCoordinate; j <= bottomTerrainCoordinate; j++)
+        if (!terrain[middleCoordinate][j].isDestoried)
+            return true;
+    return false;
+}
+
+void buildingBlockUpdate(void)
+{
+    for (int i = 0; i < kTerrainNumberX * kTerrainNumberY; i++)
+    {
+        if (buildingBlock[i].collected == false)
+        {
+            while (!buildingBlockLanded(i))
+            {
+                buildingBlock[i].position.y++;
+            }
+
+            int buildingBlockCenterX = buildingBlock[i].position.x + kTerrainWidth / 2;
+            int buildingBlockCenterY = buildingBlock[i].position.y + kTerrainHeight / 2;
+
+            for (int j = 0; j < gFactionNumber; j++)
+                for (int k = 0; k < gRobotNumberPerFaction; k++)
+                {
+                    int robotPositionCenterX = faction[j].robot[k].position.x + kRobotSizeX / 2;
+                    int robotPositionCenterY = faction[j].robot[k].position.y + kRobotSizeY / 2;
+                    if (pointPointDistanceSquare(robotPositionCenterX, robotPositionCenterY, buildingBlockCenterX, buildingBlockCenterY) <= 3*kPickingBoxRange * kPickingBoxRange)
+                    {
+                        buildingBlock[i].collected = true;
+						if (rand() % 5 < 3)
+                        faction[j].ammoBuildingBlock++;
+                        goto BBU_exit;
+                    }
+                }
+        }
+    BBU_exit:
+        continue;
     }
 }
 
