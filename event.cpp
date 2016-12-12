@@ -6,7 +6,7 @@
  - 显示当前状态
  - 显示剩余时间
  - 显示小地图
- - 显示风速
+ x 显示风速
 
 - 与AI进行对战
 
@@ -74,15 +74,22 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
     hTerrainPicture_03        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_SandRes));
     hGrenadeExplosionPicture  = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_GrenadeExplosion));
     hHelpExitButtonPicture    = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_ExitHelp));
-     hWindLeft4        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L4));
-     hWindLeft3        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L3));
-     hWindLeft2        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L2));
-     hWindLeft1        = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L1));
-     hWindRight4       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R4));
-     hWindRight3       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R3));
-     hWindRight2       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R2));
-     hWindRight1       = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R1));
-     hWindNone         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_W0));
+    hWindLeft4                = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L4));
+    hWindLeft3                = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L3));
+    hWindLeft2                = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L2));
+    hWindLeft1                = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_L1));
+    hWindRight4               = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R4));
+    hWindRight3               = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R3));
+    hWindRight2               = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R2));
+    hWindRight1               = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_R1));
+    hWindNone                 = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(IDB_W0));
+    hWeaponMissile            = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(wm));
+    hWeaponGrenade            = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(wg));
+    hWeaponStickyBomb         = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(wb0));
+    hWeaponTNT                = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(wt));
+    hWeaponNone               = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(w0));
+    hAmmoUI                   = LoadBitmap(((LPCREATESTRUCT)lParam)->hInstance, MAKEINTRESOURCE(numUI));
+
 
     hGameBackgroundPic = hGameBackgroundPicture_01;
     hTerrainPic        = hTerrainPicture_01;
@@ -944,12 +951,84 @@ void renderGame(HWND hWnd)
     /*
  - 显示当前武器
  - 显示当前弹药量（GUI）
- - 显示剩余时间（用时间条，蓝色为等待，绿色为行动，黄色为撤退）
+ x 显示剩余时间（）
  - 显示小地图
- - 显示风速
+ x 显示风速
  */
     SelectObject(hdcBmp, hWindPowerUI);
-    TransparentBlt(hdc, 0, 40, 768/4, 128/4, hdcBmp, 0, 0, 768, 128, RGB(0, 0, 0));
+    TransparentBlt(hdc, 0, 40, 768 / 4, 128 / 4, hdcBmp, 0, 0, 768, 128, RGB(0, 0, 0));
+
+    HBRUSH timeBarBackBrush = CreateSolidBrush(RGB(100, 100, 100));
+    SelectObject(hdc, timeBarBackBrush);
+    Rectangle(hdc, 200, 40, 400, 72);
+    DeleteObject(timeBarBackBrush);
+
+    if (gRobotMoving)
+    {
+        HBRUSH timeBarBrush = CreateSolidBrush(RGB(178, 255, 102));
+        SelectObject(hdc, timeBarBrush);
+        Rectangle(hdc, 200, 40, 200 + (DOUBLE(gRobotMovingTimeRemain) / DOUBLE(kActionTime)) * 200, 72);
+        DeleteObject(timeBarBrush);
+    }
+    if (gRoundWaiting)
+    {
+        HBRUSH timeBarBrush = CreateSolidBrush(RGB(255, 255, 102));
+        SelectObject(hdc, timeBarBrush);
+        Rectangle(hdc, 200, 40, 200 + (DOUBLE(gRoundWaitingTimeRemain) / DOUBLE(kWaitTime)) * 200, 72);
+        DeleteObject(timeBarBrush);
+    }
+    if (gRobotEscaping)
+    {
+        HBRUSH timeBarBrush = CreateSolidBrush(RGB(255, 102, 102));
+        SelectObject(hdc, timeBarBrush);
+        Rectangle(hdc, 200, 40, 200 + (DOUBLE(gRobotEscapingTimeRemain) / DOUBLE(kWithdrawTime)) * 200, 72);
+        DeleteObject(timeBarBrush);
+    }
+
+    if (gRobotWeaponOn)
+    {
+        SelectObject(hdcBmp, hWeaponUI);
+        TransparentBlt(hdc, 1300, 40, 100, 100, hdcBmp, 0, 0, 512, 512, RGB(255, 255, 255));
+        SelectObject(hdcBmp, hAmmoUI);
+        switch (gWeaponSelected)
+        {
+        case iMissile:
+            if (faction[gFactionControlled].ammoMissile >= 0 && faction[gFactionControlled].ammoMissile < 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoMissile * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoMissile >= 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoMissile == -1)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
+            break;
+        case iGrenade:
+           if (faction[gFactionControlled].ammoGrenade >= 0 && faction[gFactionControlled].ammoGrenade < 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoGrenade * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoGrenade >= 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoGrenade == -1)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
+            break;
+        case iStickyBomb:
+           if (faction[gFactionControlled].ammoStickyBomb >= 0 && faction[gFactionControlled].ammoStickyBomb < 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoStickyBomb * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoStickyBomb >= 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoStickyBomb == -1)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
+            break;
+        case iTNT:
+            if (faction[gFactionControlled].ammoTNT >= 0 && faction[gFactionControlled].ammoTNT < 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoTNT * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoTNT >= 10)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
+            else if (faction[gFactionControlled].ammoTNT == -1)
+                TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
+            break;
+        default:
+            break;
+        }
+    }
+
 
     // 释放资源
     DeleteObject(cptBmp);
@@ -1424,37 +1503,36 @@ void windUpdate(void)
 {
     gWindPower = rand() % (2 * kWindPowerRange + 1) - kWindPowerRange;
 
-    switch(gWindPower)
+    switch (gWindPower)
     {
     case -4:
-        hWindPowerUI=hWindLeft4;
+        hWindPowerUI = hWindLeft4;
         break;
     case -3:
-        hWindPowerUI=hWindLeft3;
+        hWindPowerUI = hWindLeft3;
         break;
     case -2:
-        hWindPowerUI=hWindLeft2;
+        hWindPowerUI = hWindLeft2;
         break;
     case -1:
-        hWindPowerUI=hWindLeft1;
+        hWindPowerUI = hWindLeft1;
         break;
     case 0:
-        hWindPowerUI=hWindNone;
+        hWindPowerUI = hWindNone;
         break;
     case 1:
-        hWindPowerUI=hWindRight4;
+        hWindPowerUI = hWindRight4;
         break;
     case 2:
-        hWindPowerUI=hWindRight3;
+        hWindPowerUI = hWindRight3;
         break;
     case 3:
-        hWindPowerUI=hWindRight2;
+        hWindPowerUI = hWindRight2;
         break;
     case 4:
-        hWindPowerUI=hWindRight1;
+        hWindPowerUI = hWindRight1;
         break;
     }
-
 }
 
 /*
@@ -3837,6 +3915,24 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 if (faction[gFactionControlled].robot[gRobotControlled].weapon == kMaxWeaponNum + 1)
                     faction[gFactionControlled].robot[gRobotControlled].weapon = 0;
                 gCameraOverride                                                = false;
+                switch (faction[gFactionControlled].robot[gRobotControlled].weapon)
+                {
+                case iMissile:
+                    hWeaponUI = hWeaponMissile;
+                    break;
+                case iGrenade:
+                    hWeaponUI = hWeaponGrenade;
+                    break;
+                case iStickyBomb:
+                    hWeaponUI = hWeaponStickyBomb;
+                    break;
+                case iTNT:
+                    hWeaponUI = hWeaponTNT;
+                    break;
+                case iNoWeapon:
+                    hWeaponUI = hWeaponNone;
+                    break;
+                }
             }
             if (gRobotSkillOn)
             {
@@ -3880,6 +3976,24 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                 {
                     gRobotWeaponOn  = true;
                     gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
+                    switch (faction[gFactionControlled].robot[gRobotControlled].weapon)
+                {
+                case iMissile:
+                    hWeaponUI = hWeaponMissile;
+                    break;
+                case iGrenade:
+                    hWeaponUI = hWeaponGrenade;
+                    break;
+                case iStickyBomb:
+                    hWeaponUI = hWeaponStickyBomb;
+                    break;
+                case iTNT:
+                    hWeaponUI = hWeaponTNT;
+                    break;
+                case iNoWeapon:
+                    hWeaponUI = hWeaponNone;
+                    break;
+                }
                     gCameraOverride = false;
                 }
                 else

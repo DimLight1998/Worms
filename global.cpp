@@ -52,10 +52,10 @@ Faction creatFaction(int factionNumber, bool controlledByAI)
 
 BuildingBlock creatBuildingBlock(VectorXY position)
 {
-	BuildingBlock buildingBlock;
-	buildingBlock.position = position;
-	buildingBlock.collected = false;
-	return buildingBlock;
+    BuildingBlock buildingBlock;
+    buildingBlock.position  = position;
+    buildingBlock.collected = false;
+    return buildingBlock;
 }
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture)
 {
@@ -338,13 +338,13 @@ int getRobotPicture(int faction, int direction)
 
 int convertToID(int x, int y)
 {
-	return y*kTerrainNumberX + x;
+    return y * kTerrainNumberX + x;
 }
 
 VectorXY convertToPair(int id)
 {
-	VectorXY temp;
-	temp.x = id%kTerrainNumberX;
-	temp.y = id / kTerrainNumberY;
-	return temp;
+    VectorXY temp;
+    temp.x = id % kTerrainNumberX;
+    temp.y = id / kTerrainNumberY;
+    return temp;
 }

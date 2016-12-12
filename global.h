@@ -192,18 +192,18 @@ const int    kChangingPowerDelta = 5;
 const int    kJumpingLimit       = 6;
 
 // 地块规则
-const int kWorldWidth           = 4000;                             // 世界的宽度
-const int kWorldHeight          = 1600;                             // 世界的高度
-const int kTerrainWidth         = 16;                               // 每个地块宽度
-const int kTerrainHeight        = 16;                               // 每个地块高度
-const int kTerrainNumberX       = kWorldWidth / kTerrainWidth;      // 横向地块数目
-const int kTerrainNumberY       = kWorldHeight / kTerrainHeight;    // 纵向地块数目
-const int kTerrainHeightBase    = 30;                               // 用于随机化地形的高度大基准
-const int kLeftMostTerrainDelta = 10;                               // 用于随机化地形的高度小基准
-const int kMinTerrainHeight     = 50;                               // 最小地形高度（防止游戏太快结束）
-const int kMinHoleNumber        = 20;                               // 最少山洞数
-const int kMaxHoleNumber        = 30;                               // 最大山洞数
-const int kMaxHoleRadius        = 16;                               // 最大山洞半径
+const int kWorldWidth                 = 4000;                             // 世界的宽度
+const int kWorldHeight                = 1600;                             // 世界的高度
+const int kTerrainWidth               = 16;                               // 每个地块宽度
+const int kTerrainHeight              = 16;                               // 每个地块高度
+const int kTerrainNumberX             = kWorldWidth / kTerrainWidth;      // 横向地块数目
+const int kTerrainNumberY             = kWorldHeight / kTerrainHeight;    // 纵向地块数目
+const int kTerrainHeightBase          = 30;                               // 用于随机化地形的高度大基准
+const int kLeftMostTerrainDelta       = 10;                               // 用于随机化地形的高度小基准
+const int kMinTerrainHeight           = 50;                               // 最小地形高度（防止游戏太快结束）
+const int kMinHoleNumber              = 20;                               // 最少山洞数
+const int kMaxHoleNumber              = 30;                               // 最大山洞数
+const int kMaxHoleRadius              = 16;                               // 最大山洞半径
 const int kBuildingBlockEdgeIgnorance = 3;
 // 地块显示规则
 const int iWaterSurface             = -4;    // 水面
@@ -263,7 +263,7 @@ const int    kCameraStartVelocity   = 8;                               // 摄像
 const double kAngelChangingVelocity = 0.2;                             // 改变武器发射角度的速率
 const int    kActionTime            = 1500;                            // 每回合操作时间<ms>
 const int    kWithdrawTime          = 250;                             // 撤退时间<ms>
-const int    kWaitTime              = 1;                               // 250;                             // 回合间等待时间
+const int    kWaitTime              = 250;                             // 250;                             // 回合间等待时间
 
 // 颜色规则
 const COLORREF HPBar_1000        = RGB(0, 250, 0);
@@ -352,8 +352,8 @@ struct Terrain
 
 struct BuildingBlock
 {
-	VectorXY position;
-	bool collected;
+    VectorXY position;
+    bool     collected;
 };
 
 struct GameButton
@@ -447,8 +447,8 @@ struct SkillBox
 */
 
 
-Robot creatRobot(int faction, VectorXY position);                                                             // 初始化一个机器人
-Faction creatFaction(int factionNumber, bool controlledByAI);                                                 // 初始化一个阵营;
+Robot creatRobot(int faction, VectorXY position);                // 初始化一个机器人
+Faction creatFaction(int factionNumber, bool controlledByAI);    // 初始化一个阵营;
 BuildingBlock creatBuildingBlock(VectorXY position);
 GameButton creatGameButton(VectorXY size, VectorXY position, BOOL status, HBITMAP hPicture);                  // 创建一个按钮
 Terrain creatTerrain(int numberX, int numberY);                                                               // 创建地形块
@@ -469,6 +469,6 @@ VectorXY randomSelectTerrainBlockPicture(int num, ...);    // 随机选择地形
 VectorXY getTerrainBlockPicture(int type);                 // 获取地形块图片
 
 int getRobotPicture(int faction, int direction);
-int convertToID(int, int);
+int      convertToID(int, int);
 VectorXY convertToPair(int);
 #endif

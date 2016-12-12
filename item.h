@@ -44,17 +44,24 @@ HBITMAP hWindRight2;
 HBITMAP hWindRight1;
 HBITMAP hWindNone;
 HBITMAP hWindPowerUI;
+HBITMAP hWeaponUI;
+HBITMAP hWeaponMissile;
+HBITMAP hWeaponGrenade;
+HBITMAP hWeaponStickyBomb;
+HBITMAP hWeaponTNT;
+HBITMAP hWeaponNone;
+HBITMAP hAmmoUI;
 
 
-Faction    faction[kMaxFactionNumber];
-Terrain    terrain[kTerrainNumberX][kTerrainNumberY];
-BuildingBlock buildingBlock[kTerrainNumberX*kTerrainNumberY];
-GameButton gameStartButton;
-GameButton gameHelpButton;
-GameButton gameExitButton;
-GameButton helpExitButton;
-GameButton gameRestartButton;
-GameButton backToMenuButton;
+Faction       faction[kMaxFactionNumber];
+Terrain       terrain[kTerrainNumberX][kTerrainNumberY];
+BuildingBlock buildingBlock[kTerrainNumberX * kTerrainNumberY];
+GameButton    gameStartButton;
+GameButton    gameHelpButton;
+GameButton    gameExitButton;
+GameButton    helpExitButton;
+GameButton    gameRestartButton;
+GameButton    backToMenuButton;
 
 
 // AI
