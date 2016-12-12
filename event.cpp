@@ -85,7 +85,7 @@ void initialize(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
     //
     gFactionNumber         = 2;    //kMaxFactionNumber;
-    gRobotNumberPerFaction = 1;    // kMaxRobotNumberPerFaction;
+    gRobotNumberPerFaction = 4;    // kMaxRobotNumberPerFaction;
     gRobotNumber           = gFactionNumber * gRobotNumberPerFaction;
     //
 
@@ -1013,6 +1013,8 @@ void renderGame(HWND hWnd)
         }
     }
 
+    // Minimap
+    if(gMap)
     TransparentBlt(hdc, 900, 40, kWorldWidth / 10, kWorldHeight / 10, hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, RGB(12, 34, 56));
 
 
@@ -4161,6 +4163,9 @@ void keyUp(HWND hWnd, WPARAM wParam, LPARAM lPara)
     case 'E':
         if (gRobotWeaponOn && !gIncreasingWeaponPower && gWeaponSelected)
             gChangingWeaponAngle = 0;
+        break;
+    case 'M':
+        gMap=!gMap;
         break;
     case ' ':
         if (gRobotWeaponOn && !gChangingWeaponAngle && gWeaponSelected)
