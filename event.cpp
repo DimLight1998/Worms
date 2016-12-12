@@ -1,18 +1,4 @@
-﻿/*
-==important==
-
- - 显示当前武器
- - 显示当前弹药量（GUI）
- - 显示当前状态
- - 显示剩余时间
- - 显示小地图
- x 显示风速
-
-- 与AI进行对战
-
-*/
-
-#include "event.h"
+﻿#include "event.h"
 #include "global.h"
 #include "item.h"
 
@@ -899,6 +885,8 @@ void renderGame(HWND hWnd)
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, SRCCOPY);
+    
+
     // TransparentBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, 1.5*kWindowWidth, 1.5*kWindowHeight, RGB(254, 254, 254));
 
     // 阵营血量显示
@@ -909,28 +897,28 @@ void renderGame(HWND hWnd)
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_1);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
     drawClosedRectangle(hdc, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth, kFactionHPBarDistance, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_2);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
     drawClosedRectangle(hdc, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth, kFactionHPBarDistance, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_3);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
     drawClosedRectangle(hdc, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth, kFactionHPBarDistance, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_4);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint);
+    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
     drawClosedRectangle(hdc, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
@@ -938,23 +926,18 @@ void renderGame(HWND hWnd)
     TCHAR szDist[1000] = L"";
     SetTextColor(hdc, RGB(255, 0, 0));    // 设置颜色
     SetBkMode(hdc, TRANSPARENT);
-    wsprintf(szDist, L"ammo %d %d %d %d [%d]", faction[gFactionControlled].ammoMissile, faction[gFactionControlled].ammoGrenade, faction[gFactionControlled].ammoStickyBomb, faction[gFactionControlled].ammoTNT, faction[gFactionControlled].ammoBuildingBlock);
+    wsprintf(szDist, L"  ");
     TextOut(hdc, kWindowWidth - 500, 15, szDist, _tcslen(szDist));
+    /*
     wsprintf(szDist, L"weaponOn %d   skillOn %d", faction[gFactionControlled].robot[gRobotControlled].weapon, faction[gFactionControlled].robot[gRobotControlled].skill);
     TextOut(hdc, kWindowWidth - 500, 35, szDist, _tcslen(szDist));
     wsprintf(szDist, L"mov %d-%d   esc %d-%d  wait %d-%d", gRobotMoving, gRobotMovingTimeRemain, gRobotEscaping, gRobotEscapingTimeRemain, gRoundWaiting, gRoundWaitingTimeRemain);
     TextOut(hdc, kWindowWidth - 500, 55, szDist, _tcslen(szDist));
     wsprintf(szDist, L"currFac %d   currRob %d   wind %d", gFactionControlled, gRobotControlled, gWindPower);
     TextOut(hdc, kWindowWidth - 500, 75, szDist, _tcslen(szDist));
+    */
 
     // GUI
-    /*
- - 显示当前武器
- - 显示当前弹药量（GUI）
- x 显示剩余时间（）
- - 显示小地图
- x 显示风速
- */
     SelectObject(hdcBmp, hWindPowerUI);
     TransparentBlt(hdc, 0, 40, 768 / 4, 128 / 4, hdcBmp, 0, 0, 768, 128, RGB(0, 0, 0));
 
@@ -1028,6 +1011,8 @@ void renderGame(HWND hWnd)
             break;
         }
     }
+ 
+    TransparentBlt(hdc,900,40,kWorldWidth/10,kWorldHeight/10,hdcBuffer,0,0,kWorldWidth,kWorldHeight,RGB(12,34,56));
 
 
     // 释放资源

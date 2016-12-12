@@ -86,7 +86,7 @@ const int kMaxSkillNum              = 4;                                        
 const int kFacingLeft               = 1;                                                // 机器人面向左边常量
 const int kFacingRight              = 2;                                                // 机器人面向右边常量
 const int kPickingBoxRange          = 20;                                               // 机器人捡起补给箱的范围
-const int kBuildingRange            = 600;
+const int kBuildingRange            = 100;
 const int kFrameSwitchFrequency     = 3;    // 机器人行走动画切帧速度
 
 // 武器规则 / 索引

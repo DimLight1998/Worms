@@ -134,6 +134,7 @@ int gWindPower = 0;
 bool    gTerrainNeedUpdate = true;
 bool    gRenderOnce        = false;
 HBITMAP hTerrainBmp;
+HBITMAP hMinimap;
 
 bool gRobotMoving             = false;
 bool gRobotEscaping           = false;
