@@ -11,6 +11,7 @@ bool AI_NextMovingAvailable(VectorXY currentPosition, bool movingLeft);
 bool virtualMissileInTerrain(void);
 */
 
+
 /*
 ██ ███    ██ ██ ████████ ██  █████  ██      ██ ███████ ███████
 ██ ████   ██ ██    ██    ██ ██   ██ ██      ██    ███  ██
@@ -885,7 +886,7 @@ void renderGame(HWND hWnd)
 
     // 绘制到屏幕
     BitBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, SRCCOPY);
-    
+
 
     // TransparentBlt(hdc, 0, 0, kWindowWidth, kWindowHeight, hdcBuffer, gCameraPosition.x, gCameraPosition.y, 1.5*kWindowWidth, 1.5*kWindowHeight, RGB(254, 254, 254));
 
@@ -897,28 +898,28 @@ void renderGame(HWND hWnd)
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_1);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
+    factionHPBarWidth = kFactionHPBarWidth * faction[0].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint) - 1;
     drawClosedRectangle(hdc, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth, kFactionHPBarDistance, 1 * kFactionHPBarDistance + 0 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_2);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
+    factionHPBarWidth = kFactionHPBarWidth * faction[1].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint) - 1;
     drawClosedRectangle(hdc, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth, kFactionHPBarDistance, 3 * kFactionHPBarDistance + 1 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_3);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
+    factionHPBarWidth = kFactionHPBarWidth * faction[2].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint) - 1;
     drawClosedRectangle(hdc, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth, kFactionHPBarDistance, 5 * kFactionHPBarDistance + 2 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
     SelectObject(hdc, GetStockObject(NULL_PEN));
     factionHPBarBrush = CreateSolidBrush(Color_Faction_4);
     SelectObject(hdc, factionHPBarBrush);
-    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint)-1;
+    factionHPBarWidth = kFactionHPBarWidth * faction[3].hitPoint / (gRobotNumberPerFaction * kRobotFullHitPoint) - 1;
     drawClosedRectangle(hdc, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth, kFactionHPBarDistance, 7 * kFactionHPBarDistance + 3 * kFactionHPBarWidth + factionHPBarWidth, kFactionHPBarHeight + kFactionHPBarDistance);
     DeleteObject(factionHPBarBrush);
 
@@ -1011,8 +1012,8 @@ void renderGame(HWND hWnd)
             break;
         }
     }
- 
-    TransparentBlt(hdc,900,40,kWorldWidth/10,kWorldHeight/10,hdcBuffer,0,0,kWorldWidth,kWorldHeight,RGB(12,34,56));
+
+    TransparentBlt(hdc, 900, 40, kWorldWidth / 10, kWorldHeight / 10, hdcBuffer, 0, 0, kWorldWidth, kWorldHeight, RGB(12, 34, 56));
 
 
     // 释放资源
@@ -1871,11 +1872,11 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
             if (!gGrenade.locked)
             {
                 gWindSwitch++;
-            if (gWindSwitch == kWindSwitch)
-            {
-                gGrenade.acceleration.x = int(gWindPower * kWindPowerFactor);
-                gWindSwitch             = 0;
-            }
+                if (gWindSwitch == kWindSwitch)
+                {
+                    gGrenade.acceleration.x = int(gWindPower * kWindPowerFactor);
+                    gWindSwitch             = 0;
+                }
             }
 
             // 更新速度
@@ -1935,12 +1936,14 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gStickyBombActivated)
         {
             if (!gStickyBomb.locked)
-            {gWindSwitch++;
-            if (gWindSwitch == kWindSwitch)
             {
-                gStickyBomb.acceleration.x = int(gWindPower * kWindPowerFactor);
-                gWindSwitch             = 0;
-            }}
+                gWindSwitch++;
+                if (gWindSwitch == kWindSwitch)
+                {
+                    gStickyBomb.acceleration.x = int(gWindPower * kWindPowerFactor);
+                    gWindSwitch                = 0;
+                }
+            }
 
             // 更新速度
             gStickyBomb.velocity.x += gStickyBomb.acceleration.x;
@@ -4378,7 +4381,7 @@ void leftButtonDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ███████ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
 ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████     ██   ██ ██     ████████ ████████ ████████ ████████ ████████ ████████ ████████ ████████
  ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██      ██   ██ ██      ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██   ██  ██
-
+ 
 
 void AI_sense()
 {
@@ -4894,5 +4897,4 @@ void AI_moving(bool movingLeft)
         //case false:
     }
 }
-
 */

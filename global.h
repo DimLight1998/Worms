@@ -235,7 +235,7 @@ const int kSeaLevelIncreasingVelocity = 1;                      // 海洋上涨�
 // 风规则
 const int    kWindPowerRange  = 4;    // 风向取值范围
 const double kWindPowerFactor = 1;    // 风力影响因子
-const int kWindSwitch=6;
+const int    kWindSwitch      = 6;
 
 
 // 用户界面规则
