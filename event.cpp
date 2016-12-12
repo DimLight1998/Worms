@@ -1001,7 +1001,7 @@ void renderGame(HWND hWnd)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
             break;
         case iGrenade:
-           if (faction[gFactionControlled].ammoGrenade >= 0 && faction[gFactionControlled].ammoGrenade < 10)
+            if (faction[gFactionControlled].ammoGrenade >= 0 && faction[gFactionControlled].ammoGrenade < 10)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoGrenade * 256, 0, 256, 256, RGB(100, 200, 3));
             else if (faction[gFactionControlled].ammoGrenade >= 10)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
@@ -1009,7 +1009,7 @@ void renderGame(HWND hWnd)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 11 * 256, 0, 256, 256, RGB(100, 200, 3));
             break;
         case iStickyBomb:
-           if (faction[gFactionControlled].ammoStickyBomb >= 0 && faction[gFactionControlled].ammoStickyBomb < 10)
+            if (faction[gFactionControlled].ammoStickyBomb >= 0 && faction[gFactionControlled].ammoStickyBomb < 10)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, faction[gFactionControlled].ammoStickyBomb * 256, 0, 256, 256, RGB(100, 200, 3));
             else if (faction[gFactionControlled].ammoStickyBomb >= 10)
                 TransparentBlt(hdc, 1400, 100, 50, 50, hdcBmp, 10 * 256, 0, 256, 256, RGB(100, 200, 3));
@@ -1844,8 +1844,12 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
     case iMissile:
         if (gMissileActivated)
         {
-            gMissile.acceleration.x = int(gWindPower * kWindPowerFactor);
-
+            gWindSwitch++;
+            if (gWindSwitch == kWindSwitch)
+            {
+                gMissile.acceleration.x = int(gWindPower * kWindPowerFactor);
+                gWindSwitch             = 0;
+            }
             gMissile.velocity.x += gMissile.acceleration.x;
             gMissile.velocity.y += gMissile.acceleration.y;
 
@@ -1880,7 +1884,14 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gGrenadeActivated)
         {
             if (!gGrenade.locked)
+            {
+                gWindSwitch++;
+            if (gWindSwitch == kWindSwitch)
+            {
                 gGrenade.acceleration.x = int(gWindPower * kWindPowerFactor);
+                gWindSwitch             = 0;
+            }
+            }
 
             // 更新速度
             gGrenade.velocity.x += gGrenade.acceleration.x;
@@ -1939,7 +1950,12 @@ void weaponUpdate(void)    // 发射武器前更新角度和力度，发射武�
         if (gStickyBombActivated)
         {
             if (!gStickyBomb.locked)
+            {gWindSwitch++;
+            if (gWindSwitch == kWindSwitch)
+            {
                 gStickyBomb.acceleration.x = int(gWindPower * kWindPowerFactor);
+                gWindSwitch             = 0;
+            }}
 
             // 更新速度
             gStickyBomb.velocity.x += gStickyBomb.acceleration.x;
@@ -3977,23 +3993,23 @@ void keyDown(HWND hWnd, WPARAM wParam, LPARAM lParam)
                     gRobotWeaponOn  = true;
                     gWeaponSelected = faction[gFactionControlled].robot[gRobotControlled].weapon;
                     switch (faction[gFactionControlled].robot[gRobotControlled].weapon)
-                {
-                case iMissile:
-                    hWeaponUI = hWeaponMissile;
-                    break;
-                case iGrenade:
-                    hWeaponUI = hWeaponGrenade;
-                    break;
-                case iStickyBomb:
-                    hWeaponUI = hWeaponStickyBomb;
-                    break;
-                case iTNT:
-                    hWeaponUI = hWeaponTNT;
-                    break;
-                case iNoWeapon:
-                    hWeaponUI = hWeaponNone;
-                    break;
-                }
+                    {
+                    case iMissile:
+                        hWeaponUI = hWeaponMissile;
+                        break;
+                    case iGrenade:
+                        hWeaponUI = hWeaponGrenade;
+                        break;
+                    case iStickyBomb:
+                        hWeaponUI = hWeaponStickyBomb;
+                        break;
+                    case iTNT:
+                        hWeaponUI = hWeaponTNT;
+                        break;
+                    case iNoWeapon:
+                        hWeaponUI = hWeaponNone;
+                        break;
+                    }
                     gCameraOverride = false;
                 }
                 else

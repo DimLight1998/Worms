@@ -105,7 +105,9 @@ VectorXY gCameraVelocity;
 VectorXY gCameraTargetPosition;
 VectorXY gCameraPosition;
 
+
 int gMapKind;
+int gWindSwitch=0;
 
 bool gRobotWeaponOn       = false;    // 用以指定机器人是否持有武器，若为真，则机器人无法移动
 int  gWeaponSelected      = 0;        // 用来指定机器人所选择的武器
