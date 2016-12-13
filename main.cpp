@@ -2,7 +2,7 @@
 #include "global.h"
 
 #pragma comment(lib, "msimg32.lib")
-#pragma comment(lib,"winmm.lib")
+#pragma comment(lib, "winmm.lib")
 
 TCHAR szWindowClass[] = _T("win32app");
 TCHAR szTitle[]       = _T("Goblin's Warfare");
